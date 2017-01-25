@@ -3,7 +3,7 @@
 ## Introduction
 This is a Python SDK that allows you to send messages to either your or our cloud.
 
-You can also send SMSes via our cloud services to a given destination number of your choice!
+You can also send SMS via our cloud services to a given destination number of your choice!
 
 We understand that you may run this library in smaller, more power constraint devices.
 In the spirit of bringing connectivity to your devices, we also provided you with
