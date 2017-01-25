@@ -1,0 +1,6 @@
+argparse==1.2.1
+hjson==2.0.2
+py==1.4.32
+pytest==3.0.5
+python-wifi==0.6.1
+wsgiref==0.1.2
