@@ -1,5 +1,7 @@
 # hologram-python
 
+[![Build Status](https://travis-ci.org/hologram-io/hologram-python.svg?branch=master)](https://travis-ci.org/hologram-io/hologram-python)
+
 ## Introduction
 This is a Python SDK that allows you to send messages to either your or our cloud.
 
