@@ -26,8 +26,8 @@ ERR_PROTINVALID = 5
 
 errorCodeDescription = {
 
-    ERR_OK: 'message sent successfully',
-    ERR_CONNCLOSED: 'connection was closed so we couldn\'t read the whole message',
+    ERR_OK: 'Message sent successfully',
+    ERR_CONNCLOSED: 'Connection was closed so we couldn\'t read the whole message',
     ERR_MSGINVALID: 'Failed to parse the message',
     ERR_AUTHINVALID: 'Auth section of the message was invalid',
     ERR_PAYLOADINVALID: 'Payload type was invalid',
@@ -94,20 +94,21 @@ class HologramCloud(Raw):
 
         if not resultList:
             self.logger.error('Disconnected without getting response')
-            return ''
+            return str(resultList)
 
         responseCode = int(resultList[0])
 
         # Check for the appropriate error response code
         if responseCode == ERR_OK:
-            self.logger.info('Message received successfully')
-            return errorCodeDescription[responseCode]
+            self.logger.info(errorCodeDescription[responseCode])
         else:
             self.logger.error('Unable to receive message')
 
             try:
                 description = errorCodeDescription[responseCode]
                 if description is not None:
-                    return description
+                    self.logger.error(description)
             except KeyError:
-                return 'Unknown error: ' + str(response)
+                self.logger.error('Unknown error: ' + str(resultList))
+
+        return str(responseCode)
