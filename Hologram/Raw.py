@@ -63,7 +63,11 @@ class Raw(object):
                     break
                 resultbuf += result
 
-            sock.shutdown(socket.SHUT_RDWR)
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
+
             sock.close()
 
             self.event.broadcast('message.sent')

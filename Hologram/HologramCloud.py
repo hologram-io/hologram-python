@@ -10,6 +10,7 @@
 
 from Raw import Raw
 import Event
+import json
 
 HOLOGRAM_HOST = "cloudsocket.hologram.io"
 HOLOGRAM_PORT = 9999
@@ -53,7 +54,7 @@ class HologramCloud(Raw):
 
         result = super(HologramCloud, self).sendMessage(output, timeout)
 
-        return self.parse_hologram_result(result)
+        return self.parse_hologram_message(result)
 
     def sendSMS(self, destination_number, message):
 
@@ -64,26 +65,49 @@ class HologramCloud(Raw):
 
         result = super(HologramCloud, self).sendMessage(output)
 
-        return self.parse_hologram_result(result)
+        return self.parse_hologram_sms(result)
+
+
+    def parse_hologram_message(self, result):
+        try:
+            return self.check_hologram_result(json.loads(result))
+        except ValueError:
+            self.logger.error('Invalid response from server')
+
+        return ""
+
+    def parse_hologram_sms(self, result):
+
+        # convert the returned response to formatted list.
+        resultList = []
+        for x in result:
+            resultList.append(int(x))
+
+        return self.check_hologram_result(resultList)
 
     def enforceMaxSMSLength(self, message):
         if len(message) > MAX_SMS_LENGTH:
             raise Exception('SMS cannot be more than ' + str(MAX_SMS_LENGTH)
                             + ' characters long!')
 
-    def parse_hologram_result(self, response):
+    def check_hologram_result(self, resultList):
 
-        # Parse int and chop of trailing zero.
-        response = int(response[1])
+        if not resultList:
+            self.logger.error('Disconnected without getting response')
+            return ''
 
-        if response == ERR_OK:
+        responseCode = int(resultList[0])
+
+        # Check for the appropriate error response code
+        if responseCode == ERR_OK:
             self.logger.info('Message received successfully')
-            return errorCodeDescription[response]
+            return errorCodeDescription[responseCode]
         else:
             self.logger.error('Unable to receive message')
 
-            description = errorCodeDescription[response]
-            if description is not None:
-                return description
-            else:
+            try:
+                description = errorCodeDescription[responseCode]
+                if description is not None:
+                    return description
+            except KeyError:
                 return 'Unknown error: ' + str(response)

@@ -95,3 +95,5 @@ tags
 credentials.json
 
 .DS_Store
+
+sync-to-github.sh

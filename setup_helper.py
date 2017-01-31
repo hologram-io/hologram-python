@@ -1,6 +1,6 @@
 # Copyright 2016 Hologram (Konekt, Inc.)
 #
-# Author: Pat Wilbur <hello@konekt.io> <pdub@pdub.net>
+# Author: Hologram <support@hologram.io>
 #
 # License: MIT License
 #
