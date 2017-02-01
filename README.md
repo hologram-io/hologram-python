@@ -23,7 +23,7 @@ choose within this SDK.
 2. `scripts` -  This directory contains example Python scripts that utilize the Python SDK.
 3. `Hologram` - This directory contains all the Hologram class interfaces.
 
-You can also find more documentation [here](https://hologram.io/docs).
+You can also find more documentation [here](https://hologram.io/docs/reference/cloud/python-sdk).
 
 ## Support
 Please feel free to [reach out to us](mailto:support@hologram.io) if you have any questions/concerns.
