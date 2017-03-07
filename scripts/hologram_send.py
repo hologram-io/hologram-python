@@ -82,8 +82,8 @@ def main():
         print "DATA RECEIVED: " + str(recv)
     else:
         hologram = Hologram(credentials, message_mode='tcp-other')
-        hologram.send_host = credentials.send_host
-        hologram.send_port = credentials.send_port
+        hologram.send_host = credentials.host
+        hologram.send_port = credentials.port
         recv = hologram.sendMessage(args.message)
         print "DATA RECEIVED: " + str(recv)
 
