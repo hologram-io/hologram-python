@@ -1,4 +1,5 @@
 import sys
+import pytest
 
 sys.path.append(".")
 sys.path.append("..")
@@ -18,3 +19,8 @@ class TestEthernet(object):
 
         ethernet = Ethernet.Ethernet(interfaceName = 'eth2')
         assert ethernet.interfaceName == 'eth2'
+
+    def test_get_invalid_signal_strength(self):
+        ethernet = Ethernet.Ethernet()
+        with pytest.raises(Exception, message = 'Ethernet mode doesn\'t support this call'):
+            connectionStatus = network.getAvgSignalStrength()

@@ -9,11 +9,9 @@ class Ethernet(Network):
 
     def __init__(self, interfaceName = 'eth0'):
         self.interfaceName = interfaceName
-        self.enforceNetworkPrivileges()
         # TODO(zheng): change to ethernet library
         self.ethernet = Wireless(interfaceName)
         super(Ethernet, self).__init__()
-        self.event.broadcast('ethernet.connected')
 
     def getBitRate(self):
         bitrate = self.ethernet.wireless_info.getBitrate()
@@ -31,3 +29,9 @@ class Ethernet(Network):
 
     def isConnected(self):
         return True
+
+    def getConnectionStatus(self):
+        raise Exception('Ethernet mode doesn\'t support this call')
+
+    def getSignalStrength(self):
+        raise Exception('Ethernet mode doesn\'t support this call')

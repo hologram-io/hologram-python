@@ -9,7 +9,6 @@ class Wifi(Network):
 
     def __init__(self, interfaceName = 'wlan0'):
         self.interfaceName = interfaceName
-        self.enforceNetworkPrivileges()
         self.wifi = Wireless(interfaceName)
         super(Wifi, self).__init__()
         self.event.broadcast('wifi.connected')
@@ -53,6 +52,9 @@ class Wifi(Network):
         time.sleep(5)
         self.connect()
         return self.wifi.getAPaddr()
+
+    def getConnectionStatus(self):
+        raise Exception('WiFi mode doesn\'t support this call yet')
 
     def setAPAddress(self, ap):
         try:

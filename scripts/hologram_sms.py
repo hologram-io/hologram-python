@@ -15,8 +15,7 @@ sys.path.append(".")
 sys.path.append("..")
 
 import Hologram
-from Hologram.Hologram import Hologram
-from Hologram.Credentials import Credentials
+from Hologram.HologramCloud import HologramCloud
 
 script_description = '''
 This hologram_send program sends a message (string) to the cloud
@@ -24,7 +23,7 @@ This hologram_send program sends a message (string) to the cloud
 
 def parseArguments():
 
-    parser = argparse.ArgumentParser(description=script_description)
+    parser = argparse.ArgumentParser(description = script_description)
 
     parser.add_argument("message", nargs = '?',
                         help = 'SMS payload that will be sent to the destination number')
@@ -58,10 +57,15 @@ def main():
         if not args.cloud_key:
             args.cloud_key = data['cloud_key']
 
-    credentials = Credentials(args.cloud_id, args.cloud_key)
+    if not args.message:
+        raise Exception('A SMS message body must be provided')
+    elif not args.destination:
+        raise Exception('A destination number must be provided in order to send SMS to it')
 
-    hologram = Hologram(credentials, message_mode='hologram_cloud', authentication='csrpsk')
+    credentials = {'cloud_id': args.cloud_id, 'cloud_key': args.cloud_key}
+
+    hologram = HologramCloud(credentials)
     recv = hologram.sendSMS(args.destination, args.message) # Send SMS to destination number
-    print "DATA RECEIVED: " + str(recv)
+    print 'DATA RECEIVED: ' + str(recv)
 
 if __name__ == "__main__": main()

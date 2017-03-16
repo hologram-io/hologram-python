@@ -7,9 +7,6 @@ class BLE(Network):
         self.event = Event()
         super(BLE, self).__init__()
 
-    def getConnectionStatus(self):
-        return True
-
     def connect(self):
         self.event.broadcast('ble.connected')
         return True
@@ -17,6 +14,9 @@ class BLE(Network):
     def disconnect(self):
         self.event.broadcast('ble.disconnected')
         return True
+
+    def getConnectionStatus(self):
+        raise Exception('BLE mode doesn\'t support this call yet')
 
     def reconnect(self):
         return True

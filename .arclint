@@ -11,6 +11,7 @@
                 "E0401": "disabled",
                 "E0602": "disabled",
                 "E0603": "disabled",
+                "E1101": "disabled",
                 "W0232": "disabled",
                 "W0401": "disabled",
                 "W0403": "disabled",

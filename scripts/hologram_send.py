@@ -15,11 +15,11 @@ sys.path.append(".")
 sys.path.append("..")
 
 import Hologram
-from Hologram.Hologram import Hologram
-from Hologram.Credentials import Credentials
+from Hologram.CustomCloud import CustomCloud
+from Hologram.HologramCloud import HologramCloud
 
 script_description = '''
-This hologram_send program sends a message (string) to the cloud
+This hologram_send program sends a message (string) to a given host and port.
 '''
 
 def parseArguments():
@@ -35,9 +35,14 @@ def parseArguments():
     parser.add_argument('--cloud_key', nargs = '?',
                         help = 'Hologram cloud Key (4 characters long)')
 
-    parser.add_argument('--host', nargs = '?', help = argparse.SUPPRESS)
+    parser.add_argument('--timeout', type = int, default = 5, nargs = '?',
+                        help = 'The period in seconds before the socket closes if it doesn\'t receive a response')
+
+    parser.add_argument('--host', default = 'cloudsocket.hologram.io', nargs = '?',
+                        help = argparse.SUPPRESS)
 
     parser.add_argument('-p', '--port', type = int, nargs = '?',
+                        default = 9999,
                         help = argparse.SUPPRESS)
 
     parser.add_argument('-t', '--topic', nargs = '*',
@@ -63,28 +68,19 @@ def main():
         if not args.cloud_key:
             args.cloud_key = data['cloud_key']
 
-    credentials = Credentials(args.cloud_id, args.cloud_key)
+    credentials = {'cloud_id': args.cloud_id, 'cloud_key': args.cloud_key}
 
-    # Setting the credentials host and port.
-    if args.host:
-        credentials.host = args.host
+    # Determine which cloud type to use based on the host and port (if they are manually overriden
+    recv = ''
+    if args.host == 'cloudsocket.hologram.io' and args.port == 9999:
+        hologram = HologramCloud(credentials)
+        recv = hologram.sendMessage(args.message, topics = args.topic, timeout = args.timeout)
     else:
-        credentials.host = 'cloudsocket.hologram.io'
+        customCloud = CustomCloud(credentials,
+                                  send_host = args.host,
+                                  send_port = args.port)
+        recv = customCloud.sendMessage(args.message, timeout = args.timeout)
 
-    if args.port:
-        credentials.port = args.port
-    else:
-        credentials.port = 9999
-
-    if args.topic:
-        hologram = Hologram(credentials)
-        recv = hologram.sendMessage(args.message, topics = args.topic)
-        print "DATA RECEIVED: " + str(recv)
-    else:
-        hologram = Hologram(credentials, message_mode='tcp-other')
-        hologram.send_host = credentials.send_host
-        hologram.send_port = credentials.send_port
-        recv = hologram.sendMessage(args.message)
-        print "DATA RECEIVED: " + str(recv)
+    print "DATA RECEIVED: " + str(recv)
 
 if __name__ == "__main__": main()

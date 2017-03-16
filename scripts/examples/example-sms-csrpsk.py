@@ -14,28 +14,26 @@ sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
 
-from Hologram import Hologram
-from Hologram.Credentials import Credentials
+from Hologram.HologramCloud import HologramCloud
 
 if __name__ == "__main__":
     print ""
     print ""
     print "Testing Hologram Cloud class..."
     print ""
-    print "* Note: You can obtain CSRPSK IDs and Keys from the Devices page"
+    print "* Note: You can obtain cloud IDs and Keys from the Devices page"
     print "* at https://dashboard.hologram.io"
     print ""
 
-    CSRPSKID = raw_input("What is your CSRPSK ID? ")
-    CSRPSKKey = raw_input("What is your CSRPSK Key? ")
+    cloudID = raw_input("What is your cloud id? ")
+    cloudKey = raw_input("What is your cloud key? ")
     destination_number = raw_input("What is your destination number? ")
 
-    credentials = Credentials(CSRPSKID, CSRPSKKey)
-
-    hologram = Hologram(credentials)
+    credentials = {'cloud_id': cloudID, 'cloud_key': cloudKey}
+    hologram = HologramCloud(credentials, enable_inbound = False)
 
     print ""
-    recv =hologram.sendSMS(destination_number, "Hello, Python!") # Send SMS to destination number
+    recv = hologram.sendSMS(destination_number, "Hello, Python!") # Send SMS to destination number
     print "DATA RECEIVED: " + str(recv)
 
     print ""

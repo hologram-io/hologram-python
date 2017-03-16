@@ -1,3 +1,2 @@
-__all__ = ['Cellular', 'BLE', 'Wifi', 'Ethernet', 'Network', 'NonNetwork']
+__all__ = ['Cellular', 'BLE', 'Wifi', 'Ethernet', 'Network']
 from Network import *
-from ..Event import *

@@ -1,0 +1,20 @@
+2017-03-16 Hologram <support@hologram.io>
+    * Released hologram-python version 0.3.0
+    * Added network interfaces for the Hologram SDK.
+    * Added cellular network support via PPP for the iota, Huawei MS2131, and E303 modems.
+
+2017-02-14 Hologram <support@hologram.io>
+	* Released hologram-python version 0.2.0
+	* Refactored Cloud interfaces - They are now named Cloud, CustomCloud and
+	HologramCloud instead of Raw and Cloud.
+	* Added more *Cloud interface unit tests
+	* Added inbound connection interface.
+	* Added socket timeout flags for both inbound and outbound interfaces.
+	* Added and optimized Hologram CLI scripts.
+	* HologramCloud now parses Hologram specific return types and alerts the
+	user via the logging framework.
+
+2017-02-01 Hologram <support@hologram.io>
+	* Released hologram-python version 0.1.1
+	* Added sendMessage and sendSMS functionality.
+	* Examples and unit tests.

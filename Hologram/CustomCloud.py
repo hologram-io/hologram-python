@@ -1,0 +1,242 @@
+# CustomCloud.py - Hologram Python SDK Custom Cloud interface
+#
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+#
+# LICENSE: Distributed under the terms of the MIT License
+
+from Cloud import Cloud
+import socket
+import threading
+
+MAX_QUEUED_CONNECTIONS = 5
+RECEIVE_TIMEOUT = 5
+
+class CustomCloud(Cloud):
+
+    def __init__(self, credentials, send_host = '', send_port = 0,
+                 receive_host = '', receive_port = 0, enable_inbound = False,
+                 network = ''):
+
+        # Enforce that the send and receive configs are set before using the class.
+        if enable_inbound and (receive_host == '' or receive_port == 0):
+            raise Exception('Must set receive host and port for inbound connection')
+
+        super(CustomCloud, self).__init__(credentials,
+                                          send_host = send_host,
+                                          send_port = send_port,
+                                          receive_host = receive_host,
+                                          receive_port = receive_port,
+                                          network = network)
+
+        self.receiveBufferLock = threading.Lock()
+        self.receiveCV = threading.Lock()
+        self.receiveBuffer = ''
+        self.receiveSocket = None
+        self.acceptThread = None
+        self.socketClose = True
+
+        if enable_inbound == True:
+            self.initializeReceiveSocket()
+
+    # EFFECTS: Sends the message to the cloud.
+    def sendMessage(self, message, timeout = 5):
+
+        self.enforceSendHostAndPort()
+
+        try:
+            if not self._networkManager.networkActive:
+                self.addPayloadToBuffer(message)
+                return ''
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            sock.connect((self.send_host, self.send_port))
+
+            self.logger.info("Connecting to %s:", self.send_host)
+            self.logger.info("%s", self.send_port)
+
+            self.logger.info("Sending message of length %d...", len(message))
+            self.logger.info('Send: ')
+
+            self.logger.info(message)
+
+            sock.send(message)
+
+            self.logger.info('Sent.')
+
+            resultbuf = ''
+            while True:
+                try:
+                    result = sock.recv(1024)
+                except socket.timeout:
+                    break
+                if not result:
+                    break
+                resultbuf += result
+
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
+
+            sock.close()
+            self.logger.info('Socket closed.')
+
+            self.event.broadcast('message.sent')
+            return resultbuf
+
+        except (IOError):
+            self.logger.info('An error occurred while attempting to send the '
+                             + 'message to the cloud')
+            self.logger.info('Please try again.')
+            return ''
+
+    def sendSMS(self, destination_number, message):
+        raise NotImplementedError('Cannot send SMS via custom Cloud')
+
+    def initializeReceiveSocket(self):
+
+        self.enforceReceiveHostAndPort()
+
+        self.receiveCV.acquire()
+        self.receiveSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.receiveSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.logger.info('Socket created')
+        self.receiveCV.release()
+
+        self.openReceiveSocket()
+
+        return True
+
+    # EFFECTS: Opens and binds an inbound socket connection.
+    def openReceiveSocket(self):
+
+        self.receiveCV.acquire()
+
+        # Try to bind to the socket if it's already initialized.
+        try:
+            self.logger.info('Binding to socket...')
+            self.receiveSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.receiveSocket.bind((self.receive_host, self.receive_port))
+        except socket.error:
+            self.logger.info('Retrying...')
+            try:
+                self.receiveSocket.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
+            self.receiveSocket.close()
+            self.receiveSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.receiveSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.receiveSocket.bind((self.receive_host, self.receive_port))
+
+        # Set socketClose back to False since we're opening it again.
+        self.socketClose = False
+
+        # become a server socket
+        self.receiveSocket.listen(MAX_QUEUED_CONNECTIONS)
+        self.receiveCV.release()
+
+        # Spin a new thread for accepting incoming operations
+        self.acceptThread = threading.Thread(target = self.acceptIncomingConnection)
+        self.acceptThread.daemon = True
+        self.acceptThread.start()
+
+    # EFFECTS: Closes the inbound socket connection.
+    def closeReceiveSocket(self):
+
+        self.receiveCV.acquire()
+
+        self.logger.info('Closing socket...')
+
+        self.socketClose = True
+        self.receiveCV.release()
+
+        self.acceptThread.join()
+
+        self.receiveCV.acquire()
+        try:
+            self.receiveSocket.shutdown(socket.SHUT_RDWR)
+        except socket.error:
+            pass
+
+        self.receiveSocket.close()
+        self.logger.info('Socket closed.')
+
+        self.receiveCV.release()
+
+    def acceptIncomingConnection(self):
+        # This threaded infinite loop shoud keep listening on an incoming connection
+        while True:
+            self.receiveCV.acquire()
+
+            if self.socketClose:
+                self.receiveCV.release()
+                break
+
+            try:
+                self.receiveSocket.setblocking(0)
+                (clientsocket, address) = self.receiveSocket.accept()
+                self.logger.info('Connected to ' + str(address))
+                # Spin a new thread to handle the current incoming operation.
+                threading.Thread(target = self.incomingConnectionThread,
+                                 args = [clientsocket]).start()
+            except:
+                pass
+
+            self.receiveCV.release()
+
+    # EFFECTS: This threaded method accepts an inbound connection and appends
+    #          the received message onto the receive buffer.
+    #          It also broadcasts the message.received event
+    def incomingConnectionThread(self, clientsocket):
+
+        clientsocket.settimeout(RECEIVE_TIMEOUT)
+
+        # Keep parsing the received data until timeout or receive no more data.
+        recv = ''
+        while True:
+            try:
+                result = clientsocket.recv(1024)
+            except socket.timeout:
+                break
+            if not result:
+                break
+            recv += result
+
+        self.logger.info('Received message: ' + str(recv))
+
+        self.receiveBufferLock.acquire()
+
+        # Append received message into receive buffer
+        self.receiveBuffer += recv
+        self.logger.info('Receive buffer: ' + self.receiveBuffer)
+
+        self.receiveBufferLock.release()
+
+        self.event.broadcast('message.received')
+        clientsocket.close()
+
+    # EFFECTS: Returns the receive buffer and empties it.
+    def consumeReceivedMessage(self):
+        self.receiveBufferLock.acquire()
+
+        data = self.receiveBuffer
+        self.receiveBuffer = ''
+
+        self.receiveBufferLock.release()
+        return data
+
+    # EFFECTS: Makes sure that the send host and port are set before making
+    #          outbound connection.
+    def enforceSendHostAndPort(self):
+        if self.send_host == '' or self.send_port == 0:
+            raise Exception('Send host and port must be set before making this operation')
+
+    # EFFECTS: Makes sure that the receive host and port are set before making
+    #          an inbound connection.
+    def enforceReceiveHostAndPort(self):
+        if self.receive_host == '' or self.receive_port == 0:
+            raise Exception('Receive host and port must be set before making this operation')

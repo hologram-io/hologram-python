@@ -1,2 +1,2 @@
-from Hologram import Hologram
+from Hologram import *
 from Event import *

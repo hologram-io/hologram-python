@@ -8,12 +8,15 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Raw import Raw
+from CustomCloud import CustomCloud
+from Authentication import *
 import Event
 import json
 
-HOLOGRAM_HOST = "cloudsocket.hologram.io"
-HOLOGRAM_PORT = 9999
+HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
+HOLOGRAM_PORT_SEND = 9999
+HOLOGRAM_HOST_RECEIVE= '0.0.0.0'
+HOLOGRAM_PORT_RECEIVE = 4010
 MAX_SMS_LENGTH = 160
 
 # Hologram error codes
@@ -24,31 +27,44 @@ ERR_AUTHINVALID = 3
 ERR_PAYLOADINVALID = 4
 ERR_PROTINVALID = 5
 
-errorCodeDescription = {
+class HologramCloud(CustomCloud):
 
-    ERR_OK: 'Message sent successfully',
-    ERR_CONNCLOSED: 'Connection was closed so we couldn\'t read the whole message',
-    ERR_MSGINVALID: 'Failed to parse the message',
-    ERR_AUTHINVALID: 'Auth section of the message was invalid',
-    ERR_PAYLOADINVALID: 'Payload type was invalid',
-    ERR_PROTINVALID: 'Protocol type was invalid'
-}
+    _authenticationHandlers = {
+        'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
+        'totp' : TOTPAuthentication.TOTPAuthentication,
+    }
 
-class HologramCloud(Raw):
+    _errorCodeDescription = {
 
-    def __init__(self, authentication, debug = False):
-        super(HologramCloud, self).__init__(authentication = authentication,
-                                            send_host = HOLOGRAM_HOST,
-                                            send_port = HOLOGRAM_PORT,
-                                            debug = debug)
-        self.event = Event.Event()
+        ERR_OK: 'Message sent successfully',
+        ERR_CONNCLOSED: 'Connection was closed so we couldn\'t read the whole message',
+        ERR_MSGINVALID: 'Failed to parse the message',
+        ERR_AUTHINVALID: 'Auth section of the message was invalid',
+        ERR_PAYLOADINVALID: 'Payload type was invalid',
+        ERR_PROTINVALID: 'Protocol type was invalid'
+    }
+
+    def __init__(self, credentials, enable_inbound = True, network = ''):
+        super(HologramCloud, self).__init__(credentials,
+                                            send_host = HOLOGRAM_HOST_SEND,
+                                            send_port = HOLOGRAM_PORT_SEND,
+                                            receive_host = HOLOGRAM_HOST_RECEIVE,
+                                            receive_port = HOLOGRAM_PORT_RECEIVE,
+                                            enable_inbound = enable_inbound,
+                                            network = network)
+
+        # Authentication Configuration
+        if self.authenticationType not in HologramCloud._authenticationHandlers:
+            raise Exception('Invalid authentication type: %s' % self.authenticationType)
+
+        self.authentication = HologramCloud._authenticationHandlers[self.authenticationType](self.credentials)
 
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, topics = None, timeout = 5):
 
-        if self.networkDisconnected:
+        if not self._networkManager.networkActive:
             self.addPayloadToBuffer(message)
-            return ""
+            return ''
 
         output = self.authentication.buildPayloadString(message, topics)
 
@@ -67,15 +83,16 @@ class HologramCloud(Raw):
 
         return self.parse_hologram_sms(result)
 
-
+    # EFFECTS: Parses the hologram send response.
     def parse_hologram_message(self, result):
         try:
             return self.check_hologram_result(json.loads(result))
         except ValueError:
             self.logger.error('Invalid response from server')
 
-        return ""
+        return ''
 
+    # EFFECTS: Parses a hologram sms response.
     def parse_hologram_sms(self, result):
 
         # convert the returned response to formatted list.
@@ -100,12 +117,14 @@ class HologramCloud(Raw):
 
         # Check for the appropriate error response code
         if responseCode == ERR_OK:
-            self.logger.info(errorCodeDescription[responseCode])
+            self.logger.info(self._errorCodeDescription[responseCode])
         else:
             self.logger.error('Unable to receive message')
 
+            # Look up the hologram error code description and see if error can
+            # be identified.
             try:
-                description = errorCodeDescription[responseCode]
+                description = self._errorCodeDescription[responseCode]
                 if description is not None:
                     self.logger.error(description)
             except KeyError:

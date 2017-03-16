@@ -9,33 +9,35 @@
 #
 from ..Event import Event
 import os
+import logging
 
 class Network(object):
 
+    def __repr__(self):
+        return type(self).__name__
+
     def __init__(self):
         self.event = Event()
-        self.event.broadcast('network.connected')
 
-    def getConnectionStatus(self):
-        return True
+        # Logging setup.
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.setLevel(logging.INFO)
+        logging.basicConfig(level = logging.INFO)
+
+    def getSignalStrength(self):
+        raise NotImplementedError('Must instantiate a defined Network type')
 
     def connect(self):
-        self.event.broadcast('network.connected')
-        return True
+        raise NotImplementedError('Must instantiate a defined Network type')
 
     def disconnect(self):
-        self.event.broadcast('network.disconnected')
-        return True
+        raise NotImplementedError('Must instantiate a defined Network type')
 
     def reconnect(self):
-        self.event.broadcast('network.disconnected')
-        self.event.broadcast('network.connected')
-        return True
+        raise NotImplementedError('Must instantiate a defined Network type')
 
-    def enforceNetworkPrivileges(self):
-        if os.geteuid() != 0:
-            raise Exception('You need to have root privileges to use the Wifi interface.'
-                            + '\nPlease try again, this time using sudo.')
+    def getConnectionStatus(self):
+        raise NotImplementedError('Must instantiate a defined Network type')
 
     @property
     def interfaceName(self):
