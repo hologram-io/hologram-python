@@ -4,7 +4,7 @@ install:
 	python setup.py install
 
 test:
-	pytest tests -k 'not tests/Network'
+	pytest tests/Authentication tests/Event tests/MessageMode
 
 testAll:
 	pytest tests/
