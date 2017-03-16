@@ -3,6 +3,9 @@ include LICENSE
 include ChangeLog
 include MANIFEST.in
 include Makefile
+include requirements.txt
+include example-script
+include credentials.json
 include *.md
 include *.py
 recursive-include Hologram *
