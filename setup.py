@@ -42,7 +42,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Topic :: Internet',
-        'Topic :: Internet of Things',
         'Topic :: Security :: Cryptography',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
