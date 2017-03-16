@@ -21,7 +21,7 @@ if sys.platform == 'darwin':
     import setup_helper
     setup_helper.install_custom_make_tarball()
 
-version = '0.1.0'
+version = '0.3.0'
 
 setup(
     name = 'hologram-python',
