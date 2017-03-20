@@ -13,6 +13,13 @@ many popular networking interfaces such as WiFi and Cellular services, which you
 choose within this SDK.
 
 ## Installation
+
+### Pip Installation:
+
+`pip install hologram-python`
+
+### Manual Installation:
+
 1. Go ahead and `git clone` this repository.
 2. Type `cd hologram-python`
 3. After that, type `python setup.py install`
