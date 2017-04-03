@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+# cellular_receive - Hologram Python SDK command line interface (CLI) for inbound messages
+#                       via a cell network.
+#
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+
+import argparse
+import sys
+import hjson
+import time
+
+import Hologram
+from Hologram.CustomCloud import CustomCloud
+from Hologram.HologramCloud import HologramCloud
+
+script_description = '''
+This cellular-receive script accepts inbound data by establishing a cellular connection.
+'''
+
+def parseArguments():
+
+    parser = argparse.ArgumentParser(description=script_description)
+
+    parser.add_argument('-m', '--modem', nargs = '?', default = 'iota',
+                        help = 'The modem type. Choose between iota, ms2131 and e303.')
+
+    parser.add_argument('--cloud_id', nargs = '?',
+                        help = 'Hologram cloud ID (4 characters long)')
+
+    parser.add_argument('--cloud_key', nargs = '?',
+                        help = 'Hologram cloud Key (4 characters long)')
+
+    parser.add_argument('-f', '--file', nargs = '?',
+                        help = 'Configuration (HJSON) file that stores the required credentials to send the message to the cloud')
+
+    parser.add_argument('-t', '--timeout', type = int, nargs = '?', default = -1,
+                        help = 'The number of seconds before the socket is closed. Default is to block indefinitely.')
+
+    return parser.parse_args()
+
+def main():
+
+    args = parseArguments()
+
+    if args.file:
+        data = None
+        with open(args.file) as credentials_file:
+            data = hjson.load(credentials_file)
+
+        if not args.cloud_id:
+            args.cloud_id = data['cloud_id']
+
+        if not args.cloud_key:
+            args.cloud_key = data['cloud_key']
+
+    credentials = {'cloud_id': args.cloud_id, 'cloud_key': args.cloud_key}
+
+    hologram = HologramCloud(credentials, enable_inbound = False,
+                             network = 'cellular-' + str(args.modem))
+
+    result = hologram.network.connect()
+    if result == False:
+        print ' Failed to connect to cell network'
+
+    hologram.initializeReceiveSocket()
+
+    if args.timeout != -1:
+        print 'waiting for ' + str(args.timeout) + ' seconds...'
+        time.sleep(args.timeout)
+    else:
+        while True:
+            time.sleep(1)
+
+    hologram.closeReceiveSocket()
+    recv = hologram.popReceivedMessage()
+    print 'Receive buffer: ' + str(recv)
+
+    hologram.network.disconnect()
+
+if __name__ == "__main__": main()

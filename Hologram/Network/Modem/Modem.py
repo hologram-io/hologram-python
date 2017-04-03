@@ -8,7 +8,9 @@
 # LICENSE: Distributed under the terms of the MIT License
 from ModemMode import PPP
 from ModemMode import Serial
+
 import logging
+import os
 
 class Modem(object):
 
@@ -18,7 +20,18 @@ class Modem(object):
     }
 
     def __init__(self, mode = 'ppp', deviceName = '/dev/ttyUSB0', baudRate = '9600',
-                 chatScriptFile = '../../example-script'):
+                 chatScriptFile = None):
+
+        # Logging setup.
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.setLevel(logging.INFO)
+        logging.basicConfig(level = logging.INFO)
+
+        if chatScriptFile is None:
+            # Get the absolute path of the chatscript file.
+            chatScriptFile = os.path.dirname(__file__) + '/chatscripts/default-script'
+
+        self.logger.info('chatscript file: ' + chatScriptFile)
 
         self._mode = None
         if mode == 'ppp':
@@ -26,11 +39,6 @@ class Modem(object):
                                chatScriptFile = chatScriptFile)
         else:
             self._mode = Serial()
-
-        # Logging setup.
-        self.logger = logging.getLogger(type(self).__name__)
-        self.logger.setLevel(logging.INFO)
-        logging.basicConfig(level = logging.INFO)
 
     def __repr__(self):
         return type(self).__name__

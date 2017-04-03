@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     customCloud.closeReceiveSocket()
 
-    recv = customCloud.consumeReceivedMessage() # Send message to Cloud
+    recv = customCloud.popReceivedMessage()
     print "DATA RECEIVED: " + str(recv)
 
     print ""

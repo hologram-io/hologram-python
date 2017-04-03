@@ -16,7 +16,7 @@ DEFAULT_MS2131_TIMEOUT = 200
 class MS2131(Modem):
 
     def __init__(self, mode = 'ppp', deviceName = MS2131_DEVICE_NAME, baudRate = '9600',
-                 chatScriptFile = '../../example-script'):
+                 chatScriptFile = None):
 
         super(MS2131, self).__init__(mode = mode, deviceName = deviceName,
                                      baudRate = baudRate, chatScriptFile = chatScriptFile)

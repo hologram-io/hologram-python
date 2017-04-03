@@ -16,7 +16,7 @@ DEFAULT_E303_TIMEOUT = 200
 class E303(Modem):
 
     def __init__(self, mode = 'ppp', deviceName = E303_DEVICE_NAME, baudRate = '9600',
-                 chatScriptFile = '../../example-script'):
+                 chatScriptFile = None):
 
         super(E303, self).__init__(mode = mode, deviceName = deviceName,
                                    baudRate = baudRate, chatScriptFile = chatScriptFile)

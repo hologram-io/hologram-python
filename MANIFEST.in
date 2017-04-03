@@ -4,10 +4,10 @@ include ChangeLog
 include MANIFEST.in
 include Makefile
 include requirements.txt
-include example-script
 include credentials.json
 include *.md
 include *.py
-recursive-include Hologram *
-recursive-include tests *
-recursive-include scripts *
+include Hologram/Network/Modem/chatscripts/default-script
+recursive-include Hologram *.py
+recursive-include tests *.py
+recursive-include scripts *.py

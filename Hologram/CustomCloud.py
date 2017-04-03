@@ -10,6 +10,7 @@
 from Cloud import Cloud
 import socket
 import threading
+from collections import deque
 
 MAX_QUEUED_CONNECTIONS = 5
 RECEIVE_TIMEOUT = 5
@@ -33,7 +34,7 @@ class CustomCloud(Cloud):
 
         self.receiveBufferLock = threading.Lock()
         self.receiveCV = threading.Lock()
-        self.receiveBuffer = ''
+        self.receiveBuffer = deque()
         self.receiveSocket = None
         self.acceptThread = None
         self.socketClose = True
@@ -211,8 +212,8 @@ class CustomCloud(Cloud):
         self.receiveBufferLock.acquire()
 
         # Append received message into receive buffer
-        self.receiveBuffer += recv
-        self.logger.info('Receive buffer: ' + self.receiveBuffer)
+        self.receiveBuffer.append(recv)
+        self.logger.info('Receive buffer: ' + str(self.receiveBuffer))
 
         self.receiveBufferLock.release()
 
@@ -220,11 +221,13 @@ class CustomCloud(Cloud):
         clientsocket.close()
 
     # EFFECTS: Returns the receive buffer and empties it.
-    def consumeReceivedMessage(self):
+    def popReceivedMessage(self):
         self.receiveBufferLock.acquire()
 
-        data = self.receiveBuffer
-        self.receiveBuffer = ''
+        if len(self.receiveBuffer) == 0:
+            data = None
+        else:
+            data = self.receiveBuffer.popleft()
 
         self.receiveBufferLock.release()
         return data
