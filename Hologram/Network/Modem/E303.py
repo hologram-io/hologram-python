@@ -15,18 +15,24 @@ DEFAULT_E303_TIMEOUT = 200
 
 class E303(Modem):
 
-    def __init__(self, mode = 'ppp', deviceName = E303_DEVICE_NAME, baudRate = '9600',
-                 chatScriptFile = None):
+    def __init__(self, device_name=E303_DEVICE_NAME, baud_rate='9600',
+                 chatscript_file=None):
 
-        super(E303, self).__init__(mode = mode, deviceName = deviceName,
-                                   baudRate = baudRate, chatScriptFile = chatScriptFile)
-        self.logger.info('Instantiated an E303 interface with device name of ' + deviceName)
+        super(E303, self).__init__(device_name=device_name, baud_rate=baud_rate,
+                                   chatscript_file=chatscript_file)
 
     def isConnected(self):
         return self._mode.connected()
 
     def connect(self, timeout = DEFAULT_E303_TIMEOUT):
+        self._enforce_modem_attached()
         return self._mode.connect(timeout = timeout)
 
     def disconnect(self):
+        self._enforce_modem_attached()
         return self._mode.disconnect()
+
+    # EFFECTS: Returns True if a E303 modem is physically attached to the machine.
+    def isModemAttached(self):
+        dev_devices = self._get_attached_devices()
+        return E303_DEVICE_NAME in dev_devices

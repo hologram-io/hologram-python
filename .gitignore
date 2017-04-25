@@ -96,4 +96,9 @@ credentials.json
 
 .DS_Store
 
-sync-to-github.sh
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~

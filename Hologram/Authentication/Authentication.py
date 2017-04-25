@@ -10,8 +10,12 @@
 class Authentication(object):
 
     def __init__(self, credentials):
-        self.data = {}
         self.credentials = credentials
 
-    def buildPayloadString(self, messages, topics=None):
-        raise NotImplementedError("Must instantiate a subclass of the Authentication class")
+    @property
+    def credentials(self):
+        return self._credentials
+
+    @credentials.setter
+    def credentials(self, credentials):
+        self._credentials = credentials

@@ -27,10 +27,10 @@ if __name__ == "__main__":
 
     cloud = CustomCloud(None, send_host = send_host, send_port = send_port)
 
-    print ""
+    print ''
 
-    print "Hologram SDK version:"
-    print cloud.getSDKVersion()
+    print 'Hologram SDK version:'
+    print cloud.version
 
     cloud.event.broadcast('network.disconnected')
 

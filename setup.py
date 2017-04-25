@@ -21,11 +21,9 @@ if sys.platform == 'darwin':
     import setup_helper
     setup_helper.install_custom_make_tarball()
 
-version = '0.4.0'
-
 setup(
     name = 'hologram-python',
-    version = version,
+    version = open('version.txt').read().split()[0],
     description = 'Library for accessing Hologram Cloud at https://hologram.io',
     long_description = longdesc,
     author = 'Hologram',
@@ -34,10 +32,10 @@ setup(
     packages = find_packages(),
     include_package_data = True,
     install_requires = open('requirements.txt').read().split(),
-    scripts = ['scripts/hologram_send', 'scripts/hologram_sms',
-               'scripts/hologram_receive', 'scripts/cellular_receive',
-               'scripts/iota_receive', 'scripts/e303_receive',
-               'scripts/ms2131_receive'],
+    scripts = ['scripts/hologram_send',
+               'scripts/hologram_sms', 'scripts/hologram_receive',
+               'scripts/cellular_receive', 'scripts/iota_receive',
+               'scripts/e303_receive', 'scripts/ms2131_receive'],
     license = 'MIT',
     platforms = 'Posix; MacOS X; Windows',
     classifiers = [

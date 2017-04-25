@@ -1,6 +1,5 @@
 #
-# example-send-iota.py - Example of using the iota modem to send messages
-#                          to the Hologram Cloud.
+# example-serial-iota.py - Example of using serial mode on the iota modem.
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -32,21 +31,6 @@ if __name__ == "__main__":
 
     hologram = HologramCloud(credentials, enable_inbound = False, network='cellular-iota')
 
-    result = hologram.network.connect()
-    if result == False:
-        print 'Failed to connect to cell network'
-
-    print 'Cloud type: ' + str(hologram)
-
-    print 'Network type: ' + hologram.network_type
-
-    recv = hologram.sendMessage("one two three!",
-                                topics = ["TWO MORE TIMES","TOPIC TOPIC"],
-                                timeout = 3)
-
-    print 'DATA RECEIVED: ' + str(recv)
-
-    print 'LOCAL IP ADDRESS: ' + hologram.network.localIPAddress
-    print 'REMOTE IP ADDRESS: ' + hologram.network.remoteIPAddress
-
-    hologram.network.disconnect()
+    print 'Signal strength: ' + hologram.network.signal_strength
+    print 'IMSI: ' + hologram.network.imsi
+    print 'ICCID: ' + hologram.network.iccid

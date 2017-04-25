@@ -6,42 +6,37 @@
 #
 #
 # LICENSE: Distributed under the terms of the MIT License
-from ModemMode import PPP
-from ModemMode import Serial
+from IModem import IModem
+from ModemMode import *
 
 import logging
 import os
 
-class Modem(object):
+DEFAULT_CHATSCRIPT_PATH = '/chatscripts/default-script'
 
-    _modeHandlers = {
-        'ppp': PPP,
-        'serial': Serial,
-    }
+class Modem(IModem):
 
-    def __init__(self, mode = 'ppp', deviceName = '/dev/ttyUSB0', baudRate = '9600',
-                 chatScriptFile = None):
+    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
+                 chatscript_file=None):
+
+        super(Modem, self).__init__(device_name=device_name,baud_rate=baud_rate)
 
         # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.INFO)
         logging.basicConfig(level = logging.INFO)
 
-        if chatScriptFile is None:
+        if chatscript_file is None:
             # Get the absolute path of the chatscript file.
-            chatScriptFile = os.path.dirname(__file__) + '/chatscripts/default-script'
+            chatscript_file = os.path.dirname(__file__) + DEFAULT_CHATSCRIPT_PATH
 
-        self.logger.info('chatscript file: ' + chatScriptFile)
+        self.logger.info('chatscript file: ' + chatscript_file)
 
-        self._mode = None
-        if mode == 'ppp':
-            self._mode = PPP(deviceName = deviceName, baudRate = baudRate,
-                               chatScriptFile = chatScriptFile)
-        else:
-            self._mode = Serial()
-
-    def __repr__(self):
-        return type(self).__name__
+        self._serial_mode = Serial()
+        self._mode = PPP(device_name=device_name, baud_rate=baud_rate,
+                         chatscript_file=chatscript_file)
+        self.logger.info('Instantiated a ' + self.__repr__() \
+                         + ' interface with device name of ' + device_name)
 
     def isConnected(self):
         raise NotImplementedError('Must instantiate a Modem type')
@@ -59,6 +54,23 @@ class Modem(object):
     @property
     def remoteIPAddress(self):
         return self._mode.remoteIPAddress
+
+    # EFFECTS: Returns the Received Signal Strength Indication (RSSI) value of the modem
+    @property
+    def signal_strength(self):
+        return self._serial_mode.signal_strength
+
+    @property
+    def imsi(self):
+        return self._serial_mode.imsi
+
+    @property
+    def iccid(self):
+        return self._serial_mode.iccid
+
+    @property
+    def cell_locate(self):
+        return self._serial_mode.cell_locate
 
     @property
     def mode(self):

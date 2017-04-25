@@ -22,14 +22,13 @@ if __name__ == "__main__":
     print ""
     print "Testing Hologram Cloud class..."
     print ""
-    print "* Note: You can obtain cloud IDs and keys from the Devices page"
+    print "* Note: You can obtain device keys from the Devices page"
     print "* at https://dashboard.hologram.io"
     print ""
 
-    cloudID = raw_input("What is your cloud ID? ")
-    cloudKey = raw_input("What is your cloud key? ")
+    device_key = raw_input("What is your device key? ")
 
-    credentials = {'cloud_id': cloudID, 'cloud_key': cloudKey}
+    credentials = {'devicekey': device_key}
 
     hologram = HologramCloud(credentials, enable_inbound = False, network = 'cellular-e303')
 
@@ -39,7 +38,7 @@ if __name__ == "__main__":
 
     print 'Cloud type: ' + str(hologram)
 
-    print 'Network type: ' + hologram.getNetworkType()
+    print 'Network type: ' + hologram.network_type
 
     recv = hologram.sendMessage("one two three!",
                                 topics = ["TWO MORE TIMES","TOPIC TOPIC"],

@@ -9,65 +9,47 @@
 #
 import subprocess
 from pppd import PPPConnection
+from IPPP import IPPP
 
 DEFAULT_PPP_TIMEOUT = 200
 
-class PPP(object):
+class PPP(IPPP):
 
-    def __repr__(self):
-        return type(self).__name__
+    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
+                 chatscript_file=None):
 
-    def __init__(self, deviceName = '/dev/ttyUSB0', baudRate = '9600',
-                 chatScriptFile = None):
+        super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
+                                  chatscript_file=chatscript_file)
 
-        self.deviceName = deviceName
-        self.baudRate = baudRate
-        self.chatScriptFile = chatScriptFile
-
-        if self.chatScriptFile == None:
-            raise Exception('Must specify chatscript file')
-
-        self.connectScript = '/usr/sbin/chat -v -f ' + self.chatScriptFile
-
-        self.ppp = PPPConnection(self.deviceName, self.baudRate, 'noipdefault',
-                                 'usepeerdns', 'defaultroute', 'persist', 'noauth',
-                                 connect = self.connectScript)
+        self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
+                                  'usepeerdns', 'defaultroute', 'persist', 'noauth',
+                                  connect=self.connect_script)
 
     def isConnected(self):
-        return self.ppp.connected()
+        return self._ppp.connected()
 
-    def connect(self, timeout = DEFAULT_PPP_TIMEOUT):
-        result = self.ppp.connect(timeout = timeout)
+    # EFFECTS: Establishes a PPP connection. If this is successful, it will also
+    #          reroute packets to ppp0 interface.
+    def connect(self, timeout=DEFAULT_PPP_TIMEOUT):
+        result = self._ppp.connect(timeout=timeout)
 
         if result == True:
-            subprocess.call('ip route add 10.176.0.0/16 dev ppp0', shell=True)
-            subprocess.call('ip route add 10.254.0.0/16 dev ppp0', shell=True)
-            subprocess.call('ip route add default dev ppp0', shell=True)
+            self.__reroute_packets()
         return result
 
     def disconnect(self):
-        return self.ppp.disconnect()
+        return self._ppp.disconnect()
 
-    @property
-    def deviceName(self):
-        return self._deviceName
-
-    @deviceName.setter
-    def deviceName(self, deviceName):
-        self._deviceName = deviceName
-
-    @property
-    def baudRate(self):
-        return self._baudRate
-
-    @baudRate.setter
-    def baudRate(self, baudRate):
-        self._baudRate = baudRate
+    def __reroute_packets(self):
+        self.logger.info('Rerouting packets to ppp0 interface')
+        subprocess.call('ip route add 10.176.0.0/16 dev ppp0', shell=True)
+        subprocess.call('ip route add 10.254.0.0/16 dev ppp0', shell=True)
+        subprocess.call('ip route add default dev ppp0', shell=True)
 
     @property
     def localIPAddress(self):
-        return self.ppp.raddr
+        return self._ppp.raddr
 
     @property
     def remoteIPAddress(self):
-        return self.ppp.laddr
+        return self._ppp.laddr

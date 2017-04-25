@@ -8,10 +8,12 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Network import Network
+from ..Event import Event
+from Modem import Modem
 from Modem import E303
-from Modem import MS2131
 from Modem import IOTA
+from Modem import MS2131
+from Network import Network
 
 # Cellular return codes.
 CLOUD_DISCONNECTED = 0
@@ -27,13 +29,14 @@ class Cellular(Network):
     _modemHandlers = {
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
-        'iota' : IOTA.IOTA
+        'iota' : IOTA.IOTA,
+        '': Modem
     }
 
-    def __init__(self, modem):
+    def __init__(self, modem='', event=Event()):
         self.modem = modem
         self._connectionStatus = CLOUD_DISCONNECTED
-        super(Cellular, self).__init__()
+        super(Cellular, self).__init__(event=event)
 
     def getConnectionStatus(self):
         return self._connectionStatus
@@ -45,6 +48,10 @@ class Cellular(Network):
             self.logger.info('Successfully connected to cell network')
             self._connectionStatus = CLOUD_CONNECTED
             self.event.broadcast('cellular.connected')
+            super(Cellular, self).connect()
+        else:
+            self.logger.info('Failed to connect to cell network')
+
         return success
 
     def disconnect(self):
@@ -54,6 +61,10 @@ class Cellular(Network):
             self.logger.info('Successfully disconnected from cell network')
             self._connectionStatus = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
+            super(Cellular, self).connect()
+        else:
+            self.logger.info('Failed to disconnect from cell network')
+
         return success
 
     def reconnect(self):
@@ -61,6 +72,7 @@ class Cellular(Network):
         success = self.disconnect()
 
         if success == False:
+            self.logger.info('Failed to disconnect from cell network')
             return False
 
         return self.connect()
@@ -86,3 +98,23 @@ class Cellular(Network):
     @property
     def remoteIPAddress(self):
         return self.modem.remoteIPAddress
+
+    @property
+    def signal_strength(self):
+        return self.modem.signal_strength
+
+    @property
+    def imsi(self):
+        return self.modem.imsi
+
+    @property
+    def iccid(self):
+        return self.modem.iccid
+
+    @property
+    def active_modem_interface(self):
+        return self.modem.active_modem_interface
+
+    @property
+    def cell_locate(self):
+        return self.modem.cell_locate

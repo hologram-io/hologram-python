@@ -1,3 +1,3 @@
-__all__ = ['PPP', 'Serial']
+__all__ = ['ModemMode', 'IPPP', 'PPP', 'Serial']
 from PPP import PPP
 from Serial import Serial

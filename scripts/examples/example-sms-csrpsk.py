@@ -21,21 +21,20 @@ if __name__ == "__main__":
     print ""
     print "Testing Hologram Cloud class..."
     print ""
-    print "* Note: You can obtain cloud IDs and Keys from the Devices page"
+    print "* Note: You can obtain device keys from the Devices page"
     print "* at https://dashboard.hologram.io"
     print ""
 
-    cloudID = raw_input("What is your cloud id? ")
-    cloudKey = raw_input("What is your cloud key? ")
+    device_key = raw_input("What is your device key? ")
     destination_number = raw_input("What is your destination number? ")
 
-    credentials = {'cloud_id': cloudID, 'cloud_key': cloudKey}
+    credentials = {'devicekey': device_key}
     hologram = HologramCloud(credentials, enable_inbound = False)
 
-    print ""
+    print ''
     recv = hologram.sendSMS(destination_number, "Hello, Python!") # Send SMS to destination number
-    print "DATA RECEIVED: " + str(recv)
+    print "RESPONSE CODE RECEIVED: " + str(recv)
 
-    print ""
-    print "Testing complete."
-    print ""
+    print ''
+    print 'Testing complete.'
+    print ''

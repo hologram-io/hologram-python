@@ -5,10 +5,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Authentication import *
 
-CSRPSKID = '1234'
-CSRPSKKey = '5678'
-
-credentials = {'cloud_id':CSRPSKID, 'cloud_key':CSRPSKKey}
+credentials = {'devicekey':'12345678'}
 
 class TestAuthentication:
 

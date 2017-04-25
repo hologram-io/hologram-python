@@ -12,12 +12,15 @@
                 "E0602": "disabled",
                 "E0603": "disabled",
                 "E1101": "disabled",
+                "W0201": "disabled",
+                "W0221": "disabled",
+                "W0223": "disabled",
                 "W0232": "disabled",
                 "W0401": "disabled",
                 "W0403": "disabled",
                 "W0612": "disabled",
-                "W0201": "disabled",
-                "W0221": "disabled"
+                "W0613": "disabled",
+                "W0703": "disabled"
             }
         }
     }

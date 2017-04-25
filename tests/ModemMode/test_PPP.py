@@ -3,19 +3,19 @@ import pytest
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
-from Hologram.Network.Modem.ModemMode import PPP
+from Hologram.Network.Modem.ModemMode.MockPPP import MockPPP
 
 class TestPPP(object):
 
     def test_ppp_create(self):
-        ppp = PPP(chatScriptFile = 'test')
+        ppp = MockPPP(chatscript_file='test')
 
-        assert ppp.deviceName == '/dev/ttyUSB0'
-        assert ppp.baudRate == '9600'
-        assert ppp.isConnected() == 0
+        assert ppp.device_name == '/dev/ttyUSB0'
+        assert ppp.baud_rate == '9600'
         assert ppp.localIPAddress == None
         assert ppp.remoteIPAddress == None
+        assert ppp.connect_script == '/usr/sbin/chat -v -f test'
 
     def test_ppp_invalid_chatscript_create(self):
-        with pytest.raises(Exception, message = 'Must specify chatscript file'):
-            ppp = PPP()
+        with pytest.raises(Exception, message='Must specify chatscript file'):
+            ppp = MockPPP()

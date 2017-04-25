@@ -1,4 +1,17 @@
-2017-03-30 Hologram <support@hologram.io>
+2017-04-18 Hologram <support@hologram.io>
+    * Deprecated cloud_id and cloud_key credentials in favor of a single devicekey.
+    * Deprecated getSDKVersion() in favor of .version property.
+    * Deprecated getNetworkType() in favor of .network_type property.
+    * Deprecated mode choices in the modem interface.
+    * Added sendPeriodicMessage() feature in CustomCloud + HologramCloud interface.
+    * Added serial mode interface for cellular modems.
+    * Deprecated chatScriptFile in favor of chatscript_file. Sticking to underscores
+      for properties, camelCase for public methods/interfaces.
+    * Added credentials property in authentication class.
+    * Made certain properties persistent within the SDK (to minimize user errors
+      when trying to set/change them after instantiation.
+
+2017-04-03 Hologram <support@hologram.io>
     * Deprecated consumeReceivedMessage() interface in favor of popReceivedMessage()
     * Added more CLI scripts for sending messages via an active cellular connection.
     * Added CLI scripts that are automatically added to your PATH via setup.py.

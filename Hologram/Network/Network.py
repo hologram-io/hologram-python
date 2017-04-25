@@ -16,22 +16,18 @@ class Network(object):
     def __repr__(self):
         return type(self).__name__
 
-    def __init__(self):
-        self.event = Event()
-
+    def __init__(self, event=Event()):
+        self.event = event
         # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.INFO)
         logging.basicConfig(level = logging.INFO)
 
-    def getSignalStrength(self):
-        raise NotImplementedError('Must instantiate a defined Network type')
-
     def connect(self):
-        raise NotImplementedError('Must instantiate a defined Network type')
+        self.event.broadcast('network.connected')
 
     def disconnect(self):
-        raise NotImplementedError('Must instantiate a defined Network type')
+        self.event.broadcast('network.disconnected')
 
     def reconnect(self):
         raise NotImplementedError('Must instantiate a defined Network type')

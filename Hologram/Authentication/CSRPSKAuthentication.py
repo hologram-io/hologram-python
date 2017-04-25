@@ -8,74 +8,46 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from Authentication import Authentication
 import json
+from HologramAuthentication import HologramAuthentication
 
-LEN_CLOUD_ID = 4
-LEN_CLOUD_KEY = 4
+DEVICE_KEY_LEN = 8
 
-class CSRPSKAuthentication(Authentication):
+class CSRPSKAuthentication(HologramAuthentication):
 
     def __init__(self, credentials):
-
-        self.enforceValidCloudIDAndKey(credentials)
-        super(CSRPSKAuthentication, self).__init__(credentials = credentials)
+        self._data = {}
+        super(CSRPSKAuthentication, self).__init__(credentials=credentials)
+        self.enforceValidDeviceKey()
 
     def buildPayloadString(self, messages, topics=None):
 
-        self.enforceValidCloudIDAndKey(self.credentials)
+        self.enforceValidDeviceKey()
 
-        self.buildAuthString()
+        super(CSRPSKAuthentication, self).buildPayloadString(messages,topics=topics)
 
-        # Attach topic(s)
-        if topics is not None:
-            self.buildTopicString(topics)
-
-        # Attach message(s)
-        self.buildMessageString(messages)
-
-        send_data = json.dumps(self.data)
-        send_data += "\r\r"
-        return send_data
+        return json.dumps(self._data) + "\r\r"
 
     def buildSMSPayloadString(self, destination_number, message):
 
-        self.enforceValidCloudIDAndKey(self.credentials)
-
-        send_data = 'S' + self.credentials['cloud_id'] + self.credentials['cloud_key']
+        self.enforceValidDeviceKey()
+        send_data = 'S' + self.credentials['devicekey']
         send_data += destination_number + ' ' + message
         send_data += "\r\r"
 
         return send_data
 
-    def buildAuthString(self, timestamp = None, sequence_number = None):
-        self.storeCloudID()
-        self.storeCloudKey()
+    def buildAuthString(self, timestamp=None, sequence_number=None):
+        self._data['k'] = self.credentials['devicekey']
 
     def buildTopicString(self, topics):
-        self.storeTopics(topics)
+        self._data['t'] = topics
 
     def buildMessageString(self, messages):
-        self.storeMessages(messages)
+        self._data['d'] = messages
 
-    def enforceValidCloudIDAndKey(self, credentials):
-        if not (credentials['cloud_id'] and credentials['cloud_key']):
-            raise ValueError('Must set cloud_id and cloud_key to use CSRPSKAuthentication')
-        elif (len(credentials['cloud_id']) != LEN_CLOUD_ID \
-              or len(credentials['cloud_key']) != LEN_CLOUD_KEY):
-            raise ValueError('Cloud id and key must each be 4 characters long')
-
-    # EFFECTS: Stores the cloudID and cloudKey.
-    def storeCloudID(self):
-        self.data['s'] = self.credentials['cloud_id']
-
-    def storeCloudKey(self):
-        self.data['c'] = self.credentials['cloud_key']
-
-    # EFFECTS: Stores the topic(s)
-    def storeTopics(self, topics):
-        self.data['t'] = topics
-
-    # EFFECTS: Stores the cloud message(s).
-    def storeMessages(self, messages):
-        self.data['d'] = messages
+    def enforceValidDeviceKey(self):
+        if not (self.credentials['devicekey']):
+            raise ValueError('Must set devicekey to use CSRPSKAuthentication')
+        elif len(self.credentials['devicekey']) != DEVICE_KEY_LEN:
+            raise ValueError('Device key must be ' + str(DEVICE_KEY_LEN) + ' characters long')

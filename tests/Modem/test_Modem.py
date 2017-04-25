@@ -4,29 +4,36 @@ import pytest
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
-from Hologram.Network.Modem import Modem
+from Hologram.Network.Modem.MockModem import MockModem
 
 class TestModem(object):
 
-    def test_modem_create(self):
-        modem = Modem('ppp')
-        assert repr(modem.mode) == 'PPP'
-
-    def test_modem_serial_create(self):
-        modem = Modem(mode = 'serial')
-        assert repr(modem.mode) == 'Serial'
-
     def test_invalid_is_connected(self):
-        modem = Modem('ppp')
+        modem = MockModem()
         with pytest.raises(Exception, message = 'Must instantiate a Modem type'):
             modem.isConnected()
 
     def test_invalid_connect(self):
-        modem = Modem('ppp')
+        modem = MockModem()
         with pytest.raises(Exception, message = 'Must instantiate a Modem type'):
             modem.connect()
 
     def test_invalid_disconnect(self):
-        modem = Modem('ppp')
+        modem = MockModem()
         with pytest.raises(Exception, message = 'Must instantiate a Modem type'):
             modem.diconnect()
+
+    def test_get_result_string(self):
+        modem = MockModem()
+        assert modem.getResultString(0) == 'Modem returned OK'
+        assert modem.getResultString(-1) == 'Modem timeout'
+        assert modem.getResultString(-2) == 'Modem error'
+        assert modem.getResultString(-3) == 'Modem response doesn\'t match expected return value'
+        assert modem.getResultString(-99) == 'Unknown response code'
+
+    def test_active_modem_interface(self):
+        modem = MockModem(device_name='/dev/ttyACM0')
+        assert modem.active_modem_interface == 'iota'
+        # mock only contain /dev/ttyACM0, so it will always be iota.
+        modem = MockModem(device_name='/dev/ttyUSB0')
+        assert modem.active_modem_interface == 'iota'

@@ -7,17 +7,60 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
+import serial
+from ISerial import ISerial
 
-class Serial(object):
+DEFAULT_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
+DEFAULT_SERIAL_BAUD_RATE = 9600
 
-    def __repr__(self):
-        return type(self).__name__
+class Serial(ISerial):
 
-    def __init__(self, deviceName = '/dev/ttyUSB0', baudRate = '9600'):
-        self.deviceName = deviceName
-        self.baudRate = baudRate
-        self.localIPAddress = None
-        self.remoteIPAddress = None
+    def __init__(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
+                 baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1):
+        super(Serial, self).__init__(device_name=device_name,
+                                     baud_rate=DEFAULT_SERIAL_BAUD_RATE,
+                                     timeout=timeout)
 
-    def isConnected(self):
-        return 0
+    def openSerialPort(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
+                       baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1):
+
+        try:
+            self.serial_port = serial.Serial(device_name, baudrate=baud_rate,
+                                             bytesize=8, parity='N', stopbits=1,
+                                             timeout=timeout)
+        except Exception:
+            self.logger.error('Failed to initialize serial port')
+            return False
+
+        if not self.serial_port.isOpen():
+            self.logger.error('Failed to open serial port')
+            return False
+
+        return True
+
+    def closeSerialPort(self):
+
+        self.__enforce_serial_port_open()
+
+        try:
+            self.serial_port.close()
+        except Exception:
+            self.logger.error('Failed to close serial port')
+
+    def write(self, msg):
+
+        self.__enforce_serial_port_open()
+
+        command = 'AT' + msg + "\r"
+        self.logger.info('write command: ' + command)
+
+        self.serial_port.write(command.encode())
+        self.serial_port.flush()
+
+        response = self.serial_port.read(256)
+        return self._filter_response(msg, response)
+
+    def __enforce_serial_port_open(self):
+        if (not self.serial_port) or (not self.serial_port.isOpen()):
+            raise Exception('Serial port not open')
+

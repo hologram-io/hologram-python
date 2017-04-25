@@ -4,6 +4,7 @@ include ChangeLog
 include MANIFEST.in
 include Makefile
 include requirements.txt
+include version.txt
 include credentials.json
 include *.md
 include *.py

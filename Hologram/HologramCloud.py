@@ -8,16 +8,17 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
+import json
 from CustomCloud import CustomCloud
 from Authentication import *
 import Event
-import json
 
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
 HOLOGRAM_PORT_SEND = 9999
 HOLOGRAM_HOST_RECEIVE= '0.0.0.0'
 HOLOGRAM_PORT_RECEIVE = 4010
 MAX_SMS_LENGTH = 160
+
 
 # Hologram error codes
 ERR_OK = 0
@@ -26,6 +27,9 @@ ERR_MSGINVALID = 2
 ERR_AUTHINVALID = 3
 ERR_PAYLOADINVALID = 4
 ERR_PROTINVALID = 5
+ERR_INTERNAL = 6
+ERR_UNKNOWN = -1
+
 
 class HologramCloud(CustomCloud):
 
@@ -41,10 +45,13 @@ class HologramCloud(CustomCloud):
         ERR_MSGINVALID: 'Failed to parse the message',
         ERR_AUTHINVALID: 'Auth section of the message was invalid',
         ERR_PAYLOADINVALID: 'Payload type was invalid',
-        ERR_PROTINVALID: 'Protocol type was invalid'
+        ERR_PROTINVALID: 'Protocol type was invalid',
+        ERR_INTERNAL: 'Internal error in Hologram Cloud',
+        ERR_UNKNOWN: 'Unknown error'
     }
 
-    def __init__(self, credentials, enable_inbound = True, network = ''):
+    def __init__(self, credentials, enable_inbound = True, network = '',
+                 authentication_type = 'csrpsk'):
         super(HologramCloud, self).__init__(credentials,
                                             send_host = HOLOGRAM_HOST_SEND,
                                             send_port = HOLOGRAM_PORT_SEND,
@@ -53,11 +60,12 @@ class HologramCloud(CustomCloud):
                                             enable_inbound = enable_inbound,
                                             network = network)
 
+        self.authenticationType = authentication_type
         # Authentication Configuration
         if self.authenticationType not in HologramCloud._authenticationHandlers:
             raise Exception('Invalid authentication type: %s' % self.authenticationType)
 
-        self.authentication = HologramCloud._authenticationHandlers[self.authenticationType](self.credentials)
+        self.authentication = HologramCloud._authenticationHandlers[self.authenticationType](credentials)
 
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, topics = None, timeout = 5):
@@ -70,64 +78,61 @@ class HologramCloud(CustomCloud):
 
         result = super(HologramCloud, self).sendMessage(output, timeout)
 
-        return self.parse_hologram_message(result)
+        resultList = None
+        if self.authenticationType == 'csrpsk':
+            resultList = self.__parse_hologram_json_result(result)
+        else:
+            resultList = self.__parse_hologram_compact_result(result)
+
+        return resultList[0]
 
     def sendSMS(self, destination_number, message):
 
-        self.enforceMaxSMSLength(message)
+        self.__enforce_max_sms_length(message)
 
         output = self.authentication.buildSMSPayloadString(destination_number,
                                                            message)
 
         result = super(HologramCloud, self).sendMessage(output)
 
-        return self.parse_hologram_sms(result)
+        resultList = self.__parse_hologram_compact_result(result)
+        return resultList[0]
 
     # EFFECTS: Parses the hologram send response.
-    def parse_hologram_message(self, result):
+    def __parse_hologram_json_result(self, result):
         try:
-            return self.check_hologram_result(json.loads(result))
+            resultList = json.loads(result)
+            resultList[0] = int(resultList[0])
         except ValueError:
-            self.logger.error('Invalid response from server')
+            self.logger.error('Server replied with invalid JSON [%s]', result)
+            resultList = [ERR_UNKNOWN]
+        return resultList
 
-        return ''
 
     # EFFECTS: Parses a hologram sms response.
-    def parse_hologram_sms(self, result):
+    def __parse_hologram_compact_result(self, result):
 
         # convert the returned response to formatted list.
         resultList = []
+        if not result:
+            resultList = [ERR_UNKNOWN]
         for x in result:
-            resultList.append(int(x))
+            try:
+                resultList.append(int(x))
+            except ValueError:
+                self.logger.error('Server replied with invalid JSON [%s]', result)
+                resultList = [ERR_UNKNOWN]
+        return resultList
 
-        return self.check_hologram_result(resultList)
-
-    def enforceMaxSMSLength(self, message):
+    def __enforce_max_sms_length(self, message):
         if len(message) > MAX_SMS_LENGTH:
             raise Exception('SMS cannot be more than ' + str(MAX_SMS_LENGTH)
                             + ' characters long!')
 
-    def check_hologram_result(self, resultList):
 
-        if not resultList:
-            self.logger.error('Disconnected without getting response')
-            return str(resultList)
-
-        responseCode = int(resultList[0])
-
-        # Check for the appropriate error response code
-        if responseCode == ERR_OK:
-            self.logger.info(self._errorCodeDescription[responseCode])
-        else:
-            self.logger.error('Unable to receive message')
-
-            # Look up the hologram error code description and see if error can
-            # be identified.
-            try:
-                description = self._errorCodeDescription[responseCode]
-                if description is not None:
-                    self.logger.error(description)
-            except KeyError:
-                self.logger.error('Unknown error: ' + str(resultList))
-
-        return str(responseCode)
+    # REQUIRES: A result code (int).
+    # EFFECTS: Returns a translated string based on the given hologram result code.
+    def getResultString(self, resultCode):
+        if resultCode not in self._errorCodeDescription:
+            return 'Unknown response code'
+        return self._errorCodeDescription[resultCode]

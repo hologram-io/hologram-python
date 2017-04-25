@@ -8,6 +8,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
+
 from Wifi import Wifi
 from Ethernet import Ethernet
 from BLE import BLE
@@ -20,6 +21,7 @@ class NetworkManager(object):
 
     _networkHandlers =  {
         'wifi' : Wifi,
+        'cellular': Cellular,
         'cellular-ms2131': Cellular,
         'cellular-e303': Cellular,
         'cellular-iota': Cellular,
@@ -39,23 +41,6 @@ class NetworkManager(object):
     def networkConnected(self):
         self.networkActive = True
 
-    def connect(self, timeout = DEFAULT_NETWORK_TIMEOUT):
-        success = self.network.connect(timeout = timeout)
-        if success:
-            self.networkConnected()
-            self.event.broadcast('network.connected')
-        return success
-
-    def disconnect(self):
-        success = self.network.disconnect()
-        if success:
-            self.networkDisconnected()
-            self.event.broadcast('network.disconnected')
-        return success
-
-    def getConnectionStatus(self):
-        return self.network.getConnectionStatus()
-
     def listAvailableInterfaces(self):
         return self._networkHandlers.keys()
 
@@ -71,13 +56,13 @@ class NetworkManager(object):
         elif network not in self._networkHandlers:
             raise Exception('Invalid network type: %s' % network)
         else:
-            self.enforceNetworkPrivileges()
+            self.__enforce_network_privileges()
 
             # trim away the 2nd word (e303 in cellular-e303) and pass it into the Cellular constructor
             if network.startswith('cellular'):
-                self._network = self._networkHandlers[network](network[9:])
+                self._network = self._networkHandlers[network](network[9:], self.event)
             else:
-                self._network = self._networkHandlers[network]()
+                self._network = self._networkHandlers[network](self.event)
 
     def __repr__(self):
         if not self.network:
@@ -85,15 +70,7 @@ class NetworkManager(object):
 
         return type(self.network).__name__
 
-    def enforceNetworkPrivileges(self):
+    def __enforce_network_privileges(self):
         if os.geteuid() != 0:
             raise Exception('You need to have root privileges to use this interface.'
                             + '\nPlease try again, this time using sudo.')
-
-    @property
-    def localIPAddress(self):
-        return self.network.localIPAddress
-
-    @property
-    def remoteIPAddress(self):
-        return self.network.remoteIPAddress

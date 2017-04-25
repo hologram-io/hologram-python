@@ -7,68 +7,76 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
+import hashlib
 import hmac
 import struct
-import hashlib
-from Authentication import Authentication
+from HologramAuthentication import HologramAuthentication
 
-class HOTPAuthentication(Authentication):
+DEVICE_ID_TYPE = 'C'
+TOPIC_TYPE = 'T'
+BINARY_TYPE = 'B'
 
-    def __init__(self, credentials, last_sequence_number = -1, validate_sequence_number = True, modulus = 1000000):
-        self.last_sequence_number = last_sequence_number
-        self.validate_sequence_number = validate_sequence_number
-        self.modulus = modulus
+DEFAULT_MODULUS = 1000000
+class HOTPAuthentication(HologramAuthentication):
+
+    def __init__(self, credentials, last_sequence_number=-1,
+                 to_validate_sequence_number=True, modulus=DEFAULT_MODULUS):
+        self._last_sequence_number = last_sequence_number
+        self._to_validate_sequence_number = to_validate_sequence_number
+        self._modulus = modulus
+        self._payload = ''
         super(HOTPAuthentication, self).__init__(credentials)
 
     def buildPayloadString(self, messages, topics=None):
-        # Simple PSK auth
-        output = self.buildAuthString() + " "
+        super(HOTPAuthentication, self).buildPayloadString(messages,topics=topics)
+        return self._payload
 
-        # Attach to topic(s)
-        if topics is not None:
-            output += self.buildTopicString(topics)
+    def buildAuthString(self, timestamp=None, sequence_number=None):
 
-        # Attach message(s)
-        output += self.buildMessageString(messages)
-        output += chr(0)
-        return output
+        if timestamp == None:
+            raise ValueError('HOTP Assertion Failure: Timestamp must be specified')
 
-    def buildAuthString(self, timestamp = None, sequence_number = None):
+        self.__enforce_sequence_number(sequence_number)
 
-        if (timestamp == None):
-            raise ValueError("HOTP Assertion Failure: Timestamp must be specified")
-        if (sequence_number == None):
-            sequence_number = self.last_sequence_number + 1
-        if ((not self.validate_sequence_number) or (sequence_number > self.last_sequence_number)):
-            self.last_sequence_number = sequence_number
-            # HOTP algorithm
-            hmac_digest = hmac.new(self.credentials.private_key, struct.pack(">Q", sequence_number), hashlib.sha1).digest()
-            i = ord(hmac_digest[19]) & 15
-            return "C" + self.credentials.device_id + " " + str(timestamp) + " " + str((struct.unpack(">I", hmac_digest[i:i+4])[0] & 0x7fffffff) % self.modulus)
+        self.__update_sequence_number(sequence_number)
+
+        self.__generate_auth_payload(timestamp, sequence_number)
+
+    def __update_sequence_number(self, sequence_number):
+        if sequence_number == None:
+            self._last_sequence_number = self._last_sequence_number + 1
         else:
-            raise ValueError("HOTP Assertion Failure: Sequence number must always be greater than last sequence number for cryptographically secure transport")
+            self._last_sequence_number = sequence_number
+
+    def __generate_auth_payload(self, timestamp, sequence_number):
+        hmac_digest = hmac.new(self.credentials['private_key'],
+                               struct.pack(">Q", sequence_number), hashlib.sha1).digest()
+
+        i = ord(hmac_digest[19]) & 15
+        self._payload = DEVICE_ID_TYPE + self.credentials['device_id'] + ' ' \
+                        + str(timestamp) + ' ' \
+                        + str((struct.unpack(">I", hmac_digest[i:i+4])[0] & 0x7fffffff) % self._modulus) + ' '
 
     def buildTopicString(self, topics):
-
-        self.storeTopics(topics)
-
-        output = ""
         if type(topics) is str:
             topics = [topics]
+
         for topic in topics:
-            output += "T" + str(topic) + chr(0)
-        return output
+            self._payload += TOPIC_TYPE + str(topic) + chr(0)
 
     def buildMessageString(self, messages):
-
-        self.storeMessages(messages)
-
-        output = ""
         if type(messages) is str:
             messages = [messages]
-        for message in messages:
-            output += "B" + str(message) + chr(0)
-        return output
 
-    def setValidateSequenceNumber(self, toValidate):
-        self.validate_sequence_number = toValidate
+        for message in messages:
+            self._payload += BINARY_TYPE + str(message) + chr(0)
+        self._payload += chr(0)
+
+    def __enforce_sequence_number(self, sequence_number):
+        if self._to_validate_sequence_number == False or sequence_number == None:
+            return
+
+        if sequence_number <= self._last_sequence_number:
+            raise ValueError('HOTP Assertion Failure: Sequence number must always \
+                             be greater than last sequence number for \
+                             cryptographically secure transport')

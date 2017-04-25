@@ -62,40 +62,42 @@ class PPPConnection(object):
         self._connectThread = None
         self._outputRWLock = threading.Condition()
         self._outputReadyToRead = True
+        self.proc = None
 
         self.output = ''
 
-        commands = []
+        self._commands = []
 
         if kwargs.pop('sudo', True):
             sudo_path = kwargs.pop('sudo_path', '/usr/bin/sudo')
             if not os.path.isfile(sudo_path) or not os.access(sudo_path, os.X_OK):
                 raise IOError('%s not found' % sudo_path)
-            commands.append(sudo_path)
+            self._commands.append(sudo_path)
 
         pppd_path = kwargs.pop('pppd_path', '/usr/sbin/pppd')
         if not os.path.isfile(pppd_path) or not os.access(pppd_path, os.X_OK):
             raise IOError('%s not found' % pppd_path)
 
-        commands.append(pppd_path)
+        self._commands.append(pppd_path)
 
         for k,v in kwargs.items():
-            commands.append(k)
-            commands.append(v)
-        commands.extend(args)
-        commands.append('nodetach')
+            self._commands.append(k)
+            self._commands.append(v)
+        self._commands.extend(args)
+        self._commands.append('nodetach')
 
-        self.proc = Popen(commands, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
-
-        # set stdout to non-blocking
-        fd = self.proc.stdout.fileno()
-        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
     # EFFECTS: Spins out a new thread that connects to the network with a given
     #          timeout value. Default to DEFAULT_CONNECT_TIMEOUT seconds.
     #          Returns true if successful, false otherwise.
     def connect(self, timeout = DEFAULT_CONNECT_TIMEOUT):
+
+        self.proc = Popen(self._commands, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+
+        # set stdout to non-blocking
+        fd = self.proc.stdout.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         result = [False]
 
@@ -150,7 +152,7 @@ class PPPConnection(object):
 
     # EFFECTS: Returns true if a cellular connection is established.
     def connected(self):
-        if self.proc.poll():
+        if self.proc and self.proc.poll():
             try:
                 self.output += self.proc.stdout.read()
             except IOError as e:
@@ -167,7 +169,7 @@ class PPPConnection(object):
     # EFFECTS: Returns the local IP address.
     @property
     def laddr(self):
-        if not self._laddr:
+        if self.proc and not self._laddr:
             try:
                 self.output += self.proc.stdout.read()
             except IOError as e:
@@ -182,7 +184,7 @@ class PPPConnection(object):
     # EFFECTS: Returns the remote IP address.
     @property
     def raddr(self):
-        if not self._raddr:
+        if self.proc and not self._raddr:
             try:
                 self.output += self.proc.stdout.read()
             except IOError as e:

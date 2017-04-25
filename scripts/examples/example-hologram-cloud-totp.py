@@ -1,5 +1,5 @@
 #
-# example-cloud-csrpsk.py - Example of using CSRPRSK Authentication in the Hologram Python SDK
+# example-hologram-cloud-totp.py - Example of using TOTP Authentication in the Hologram Python SDK
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -25,11 +25,12 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    device_key = raw_input("What is your device key? ")
+    device_id = raw_input("What is your device id? ")
+    private_key = raw_input("What is your private key? ")
 
-    credentials = {'devicekey': device_key}
+    credentials = {'device_id': device_id, 'private_key': private_key}
 
-    hologram = HologramCloud(credentials, enable_inbound = False)
+    hologram = HologramCloud(credentials, enable_inbound = False, authentication_type = 'totp')
 
     print 'Hologram SDK version:'
     print hologram.version
@@ -40,8 +41,8 @@ if __name__ == "__main__":
     print 'Network type: ' + hologram.network_type
     print ''
 
-    recv = hologram.sendMessage("one two three!",
-                                topics = ["TWO MORE TIMES","TOPIC TOPIC"],
+    recv = hologram.sendMessage("YESYESYES!",
+                                topics = ["YES"],
                                 timeout = 6)
 
     print 'RESPONSE CODE RECEIVED: ' + str(recv)

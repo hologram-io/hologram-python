@@ -1,6 +1,6 @@
 #
-# example-cloud-csrpsk.py - Example of using CSRPRSK Authentication in the Hologram Python SDK
-#
+# example-hologram-cloud-periodic-send.py - Example for sending periodic messages
+#                                           to the Hologram cloud.
 # Author: Hologram <support@hologram.io>
 #
 # Copyright 2016 - Hologram (Konekt, Inc.)
@@ -9,6 +9,7 @@
 #
 
 import sys
+import time
 
 sys.path.append(".")
 sys.path.append("..")
@@ -40,9 +41,16 @@ if __name__ == "__main__":
     print 'Network type: ' + hologram.network_type
     print ''
 
-    recv = hologram.sendMessage("one two three!",
-                                topics = ["TWO MORE TIMES","TOPIC TOPIC"],
+    print 'Sending a periodic message every 10 seconds...'
+    recv = hologram.sendPeriodicMessage(10, 'This is a periodic message',
+                                topics = ['PERIODIC MESSAGES'],
                                 timeout = 6)
+
+    print 'sleeping for 20 seconds...'
+    time.sleep(20)
+    print 'waking up!'
+
+    hologram.stopPeriodicMessage()
 
     print 'RESPONSE CODE RECEIVED: ' + str(recv)
     print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)

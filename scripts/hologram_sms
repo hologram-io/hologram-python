@@ -11,6 +11,7 @@
 import argparse
 import sys
 import hjson
+import logging
 
 import Hologram
 from Hologram.HologramCloud import HologramCloud
@@ -26,17 +27,20 @@ def parseArguments():
     parser.add_argument("message", nargs = '?',
                         help = 'SMS payload that will be sent to the destination number')
 
-    parser.add_argument('--cloud_id', nargs = '?',
-                        help = 'Hologram cloud ID (4 characters long)')
+    parser.add_argument('--devicekey', nargs = '?', required=True,
+                        help = 'Hologram device key (8 characters long)')
 
-    parser.add_argument('--cloud_key', nargs = '?',
-                        help = 'Hologram cloud Key (4 characters long)')
-
-    parser.add_argument('--destination', nargs = '?',
+    parser.add_argument('--destination', nargs = '?', required=True,
                         help = 'The destination number in which the SMS will be sent')
+
+    parser.add_argument('--host', required=False, help = argparse.SUPPRESS)
+    parser.add_argument('-p', '--port', type = int, required=False,
+                        help=argparse.SUPPRESS)
 
     parser.add_argument('-f', '--file', nargs = '?',
                         help = 'Configuration (HJSON) file that stores the required credentials to send SMS')
+
+    parser.add_argument('-v', '--verbose', action = 'store_true', required = False)
 
     return parser.parse_args()
 
@@ -49,21 +53,25 @@ def main():
         with open(args.file) as credentials_file:
             data = hjson.load(credentials_file)
 
-        if not args.cloud_id:
-            args.cloud_id = data['cloud_id']
-
-        if not args.cloud_key:
-            args.cloud_key = data['cloud_key']
+        if not args.devicekey:
+            args.devicekey = data['devicekey']
 
     if not args.message:
         raise Exception('A SMS message body must be provided')
     elif not args.destination:
         raise Exception('A destination number must be provided in order to send SMS to it')
 
-    credentials = {'cloud_id': args.cloud_id, 'cloud_key': args.cloud_key}
+    loglevel = logging.WARNING
+    if args.verbose:
+        loglevel = logging.DEBUG
+
+    logging.basicConfig(level=loglevel)
+
+    credentials = {'devicekey': args.devicekey}
 
     hologram = HologramCloud(credentials)
     recv = hologram.sendSMS(args.destination, args.message) # Send SMS to destination number
-    print 'DATA RECEIVED: ' + str(recv)
+    print "RESPONSE CODE FROM CLOUD: " + str(recv)
+    print "RESPONSE MESSAGE: " + hologram.getResultString(recv)
 
 if __name__ == "__main__": main()
