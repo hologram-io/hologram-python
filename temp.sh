@@ -46,22 +46,20 @@ pause 'Press [Enter] key to continue...'
 rsync -a --exclude-from=.gitignore --exclude=.git/ --exclude=change-version-number.sh --exclude=sync-to-github.sh --exclude=.arcconfig . "${PYTHON_SDK_GITHUB_DIR:?}" --delete
 echo 'Sync successful'
 
-
-echo 'Changing to GitHub repo...'
-pause 'Press [Enter] key to continue...'
-cd "${PYTHON_SDK_GITHUB_DIR:?}" || exit
-echo 'Now in GitHub repo...'
-
 echo 'Removing TOTP and HOTP source files'
 pause 'Press [Enter] key to continue...'
 rm Hologram/Authentication/HOTPAuthentication.py
 rm Hologram/Authentication/TOTPAuthentication.py
 echo 'Removed both files successfully'
 
+echo 'Changing to GitHub repo...'
+pause 'Press [Enter] key to continue...'
+cd "${PYTHON_SDK_GITHUB_DIR:?}" || exit
+echo 'Now in GitHub repo...'
+
 echo "Committing and tagging hologram-python for ${SDK_VERSION:?} release"
 pause 'Press [Enter] key to continue...'
 git add .
-git add -u
 git commit -m "Hologram Python SDK ${SDK_VERSION:?} release"
 git tag -a "${SDK_VERSION:?}" -m "Hologram Python SDK ${SDK_VERSION:?} release"
 echo 'Committed and tagged hologram-python sdk for release'
