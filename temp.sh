@@ -3,9 +3,9 @@ set -euo pipefail
 
 # Change these values!!!
 PYTHON_SDK_GITHUB_DIR='../../GithubRepos/hologram-python'
-HOLOGRAM_DOCS_RELEASE_BRANCH='T2883'
+HOLOGRAM_DOCS_RELEASE_BRANCH='python-sdk-sprint13'
 HOLOGRAM_DOCS_DIR='../hologram-docs'
-VERSION_NUMBER='0.5.0'
+VERSION_NUMBER=$(cat version.txt)
 
 SDK_VERSION="v$VERSION_NUMBER"
 
@@ -91,22 +91,3 @@ echo 'Uploading to PyPI'
 pause 'Press [Enter] key to continue...'
 twine upload dist/*
 echo 'Upload successful!'
-
-cd -
-
-echo '-----------------------------------'
-echo 'STAGE 4: Updating Hologram Docs'
-echo '-----------------------------------'
-
-echo 'Changing to hologram-docs repo...'
-pause 'Press [Enter] key to continue...'
-cd "${HOLOGRAM_DOCS_DIR:?}" || exit
-echo 'Now in hologram-docs repo...'
-
-echo "Merge ${HOLOGRAM_DOCS_RELEASE_BRANCH:?} onto develop..."
-pause 'Press [Enter] key to continue...'
-git checkout develop
-git pull
-git checkout "${HOLOGRAM_DOCS_RELEASE_BRANCH:?}"
-arc land
-echo 'Landed docs release successfully!'

@@ -1,1 +1,1 @@
-__all__ = ['Authentication', 'HologramAuthentication', 'CSRPSKAuthentication', 'HOTPAuthentication', 'TOTPAuthentication']
+__all__ = ['Authentication', 'HologramAuthentication', 'CSRPSKAuthentication']

@@ -13,6 +13,8 @@ from CustomCloud import CustomCloud
 from Authentication import *
 import Event
 
+from HologramAuth.TOTPAuthentication import TOTPAuthentication
+
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
 HOLOGRAM_PORT_SEND = 9999
 HOLOGRAM_HOST_RECEIVE= '0.0.0.0'
@@ -35,7 +37,7 @@ class HologramCloud(CustomCloud):
 
     _authenticationHandlers = {
         'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
-        'totp' : TOTPAuthentication.TOTPAuthentication,
+        'totp' : TOTPAuthentication,
     }
 
     _errorCodeDescription = {
