@@ -93,7 +93,7 @@ def sendTOTP(args, data):
         modem = hologram.network.active_modem_interface
         hologram.credentials = {'device_id': hologram.network.iccid,
                                 'private_key': hologram.network.imsi}
-        hologram.initializeNetwork('cellular-' + str(modem))
+        hologram.initializeNetwork('cellular-' + str(modem).lower())
 
     if (hologram.credentials['device_id'] is None) or (hologram.credentials['private_key'] is None):
         raise Exception('Device id or private key not specified')
@@ -155,6 +155,9 @@ def keep_periodic_msg_alive(duration):
 # EFFECTS: Handles all hologram_send operations.
 #          This function will call the appropriate cloud/sms handler.
 def run_hologram_send(args):
+
+    if args['message'] is None:
+        raise Exception('Message body cannot be empty')
 
     if args['command_selected'] == 'send_cloud':
         run_hologram_send_cloud(args)
