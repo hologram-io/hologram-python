@@ -14,6 +14,7 @@ from Modem import E303
 from Modem import IOTA
 from Modem import MS2131
 from Network import Network
+import subprocess
 
 # Cellular return codes.
 CLOUD_DISCONNECTED = 0
@@ -34,15 +35,16 @@ class Cellular(Network):
     }
 
     def __init__(self, modem='', event=Event()):
-        self.modem = modem
-        self._connectionStatus = CLOUD_DISCONNECTED
         super(Cellular, self).__init__(event=event)
+        self._connectionStatus = CLOUD_DISCONNECTED
+        self.modem = modem
 
     def getConnectionStatus(self):
         return self._connectionStatus
 
     def connect(self, timeout = DEFAULT_CELLULAR_TIMEOUT):
         self.logger.info('Connecting to cell network with timeout of ' + str(timeout) + ' seconds')
+        self._enforce_modem_attached()
         success = self.modem.connect(timeout = timeout)
         if success:
             self.logger.info('Successfully connected to cell network')
@@ -56,6 +58,7 @@ class Cellular(Network):
 
     def disconnect(self):
         self.logger.info('Disconnecting from cell network')
+        self._enforce_modem_attached()
         success = self.modem.disconnect()
         if success:
             self.logger.info('Successfully disconnected from cell network')
@@ -77,8 +80,42 @@ class Cellular(Network):
 
         return self.connect()
 
-    def getSignalStrength(self):
-        raise Exception('Cellular mode doesn\'t support this call yet')
+    def enableSMS(self):
+        return self.modem.enableSMS()
+
+    def disableSMS(self):
+        return self.modem.disableSMS()
+
+    def popReceivedSMS(self):
+        return self.modem.popReceivedSMS()
+
+    # EFFECTS: Returns a list of devices that are physically attached and recognized
+    #          by the machine.
+    def _get_attached_devices(self):
+        return subprocess.check_output('ls /dev/tty*', stderr=subprocess.STDOUT,
+                                       shell=True)
+    def _get_active_device_name(self):
+
+        self._enforce_modem_attached()
+
+        dev_devices = self._get_attached_devices()
+        if '/dev/ttyACM0' in dev_devices:
+            self.logger.info('/dev/ttyACM0 found to be active modem interface')
+            return 'iota'
+        elif '/dev/ttyUSB0' in dev_devices:
+            self.logger.info('/dev/ttyUSB0 found to be active modem interface')
+            return 'ms2131'
+        else:
+            raise Exception('Modem device name not found')
+
+    def _enforce_modem_attached(self):
+        if self.isModemAttached() == False:
+            raise Exception('Modem is not physically connected')
+
+    # EFFECTS: Returns True if a supported modem is physically attached to the machine.
+    def isModemAttached(self):
+        dev_devices = self._get_attached_devices()
+        return ('/dev/ttyACM0' in dev_devices) or ('/dev/ttyUSB0' in dev_devices)
 
     @property
     def modem(self):
@@ -86,10 +123,11 @@ class Cellular(Network):
 
     @modem.setter
     def modem(self, modem):
+        modem = self._get_active_device_name()
         if modem not in self._modemHandlers:
             raise Exception('Invalid modem type: %s' % modem)
         else:
-            self._modem = self._modemHandlers[modem]()
+            self._modem = self._modemHandlers[modem](event=self.event)
 
     @property
     def localIPAddress(self):
@@ -112,9 +150,14 @@ class Cellular(Network):
         return self.modem.iccid
 
     @property
+    def operator(self):
+        return self.modem.operator
+
+    # This property will be set to None if a modem is not physically attached.
+    @property
     def active_modem_interface(self):
-        return self.modem.active_modem_interface
+        return repr(self.modem)
 
     @property
-    def cell_locate(self):
-        return self.modem.cell_locate
+    def location(self):
+        return self.modem.location

@@ -30,10 +30,3 @@ class TestModem(object):
         assert modem.getResultString(-2) == 'Modem error'
         assert modem.getResultString(-3) == 'Modem response doesn\'t match expected return value'
         assert modem.getResultString(-99) == 'Unknown response code'
-
-    def test_active_modem_interface(self):
-        modem = MockModem(device_name='/dev/ttyACM0')
-        assert modem.active_modem_interface == 'iota'
-        # mock only contain /dev/ttyACM0, so it will always be iota.
-        modem = MockModem(device_name='/dev/ttyUSB0')
-        assert modem.active_modem_interface == 'iota'

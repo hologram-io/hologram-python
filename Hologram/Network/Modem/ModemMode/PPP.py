@@ -18,8 +18,11 @@ class PPP(IPPP):
     def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
                  chatscript_file=None):
 
+
         super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                   chatscript_file=chatscript_file)
+
+        self.__enforce_no_existing_ppp_session()
 
         self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
                                   'usepeerdns', 'defaultroute', 'persist', 'noauth',
@@ -31,6 +34,9 @@ class PPP(IPPP):
     # EFFECTS: Establishes a PPP connection. If this is successful, it will also
     #          reroute packets to ppp0 interface.
     def connect(self, timeout=DEFAULT_PPP_TIMEOUT):
+
+        self.__enforce_no_existing_ppp_session()
+
         result = self._ppp.connect(timeout=timeout)
 
         if result == True:
@@ -39,6 +45,23 @@ class PPP(IPPP):
 
     def disconnect(self):
         return self._ppp.disconnect()
+
+    # EFFECTS: Makes sure that there are no existing PPP instances on the same
+    #          device interface.
+    def __enforce_no_existing_ppp_session(self):
+        self.logger.info('Checking for existing PPP sessions')
+        out_list = subprocess.check_output(['ps', '-axo', 'pid,user,comm,tty,args']).split('\n')
+
+        # Get the end device name, ie. /dev/ttyUSB0 becomes ttyUSB0
+        temp_device_name = self.device_name.split('/')[-1]
+
+        # Iterate over all processes and find pppd with the specific device name we're using.
+        for process in out_list:
+            if 'pppd' in process and temp_device_name in process:
+                self.logger.info('Found existing PPP session on ' + str(temp_device_name))
+                raise Exception('An existing PPP session is currently using the '
+                                + str(temp_device_name) + ' device interface. ' +
+                                'Please close/kill that process first')
 
     def __reroute_packets(self):
         self.logger.info('Rerouting packets to ppp0 interface')

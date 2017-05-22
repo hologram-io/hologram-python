@@ -1,5 +1,7 @@
 # pppd.py - Modified to satisfy Hologram's PPP requirements.
-
+#
+# Copyright (c) 2016 Michael de Villiers
+#
 # Original Author: Michael de Villiers
 # Original source code: https://github.com/cour4g3/python-pppd
 #

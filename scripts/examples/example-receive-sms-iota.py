@@ -1,5 +1,5 @@
 #
-# example-serial-iota.py - Example of using serial mode on the iota modem.
+# example-receive-sms-iota.py - Example of receiving SMS on the iota.
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -9,7 +9,7 @@
 #
 
 import sys
-
+import time
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
@@ -29,14 +29,20 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound = False, network='cellular-iota')
+    hologram = HologramCloud(credentials, enable_inbound=False, network='cellular-iota')
 
-    print 'Signal strength: ' + hologram.network.signal_strength
-    print 'IMSI: ' + hologram.network.imsi
-    print 'ICCID: ' + hologram.network.iccid
-    print 'Operator: ' + hologram.network.operator
-    print 'Modem name: ' + hologram.network.active_modem_interface
+    hologram.enableSMS()
 
-    location = hologram.network.location
-    print 'Latitude: ' + location.latitude
-    print 'Longitude: ' + location.longitude
+    print 'waiting for 20 seconds...'
+    time.sleep(20)
+
+    hologram.disableSMS()
+
+    sms_obj = hologram.popReceivedSMS()
+
+    if sms_obj is None:
+        print 'sms_obj: ' + str(sms_obj)
+    else:
+        print 'sender: ' + str(sms_obj.sender)
+        print sms_obj.timestamp
+        print 'message: ' + str(sms_obj.message)

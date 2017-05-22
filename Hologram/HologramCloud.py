@@ -100,6 +100,15 @@ class HologramCloud(CustomCloud):
         resultList = self.__parse_hologram_compact_result(result)
         return resultList[0]
 
+    def enableSMS(self):
+        return self.network.enableSMS()
+
+    def disableSMS(self):
+        return self.network.disableSMS()
+
+    def popReceivedSMS(self):
+        return self.network.popReceivedSMS()
+
     # EFFECTS: Parses the hologram send response.
     def __parse_hologram_json_result(self, result):
         try:
@@ -130,7 +139,6 @@ class HologramCloud(CustomCloud):
         if len(message) > MAX_SMS_LENGTH:
             raise Exception('SMS cannot be more than ' + str(MAX_SMS_LENGTH)
                             + ' characters long!')
-
 
     # REQUIRES: A result code (int).
     # EFFECTS: Returns a translated string based on the given hologram result code.

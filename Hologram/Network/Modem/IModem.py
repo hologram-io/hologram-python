@@ -8,8 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import logging
-import os
-import subprocess
+from ...Event import Event
 
 # Modem error codes - this is similar to what we have in Dash system firmware.
 MODEM_NO_MATCH = -3
@@ -27,13 +26,13 @@ class IModem(object):
         MODEM_OK: 'Modem returned OK'
     }
 
-    _device_name_to_modem_map = {
-        '/dev/ttyUSB0': 'ms2131', #e303 as well (this needs to be fixed)
-        '/dev/ttyACM0': 'iota'
-    }
-
-    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600'):
+    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600', event=Event()):
+        # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
+        self.logger.setLevel(logging.INFO)
+        logging.basicConfig(level = logging.INFO)
+
+        self.event = event
         self.device_name = device_name
 
     def __repr__(self):
@@ -46,15 +45,6 @@ class IModem(object):
             return 'Unknown response code'
         return self._error_code_description[result_code]
 
-    # EFFECTS: Returns True if a supported modem is physically attached to the machine.
-    def isModemAttached(self):
-        dev_devices = self._get_attached_devices()
-        return ('/dev/ttyACM0' in dev_devices) or ('/dev/ttyUSB0' in dev_devices)
-
-    def _enforce_modem_attached(self):
-        if self.isModemAttached() == False:
-            raise Exception('Modem is not physically connected')
-
     def isConnected(self):
         raise NotImplementedError('Must instantiate a Modem type')
 
@@ -62,6 +52,15 @@ class IModem(object):
         raise NotImplementedError('Must instantiate a Modem type')
 
     def disconnect(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    def enableSMS(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    def disableSMS(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    def popReceivedSMS(self):
         raise NotImplementedError('Must instantiate a Modem type')
 
     @property
@@ -86,7 +85,11 @@ class IModem(object):
         raise NotImplementedError('Must instantiate a Modem type')
 
     @property
-    def cell_locate(self):
+    def location(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    @property
+    def operator(self):
         raise NotImplementedError('Must instantiate a Modem type')
 
     @property
@@ -100,27 +103,3 @@ class IModem(object):
     @device_name.setter
     def device_name(self, device_name):
         self._device_name = device_name
-
-    # This property will be set to None if a modem is not physically attached.
-    @property
-    def active_modem_interface(self):
-        if self.isModemAttached() == False:
-            return None
-
-        dev_devices = self._get_attached_devices()
-        if '/dev/ttyACM0' in dev_devices:
-            self.logger.info('/dev/ttyACM0 found to be active modem interface')
-            self.device_name = '/dev/ttyACM0'
-        elif '/dev/ttyUSB0' in dev_devices:
-            self.logger.info('/dev/ttyUSB0 found to be active modem interface')
-            self.device_name = '/dev/ttyUSB0'
-        else:
-            raise Exception('Modem device name not found')
-
-        return self._device_name_to_modem_map[self.device_name]
-
-    # EFFECTS: Returns a list of devices that are physically attached and recognized
-    #          by the machine.
-    def _get_attached_devices(self):
-        return subprocess.check_output('ls /dev/tty*', stderr=subprocess.STDOUT,
-                                       shell=True)

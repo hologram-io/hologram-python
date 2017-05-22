@@ -43,17 +43,14 @@ if __name__ == "__main__":
 
     print 'Sending a periodic message every 10 seconds...'
     recv = hologram.sendPeriodicMessage(10, 'This is a periodic message',
-                                topics = ['PERIODIC MESSAGES'],
-                                timeout = 6)
+                                        topics=['PERIODIC MESSAGES'],
+                                        timeout=6)
 
     print 'sleeping for 20 seconds...'
     time.sleep(20)
     print 'waking up!'
 
     hologram.stopPeriodicMessage()
-
-    print 'RESPONSE CODE RECEIVED: ' + str(recv)
-    print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
 
     print ''
     print 'Testing complete.'

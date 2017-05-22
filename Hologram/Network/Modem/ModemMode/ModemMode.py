@@ -8,19 +8,21 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import logging
+from ....Event import Event
 
 class ModemMode(object):
 
     def __repr__(self):
         return type(self).__name__
 
-    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600'):
+    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600', event=Event()):
 
         # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.setLevel(logging.INFO)
         logging.basicConfig(level = logging.INFO)
 
+        self.event = event
         self.device_name = device_name
         self.baud_rate = baud_rate
 

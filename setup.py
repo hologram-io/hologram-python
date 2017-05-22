@@ -32,10 +32,7 @@ setup(
     packages = find_packages(),
     include_package_data = True,
     install_requires = open('requirements.txt').read().split(),
-    scripts = ['scripts/hologram_send',
-               'scripts/hologram_sms', 'scripts/hologram_receive',
-               'scripts/cellular_receive', 'scripts/iota_receive',
-               'scripts/e303_receive', 'scripts/ms2131_receive'],
+    scripts = ['scripts/hologram'],
     license = 'MIT',
     platforms = 'Posix; MacOS X; Windows',
     classifiers = [

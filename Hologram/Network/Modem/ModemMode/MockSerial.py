@@ -27,6 +27,13 @@ class MockSerial(ISerial):
     def closeSerialPort(self):
         pass
 
+    # This is used to simulate the internal serial buffer.
+    def setSerialBuffer(self, buff):
+        self._serial_port_buffer = buff
+
+    def getSerialBuffer(self):
+        return self._serial_port_buffer
+
     def write(self, msg):
         response = 'AT' + msg + '\r\r\n' + msg + ': 1234567890123456789\r\n\r\nOK\r\n'
-        return self._filter_response(msg, response)
+        return self._filter_return_values_from_at_response(msg, response)
