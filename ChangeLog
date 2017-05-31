@@ -1,5 +1,9 @@
+2017-06-01 Hologram <support@hologram.io>
+    * Added better spacing for CLI help subcommand descriptions
+
 2017-05-17 Hologram <support@hologram.io>
     * Added receive sms feature
+    * Added auto PPP session detection
     * Threaded serial output buffer in the Serial interface to listen for URC events
     * Deprecated hologram_* CLI commands in favor of hologram <subcommand>s.
     * Added operator, location and modem type (name) properties for cellular modems.

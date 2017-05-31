@@ -19,8 +19,6 @@ class ModemMode(object):
 
         # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
-        self.logger.setLevel(logging.INFO)
-        logging.basicConfig(level = logging.INFO)
 
         self.event = event
         self.device_name = device_name

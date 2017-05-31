@@ -18,7 +18,6 @@ class CSRPSKAuthentication(HologramAuthentication):
     def __init__(self, credentials):
         self._data = {}
         super(CSRPSKAuthentication, self).__init__(credentials=credentials)
-        self.enforceValidDeviceKey()
 
     def buildPayloadString(self, messages, topics=None):
 

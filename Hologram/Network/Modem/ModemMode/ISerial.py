@@ -122,7 +122,6 @@ class ISerial(ModemMode):
             response = self._get_at_response_from_buffer(expected_response)
             self._flush_used_response_from_serial_port_buffer(expected_response)
 
-            self.logger.info('Received a SMS: ' + str(response))
             # Spin a new thread to handle the current incoming operation.
             threading.Thread(target=self.__incoming_sms_thread,
                              args=[response]).start()
@@ -146,9 +145,9 @@ class ISerial(ModemMode):
 
         self._receive_buffer_lock.acquire()
 
-        self.logger.info('Received SMS: ' + str(response_string))
-
         serial_response = self._parse_encoded_sms_response(response_string)
+
+        self.logger.info('Received a SMS: ' + str(serial_response))
 
         # Append received message into receive buffer
         self._receive_buffer.append(serial_response)

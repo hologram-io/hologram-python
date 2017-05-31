@@ -20,8 +20,6 @@ class Network(object):
         self.event = event
         # Logging setup.
         self.logger = logging.getLogger(type(self).__name__)
-        self.logger.setLevel(logging.INFO)
-        logging.basicConfig(level = logging.INFO)
 
     def connect(self):
         self.event.broadcast('network.connected')

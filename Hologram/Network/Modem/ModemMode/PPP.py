@@ -44,13 +44,40 @@ class PPP(IPPP):
         return result
 
     def disconnect(self):
+        self.__shut_down_existing_ppp_session()
         return self._ppp.disconnect()
 
     # EFFECTS: Makes sure that there are no existing PPP instances on the same
     #          device interface.
     def __enforce_no_existing_ppp_session(self):
+
+
+        process = self.__check_for_existing_ppp_sessions()
+
+        if process is None:
+            return
+
+        pid = process.split(' ')[1]
+        raise Exception('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
+                         % (pid, self.device_name))
+
+    def __shut_down_existing_ppp_session(self):
+        process = self.__check_for_existing_ppp_sessions()
+
+        if process is None:
+            return
+
+        pid = process.split(' ')[1]
+        kill_command = 'kill ' + str(pid)
+
+        self.logger.info('Killing pid %s that currently have an active PPP session',
+                         pid)
+        subprocess.call(kill_command, shell=True)
+
+    def __check_for_existing_ppp_sessions(self):
         self.logger.info('Checking for existing PPP sessions')
-        out_list = subprocess.check_output(['ps', '-axo', 'pid,user,comm,tty,args']).split('\n')
+        out_list = subprocess.check_output(['ps', '--no-headers', '-axo',
+                                            'pid,user,tty,args']).split('\n')
 
         # Get the end device name, ie. /dev/ttyUSB0 becomes ttyUSB0
         temp_device_name = self.device_name.split('/')[-1]
@@ -58,10 +85,10 @@ class PPP(IPPP):
         # Iterate over all processes and find pppd with the specific device name we're using.
         for process in out_list:
             if 'pppd' in process and temp_device_name in process:
-                self.logger.info('Found existing PPP session on ' + str(temp_device_name))
-                raise Exception('An existing PPP session is currently using the '
-                                + str(temp_device_name) + ' device interface. ' +
-                                'Please close/kill that process first')
+                self.logger.info('Found existing PPP session on %s', temp_device_name)
+                return process
+
+        return None
 
     def __reroute_packets(self):
         self.logger.info('Rerouting packets to ppp0 interface')

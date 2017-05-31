@@ -6,6 +6,7 @@ include Makefile
 include requirements.txt
 include version.txt
 include credentials.json
+include install.sh
 include *.md
 include *.py
 include Hologram/Network/Modem/chatscripts/default-script

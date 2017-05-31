@@ -10,8 +10,10 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import argparse
+from argparse import RawTextHelpFormatter
 import logging
 import sys
+from Hologram.CustomCloud import CustomCloud
 
 from scripts.hologram_send import parse_hologram_send_args
 from scripts.hologram_send import run_hologram_send
@@ -24,34 +26,36 @@ from scripts.hologram_heartbeat import run_hologram_heartbeat
 from scripts.hologram_modem import parse_hologram_modem_args
 from scripts.hologram_modem import run_hologram_modem
 
-script_description = '''
-This hologram command line program allows you to interact with the Hologram SDK.
+cloud = CustomCloud(None)
+
+script_description = 'Hologram Python SDK version ' + str(cloud.version) + '.\n'
+script_description += '''This hologram command line program allows you to interact
+with the Hologram SDK.\n
 '''
 
-help_send = '''
-This subcommand allows you to send cloud messages to the Hologram Cloud or
-SMS to a specified destination number. Type hologram send --help for more
-information.
+help_send = '''This subcommand allows you to send cloud messages to the Hologram
+Cloud or SMS to a specified destination number. Type hologram send --help for more
+information.\n
 '''
 
-help_receive = '''
-This subcommand allows you to listen on a given host and port for
-incoming cloud messages or SMS. Type hologram receive --help for more information.
+help_receive = '''This subcommand allows you to listen on a given host and port for
+incoming cloud messages or SMS. Type hologram receive --help for more information.\n
 '''
 
-help_spacebridge = '''
-This subcommand allows you to use spacebridge by establishing a connection via
-the Python SDK. Type hologram spacebridge --help for more information.
+help_spacebridge = '''This subcommand allows you to use spacebridge by establishing
+a connection via the Python SDK. Type hologram spacebridge --help for more information.\n
 '''
 
-help_heartbeat = '''
-This subcommand allows you to send periodic messages to your device via a specified
-period parameter. Type hologram heartbeat --help for more information.
+help_heartbeat = '''This subcommand allows you to send periodic messages to your
+device via a specified period parameter. Type hologram heartbeat --help for more
+information.\n
 '''
 
-help_modem = '''
-This subcommand allows you to use the SDK to interact with a supported modem.
-Type hologram modem --help for more information.
+help_modem = '''This subcommand allows you to use the SDK to interact with a
+supported modem. Type hologram modem --help for more information.\n
+'''
+
+help_version = '''This subcommand prints the Hologram SDK version\n
 '''
 
 _command_handlers = {
@@ -65,34 +69,53 @@ _command_handlers = {
 
 def parse_operations():
 
-    parser = argparse.ArgumentParser(description=script_description)
-
-    parser.add_argument('-v', '--verbose', action = 'store_true', required=False)
+    parser = argparse.ArgumentParser(description=script_description,
+                                     formatter_class=RawTextHelpFormatter)
 
     subparsers = parser.add_subparsers(title='subcommands',
                                        description='valid subcommands')
 
     # parse hologram send subcommands
-    parser_send = subparsers.add_parser('send', help=help_send)
+    parser_send = subparsers.add_parser('send', help=help_send,
+                                        formatter_class=RawTextHelpFormatter)
     parse_hologram_send_args(parser_send)
 
     # parse hologram receive subcommands
-    parser_receive = subparsers.add_parser('receive', help=help_receive)
+    parser_receive = subparsers.add_parser('receive', help=help_receive,
+                                           formatter_class=RawTextHelpFormatter)
     parse_hologram_receive_args(parser_receive)
 
     # parse hologram spacebridge subcommands
-    parser_spacebridge = subparsers.add_parser('spacebridge', help=help_spacebridge)
+    parser_spacebridge = subparsers.add_parser('spacebridge', help=help_spacebridge,
+                                               formatter_class=RawTextHelpFormatter)
     parse_hologram_spacebridge_args(parser_spacebridge)
 
     # parse hologram heartbeat subcommands
-    parser_heartbeat = subparsers.add_parser('heartbeat', help=help_heartbeat)
+    parser_heartbeat = subparsers.add_parser('heartbeat', help=help_heartbeat,
+                                             formatter_class=RawTextHelpFormatter)
     parse_hologram_heartbeat_args(parser_heartbeat)
 
     # parse hologram modem subcommands
-    parser_modem = subparsers.add_parser('modem', help=help_modem)
+    parser_modem = subparsers.add_parser('modem', help=help_modem,
+                                         formatter_class=RawTextHelpFormatter)
     parse_hologram_modem_args(parser_modem)
 
+    # parse hologram version
+    parser_version = subparsers.add_parser('version', help=help_version,
+                                           formatter_class=RawTextHelpFormatter)
+    parse_version(parser_version)
+
     return vars(parser.parse_args())
+
+def parse_version(parser):
+    parser.set_defaults(command_selected='version')
+    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+
+def run_version(args):
+    if args['command_selected'] == 'version':
+        cloud = CustomCloud(None)
+        print cloud.version
+        sys.exit(0)
 
 # EFFECTS: Sets the log level for all SDK interfaces
 def set_log_level(is_verbose):
@@ -100,18 +123,26 @@ def set_log_level(is_verbose):
     if is_verbose:
         loglevel = logging.DEBUG
 
-    logging.basicConfig(level=loglevel)
+    logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
 
 def main():
 
     args = parse_operations()
 
+    run_version(args)
+
     set_log_level(args['verbose'])
+
+    logger = logging.getLogger('')
 
     command_selected_prefix = args['command_selected'].split('_', 1)[0]
     if command_selected_prefix not in _command_handlers:
-        raise Exception('Internal script error: Invalid network type: %s' % args['command_selected'])
+        logger.error('Internal script error: Invalid network type: %s',
+                args['command_selected'])
     else:
-        _command_handlers[command_selected_prefix](args)
+        try:
+            _command_handlers[command_selected_prefix](args)
+        except Exception as e:
+            logger.error(str(e))
 
 if __name__ == '__main__': main()

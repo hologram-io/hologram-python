@@ -1,12 +1,6 @@
-argparse==1.2.1
 hjson==2.0.2
-py==1.4.32
 pytest==3.0.5
 python-wifi==0.6.1
-packaging==16.8
-pyparsing==2.1.10
 pyserial==3.3
 python-pppd==1.0.3
 python-sdk-auth>=0.1.1
-six==1.10.0
-wsgiref==0.1.2

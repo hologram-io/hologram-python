@@ -14,6 +14,7 @@ from Ethernet import Ethernet
 from BLE import BLE
 from Cellular import Cellular
 import os
+import sys
 
 DEFAULT_NETWORK_TIMEOUT = 200
 
@@ -71,6 +72,11 @@ class NetworkManager(object):
         return type(self.network).__name__
 
     def __enforce_network_privileges(self):
-        if os.geteuid() != 0:
-            raise Exception('You need to have root privileges to use this interface.'
-                            + '\nPlease try again, this time using sudo.')
+
+        try:
+            if os.geteuid() != 0:
+                raise RuntimeError
+        except RuntimeError  as e:
+            sys.exit('You need to have root privileges to use this interface.' \
+                   + '\nPlease try again, this time using sudo.')
+

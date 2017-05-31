@@ -11,12 +11,10 @@
 from Hologram.HologramCloud import HologramCloud
 from hologram_util import handle_timeout
 
-help_data = '''
-This subcommand allows you to listen on a given host and port for incoming cloud messages.
+help_data = '''This subcommand allows you to listen on a given host and port for incoming cloud messages.\n
 '''
 
-help_sms = '''
-This subcommand allows you to listen on a given host and port for incoming SMS.
+help_sms = '''This subcommand allows you to listen on a given host and port for incoming SMS.\n
 '''
 
 def parse_hologram_receive_args(parser):
@@ -30,11 +28,6 @@ def parse_data_args(subparsers):
     parser.set_defaults(command_selected='receive_data')
     parser.add_argument('-m', '--modem', nargs='?', default='iota',
                         help='The modem type. Choose between iota, ms2131 and e303.')
-    parser.add_argument('--devicekey', nargs='?', required=True,
-                        help='Hologram device key (8 characters long)')
-    parser.add_argument('-f', '--file', nargs='?',
-                        help='Configuration (HJSON) file that stores the required \
-                              credentials to send the message to the cloud')
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
                         help='The number of seconds before the socket is closed. \
@@ -45,8 +38,6 @@ def parse_sms_args(subparsers):
     parser.set_defaults(command_selected='receive_sms')
     parser.add_argument('-m', '--modem', nargs='?', default='iota',
                         help='The modem type. Choose between iota, ms2131 and e303.')
-    parser.add_argument('--devicekey', nargs='?', required=True,
-                        help='Hologram device key (8 characters long)')
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
                         help='The number of seconds before the socket is closed. \
@@ -64,9 +55,7 @@ def run_hologram_receive(args):
 # EFFECTS: Receives data from the Hologram Cloud.
 def run_hologram_receive_data(args):
 
-    credentials = {'devicekey': args['devicekey']}
-
-    hologram = HologramCloud(credentials, enable_inbound=False,
+    hologram = HologramCloud(None, enable_inbound=False,
                              network='cellular-' + str(args['modem']))
 
     result = hologram.network.connect()
@@ -86,9 +75,7 @@ def run_hologram_receive_data(args):
 # EFFECTS: Receives SMS from the Hologram Cloud.
 def run_hologram_receive_sms(args):
 
-    credentials = {'devicekey': args['devicekey']}
-
-    hologram = HologramCloud(credentials, enable_inbound=False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
 
     hologram.enableSMS()
 
