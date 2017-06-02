@@ -95,6 +95,9 @@ class HologramCloud(CustomCloud):
         output = self.authentication.buildSMSPayloadString(destination_number,
                                                            message)
 
+        self.logger.info('Destination number: %s', destination_number)
+        self.logger.info('SMS: %s', message)
+
         result = super(HologramCloud, self).sendMessage(output)
 
         resultList = self.__parse_hologram_compact_result(result)

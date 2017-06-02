@@ -67,9 +67,9 @@ class CustomCloud(Cloud):
             sock.connect((self.send_host, self.send_port))
 
             self.logger.info("Sending message of length %d...", len(message))
-            self.logger.info('Send: ')
+            self.logger.debug('Send: ')
 
-            self.logger.info(message)
+            self.logger.debug(message)
 
             sock.send(message)
 
@@ -270,7 +270,7 @@ class CustomCloud(Cloud):
 
         # Append received message into receive buffer
         self._receive_buffer.append(recv)
-        self.logger.info('Receive buffer: ' + str(self._receive_buffer))
+        self.logger.debug('Receive buffer: ' + str(self._receive_buffer))
 
         self._receive_buffer_lock.release()
 

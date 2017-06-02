@@ -12,7 +12,7 @@ import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.5.9'
+__version__ = '0.5.10'
 
 class Cloud(object):
 
@@ -63,7 +63,7 @@ class Cloud(object):
             recv = self.sendMessage(payload)
             self.logger.info("A buffered message has been sent since an "
                              + "active connection is established")
-            self.logger.info("The buffered message sent is: " + str(payload))
+            self.logger.debug("The buffered message sent is: " + str(payload))
             self.logger.info("The buffered response is: " + str(recv))
 
     def sendMessage(self, messages, topics = None):

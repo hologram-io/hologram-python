@@ -119,7 +119,7 @@ def run_version(args):
 
 # EFFECTS: Sets the log level for all SDK interfaces
 def set_log_level(is_verbose):
-    loglevel = logging.WARNING
+    loglevel = logging.INFO
     if is_verbose:
         loglevel = logging.DEBUG
 

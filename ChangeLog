@@ -1,5 +1,8 @@
 2017-06-01 Hologram <support@hologram.io>
     * Added better spacing for CLI help subcommand descriptions
+    * Added default send cloud and receive data for Hologram CLI
+    * Turned off exception stack trace when program is terminated via SIGTERM.
+    * Better CLI messages and error handling (on CLI parameters + options).
 
 2017-05-17 Hologram <support@hologram.io>
     * Added receive sms feature

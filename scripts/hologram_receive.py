@@ -28,39 +28,31 @@ def popReceivedSMS():
     print 'Received SMS: ' + str(recv)
 
 def parse_hologram_receive_args(parser):
-    # Create a subparser
-    subparsers = parser.add_subparsers(title='subcommands')
-    parse_data_args(subparsers)
-    parse_sms_args(subparsers)
+    parser.add_argument('-m', '--modem', nargs='?', default='iota',
+                        help='The modem type. Choose between iota, ms2131 and e303.')
+    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
+                        help='The number of seconds before the socket is closed. \
+                              Default is to block indefinitely.')
+    parse_data_args(parser)
+    parse_sms_args(parser)
 
-def parse_data_args(subparsers):
-    parser = subparsers.add_parser('data', help=help_data)
+def parse_data_args(parser):
     parser.set_defaults(command_selected='receive_data')
-    parser.add_argument('-m', '--modem', nargs='?', default='iota',
-                        help='The modem type. Choose between iota, ms2131 and e303.')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
-    parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
-                        help='The number of seconds before the socket is closed. \
-                              Default is to block indefinitely.')
+    parser.add_argument('--data', action='store_true', required=False)
 
-def parse_sms_args(subparsers):
-    parser = subparsers.add_parser('sms', help=help_sms)
+def parse_sms_args(parser):
     parser.set_defaults(command_selected='receive_sms')
-    parser.add_argument('-m', '--modem', nargs='?', default='iota',
-                        help='The modem type. Choose between iota, ms2131 and e303.')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
-    parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
-                        help='The number of seconds before the socket is closed. \
-                              Default is to block indefinitely.')
+    parser.add_argument('--sms', action='store_true', required=False)
 
 def run_hologram_receive(args):
 
-    if args['command_selected'] == 'receive_data':
-        run_hologram_receive_data(args)
-    elif args['command_selected'] == 'receive_sms':
+    if args['data'] and args['sms']:
+        raise Exception('must pick either one of data or sms')
+    if args['sms']:
         run_hologram_receive_sms(args)
     else:
-        raise Exception('Internal CLI error: Invalid command_selected value')
+        run_hologram_receive_data(args)
 
 # EFFECTS: Receives data from the Hologram Cloud.
 def run_hologram_receive_data(args):
