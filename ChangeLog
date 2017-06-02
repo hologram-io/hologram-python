@@ -1,3 +1,6 @@
+2017-06-02 Hologram <support@hologram.io>
+    * Fixed Hologram Spacebridge and Heartbeat
+
 2017-06-01 Hologram <support@hologram.io>
     * Added better spacing for CLI help subcommand descriptions
     * Added default send cloud and receive data for Hologram CLI
