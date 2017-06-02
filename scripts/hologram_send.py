@@ -9,10 +9,10 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 
-import argparse
 import time
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
+import argparse
 from hologram_util import handle_timeout
 
 DEFAULT_TIMEOUT = 5
@@ -25,59 +25,50 @@ help_sms = '''This subcommand allows you to send SMS to a specified destination 
 
 # EFFECTS: Parses hologram send CLI options.
 def parse_hologram_send_args(parser):
+
     # Create a subparser
-    subparsers = parser.add_subparsers(title='subcommands')
+    parser.add_argument('--devicekey', nargs='?', help='Hologram device key (8 characters long)')
+    parser.add_argument('message', nargs='?', help='Message that will be sent to the cloud')
+    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
+    parser.add_argument('-p', '--port', required=False, help=argparse.SUPPRESS)
+    parser.add_argument('--iccid', nargs='?', help='Hologram device id')
+    parser.add_argument('--imsi', nargs='?', help='Hologram private key')
+    parser.add_argument('--authtype', default='totp', nargs='?',
+                        help='The authentication type used if HologramCloud is in use')
 
     # $ hologram send cloud ...
-    parse_cloud_args(subparsers)
+    parse_cloud_args(parser)
 
     # $ hologram send sms ...
-    parse_sms_args(subparsers)
+    parse_sms_args(parser)
 
 # EFFECTS: Parses the send cloud options. Sets the default command_selected option
 #          to send_cloud.
-def parse_cloud_args(subparsers):
-    parser = subparsers.add_parser('cloud', help=help_cloud)
+def parse_cloud_args(parser):
     parser.set_defaults(command_selected='send_cloud')
+    parser.add_argument('--cloud', action='store_true', help='Message that will be sent to the cloud')
 
-    parser.add_argument('message', nargs='?', help='Message that will be sent to the cloud')
-    parser.add_argument('--authtype', default='totp', nargs='?',
-                        help='The authentication type used if HologramCloud is in use')
     parser.add_argument('--duration', type=int, nargs='?', default=-1,
                         help='The number of seconds before periodic message ends. \
                               Default is to block indefinitely.')
-    parser.add_argument('--devicekey', nargs='?', help='Hologram device key (8 characters long)')
-    parser.add_argument('--iccid', nargs='?', help='Hologram device id')
-    parser.add_argument('--imsi', nargs='?', help='Hologram private key')
     parser.add_argument('--repeat', type=int, default=0, nargs='?',
                         help='Time period for each message send')
     parser.add_argument('--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
-                              help='The period in seconds before the socket closes \
-                                if it doesn\'t receive a response')
-    parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
-    parser.add_argument('-p', '--port', type=int, required=False,
-                        help=argparse.SUPPRESS)
+                        help='The period in seconds before the socket closes \
+                              if it doesn\'t receive a response')
     parser.add_argument('-t', '--topic', nargs = '*',
-                              help='Topics for the message (optional)')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+                        help='Topics for the message (optional)')
 
 # EFFECTS: Parses the send sms options. Sets the default command_selected option
 #          to send_sms.
-def parse_sms_args(subparsers):
-    parser = subparsers.add_parser('sms', help=help_sms)
+def parse_sms_args(parser):
+
     parser.set_defaults(command_selected='send_sms')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
-    parser.add_argument('message', nargs='?', help='Message that will be sent to the cloud')
-    parser.add_argument('--authtype', default='totp', nargs='?',
-                        help='The authentication type used if HologramCloud is in use')
-    parser.add_argument('--devicekey', nargs='?', required=True, help='Hologram device key (8 characters long)')
-    parser.add_argument('--iccid', nargs='?', help='Hologram device id')
-    parser.add_argument('--imsi', nargs='?', help='Hologram private key')
-    parser.add_argument('--destination', nargs = '?', required=True,
-                        help = 'The destination number in which the SMS will be sent')
-    parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
-    parser.add_argument('-p', '--port', type=int, required=False,
-                        help=argparse.SUPPRESS)
+    parser.add_argument('--destination', nargs='?', required=False,
+                        help='The destination number in which the SMS will be sent')
+    parser.add_argument('--sms', action='store_true',
+                        help='Message that will be sent to the cloud')
 
 # EFFECTS: Parses and sends the Hologram message using TOTP Authentication
 def sendTOTP(args, data, is_sms=False):
@@ -123,7 +114,7 @@ def sendPSK(args, data, is_sms=False):
     credentials = {'devicekey': args['devicekey']}
 
     recv = ''
-    if not is_sms or args['host'] or args['port']:
+    if not is_sms and (args['host'] is not None or args['port'] is not None):
         # we're using some custom cloud
         customCloud = CustomCloud(None,
                                   send_host=args['host'],
@@ -144,7 +135,8 @@ def send_message_helper(cloud, args, is_sms=False):
     recv = None
     if args['repeat'] == 0:
         if is_sms == True:
-            recv = cloud.sendSMS(args['destination'], args['message']) # Send SMS to destination number
+            # Send SMS to destination number
+            recv = cloud.sendSMS(args['destination'], args['message'])
         else:
             recv = cloud.sendMessage(args['message'], topics=args['topic'],
                                      timeout=args['timeout'])
@@ -162,13 +154,12 @@ def run_hologram_send(args):
 
     if args['message'] is None:
         raise Exception('Message body cannot be empty')
-
-    if args['command_selected'] == 'send_cloud':
-        run_hologram_send_cloud(args)
-    elif args['command_selected'] == 'send_sms':
+    elif args['cloud'] and args['sms']:
+        raise Exception('must pick either one of cloud or sms')
+    elif args['sms']:
         run_hologram_send_sms(args)
     else:
-        raise Exception('Internal CLI error: Invalid command_selected value')
+        run_hologram_send_cloud(args)
 
 # EFFECTS: Sends a given Hologram message to the cloud.
 def run_hologram_send_cloud(args):
@@ -181,10 +172,10 @@ def run_hologram_send_cloud(args):
 # EFFECTS: Handles and sends a SMS to a specified destination number.
 def run_hologram_send_sms(args):
 
-    if not args['message']:
-        raise Exception('A SMS message body must be provided')
-    elif not args['destination']:
-        raise Exception('A destination number must be provided in order to send SMS to it')
+    if args['devicekey'] is None:
+        raise Exception('--devicekey is required')
+    elif args['destination'] is None:
+        raise Exception('--destination missing. A destination number must be provided in order to send SMS to it')
 
     data = dict()
     if args['authtype'] == 'totp' and not args['devicekey']:
