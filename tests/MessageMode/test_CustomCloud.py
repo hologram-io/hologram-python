@@ -35,14 +35,8 @@ class TestCustomCloud(object):
     def test_invalid_send_host_and_port(self):
         customCloud = CustomCloud(None, receive_host='receive.com', receive_port=9999)
 
-        with pytest.raises(Exception, message = 'Send host and port must be set before making this operation'):
+        with pytest.raises(SystemExit, message = 'Send host and port must be set before making this operation'):
             customCloud.sendMessage("hello")
-
-    def test_invalid_receive_host_and_port(self):
-        customCloud = CustomCloud(None, send_host='receive.com', send_port=9999)
-
-        with pytest.raises(Exception, message = 'Receive host and port must be set before making this operation'):
-            customCloud.receiveMessage()
 
     def test_invalid_send_sms(self):
         customCloud = CustomCloud(None, 'test.com', 9999)

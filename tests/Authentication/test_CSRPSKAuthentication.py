@@ -22,5 +22,5 @@ class TestCSRPSKAuthentication(object):
         credentials = {'devicekey': '12345678'}
         auth = CSRPSKAuthentication(credentials)
         auth.credentials['devicekey'] = '12345'
-        with pytest.raises(Exception, message = 'Device key must be 8 characters long'):
+        with pytest.raises(SystemExit, message = 'AuthenticationError: Device key must be 8 characters long'):
             auth.buildPayloadString('test invalid device key')

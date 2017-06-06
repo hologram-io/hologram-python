@@ -9,6 +9,8 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import json
+import sys
+from Exceptions.HologramError import AuthenticationError
 from HologramAuthentication import HologramAuthentication
 
 DEVICE_KEY_LEN = 8
@@ -21,7 +23,11 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def buildPayloadString(self, messages, topics=None):
 
-        self.enforceValidDeviceKey()
+        try:
+            self.enforceValidDeviceKey()
+        except AuthenticationError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         super(CSRPSKAuthentication, self).buildPayloadString(messages,topics=topics)
 
@@ -29,7 +35,12 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def buildSMSPayloadString(self, destination_number, message):
 
-        self.enforceValidDeviceKey()
+        try:
+            self.enforceValidDeviceKey()
+        except AuthenticationError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
+
         send_data = 'S' + self.credentials['devicekey']
         send_data += destination_number + ' ' + message
         send_data += "\r\r"
@@ -47,6 +58,6 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def enforceValidDeviceKey(self):
         if not (self.credentials['devicekey']):
-            raise ValueError('Must set devicekey to use CSRPSKAuthentication')
+            raise AuthenticationError('Must set devicekey to use CSRPSKAuthentication')
         elif len(self.credentials['devicekey']) != DEVICE_KEY_LEN:
-            raise ValueError('Device key must be ' + str(DEVICE_KEY_LEN) + ' characters long')
+            raise AuthenticationError('Device key must be %d characters long' % DEVICE_KEY_LEN)

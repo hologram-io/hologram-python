@@ -1,5 +1,5 @@
 #
-# example-send-iota.py - Example of using the iota modem to send messages
+# example-cellular-send.py - Example of using the iota modem to send messages
 #                          to the Hologram Cloud.
 #
 # Author: Hologram <support@hologram.io>
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound = False, network='cellular-iota')
+    hologram = HologramCloud(credentials, enable_inbound=False, network='cellular-iota')
 
     result = hologram.network.connect()
     if result == False:
@@ -38,15 +38,15 @@ if __name__ == "__main__":
 
     print 'Cloud type: ' + str(hologram)
 
-    print 'Network type: ' + hologram.network_type
+    print 'Network type: ' + str(hologram.network_type)
 
     recv = hologram.sendMessage("one two three!",
-                                topics = ["TWO MORE TIMES","TOPIC TOPIC"],
+                                topics = ["TOPIC 1","TOPIC 2"],
                                 timeout = 3)
 
-    print 'DATA RECEIVED: ' + str(recv)
+    print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
 
-    print 'LOCAL IP ADDRESS: ' + hologram.network.localIPAddress
-    print 'REMOTE IP ADDRESS: ' + hologram.network.remoteIPAddress
+    print 'LOCAL IP ADDRESS: ' + str(hologram.network.localIPAddress)
+    print 'REMOTE IP ADDRESS: ' + str(hologram.network.remoteIPAddress)
 
     hologram.network.disconnect()

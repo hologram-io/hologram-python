@@ -26,11 +26,7 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    device_key = raw_input("What is your device key? ")
-
-    credentials = {'devicekey': device_key}
-
-    hologram = HologramCloud(credentials, enable_inbound = False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
 
     sum_RSSI = 0.0
     sum_quality = 0.0

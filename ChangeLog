@@ -1,3 +1,7 @@
+2017-06-05 Hologram <support@hologram.io>
+    * Updated requirements.txt to always use the latest python sdk auth package.
+    * Added custom Hologram exceptions to the SDK.
+
 2017-06-02 Hologram <support@hologram.io>
     * Fixed Hologram Spacebridge and Heartbeat
 

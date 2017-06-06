@@ -1,5 +1,5 @@
 #
-# example-serial-iota.py - Example of using serial mode on the iota modem.
+# example-serial-interface.py - Example of using serial interface with a supported modem.
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -25,11 +25,7 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    device_key = raw_input("What is your device key? ")
-
-    credentials = {'devicekey': device_key}
-
-    hologram = HologramCloud(credentials, enable_inbound = False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
 
     print 'Signal strength: ' + hologram.network.signal_strength
     print 'IMSI: ' + hologram.network.imsi

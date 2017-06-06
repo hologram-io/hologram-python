@@ -14,6 +14,13 @@ choose within this SDK.
 
 ## Installation
 
+### Requirements:
+
+You will need `ppp` installed on your system for the SDK to work. On Debian based
+systems, this can be done by running:
+
+`sudo apt-get install ppp`
+
 ### Pip Installation:
 
 `pip install hologram-python`

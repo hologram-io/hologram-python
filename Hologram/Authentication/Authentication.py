@@ -7,10 +7,15 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
+import logging
+
 class Authentication(object):
 
     def __init__(self, credentials):
         self.credentials = credentials
+
+        # Logging setup.
+        self.logger = logging.getLogger(type(self).__name__)
 
     @property
     def credentials(self):

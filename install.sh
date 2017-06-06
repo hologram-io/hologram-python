@@ -45,22 +45,31 @@ function install_software() {
     fi
 }
 
+# EFECTS: Returns true if the specified program is installed, false otherwise.
 function check_if_installed() {
     if command -v "$*" >/dev/null 2>&1; then
-        echo "$* is already installed."
+        return 0
     else
-        pause "Installing $*. Press [Enter] key to continue...";
-        install_software "$*"
+        return 1
     fi
 }
 
-# Check all software to see if they are installed
+# Iterate over all programs to see if they are installed
+# Installs them if necessary
 for program in ${required_programs[*]}
 do
-    check_if_installed $program
+    if [ "$program" == 'pppd' ]; then
+        if ! check_if_installed "$program"; then
+            pause "Installing $program. Press [Enter] key to continue...";
+            install_software 'ppp'
+        fi
+    elif check_if_installed "$program"; then
+        echo "$program is already installed."
+    else
+        pause "Installing $program. Press [Enter] key to continue...";
+        install_software "$program"
+    fi
 done
-
-# Check for conflicts
 
 # Install SDK itself.
 sudo pip install hologram-python

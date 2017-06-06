@@ -9,9 +9,11 @@
 
 from collections import deque
 import socket
+import sys
 import threading
 import time
 from Cloud import Cloud
+from Exceptions.HologramError import HologramError
 
 MAX_QUEUED_CONNECTIONS = 5
 RECEIVE_TIMEOUT = 5
@@ -52,9 +54,9 @@ class CustomCloud(Cloud):
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, timeout=5):
 
-        self.__enforce_send_host_and_port()
-
         try:
+            self.__enforce_send_host_and_port()
+
             if not self._networkManager.networkActive:
                 self.addPayloadToBuffer(message)
                 return ''
@@ -96,10 +98,12 @@ class CustomCloud(Cloud):
             self.event.broadcast('message.sent')
             return resultbuf
 
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
         except (IOError):
-            self.logger.info('An error occurred while attempting to send the '
-                             + 'message to the cloud')
-            self.logger.info('Please try again.')
+            self.logger.error('An error occurred while attempting to send the message to the cloud')
+            self.logger.error('Please try again.')
             return ''
 
     # REQUIRES: The interval in seconds, message body, optional topic(s) and a timeout value
@@ -107,7 +111,11 @@ class CustomCloud(Cloud):
     # EFFECTS: Sends asychronous periodic messages every interval seconds.
     def sendPeriodicMessage(self, interval, message, topics=None, timeout=5):
 
-        self._enforce_minimum_periodic_interval(interval)
+        try:
+            self._enforce_minimum_periodic_interval(interval)
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         self._periodic_msg_lock.acquire()
 
@@ -157,7 +165,11 @@ class CustomCloud(Cloud):
 
     def initializeReceiveSocket(self):
 
-        self.__enforce_receive_host_and_port()
+        try:
+            self.__enforce_receive_host_and_port()
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         self._receive_cv.acquire()
         self._receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -293,15 +305,14 @@ class CustomCloud(Cloud):
     #          outbound connection.
     def __enforce_send_host_and_port(self):
         if self.send_host == '' or self.send_port == 0:
-            raise Exception('Send host and port must be set before making this operation')
+            raise HologramError('Send host and port must be set before making this operation')
 
     # EFFECTS: Makes sure that the receive host and port are set before making
     #          an inbound connection.
     def __enforce_receive_host_and_port(self):
         if self.receive_host == '' or self.receive_port == 0:
-            raise Exception('Receive host and port must be set before making this operation')
+            raise HologramError('Receive host and port must be set before making this operation')
 
     def _enforce_minimum_periodic_interval(self, interval):
         if interval < MIN_PERIODIC_INTERVAL:
-            raise Exception('Interval cannot be less than ' + str(MIN_PERIODIC_INTERVAL)
-                            + ' seconds.')
+            raise HologramError('Interval cannot be less than %d seconds.' % MIN_PERIODIC_INTERVAL)

@@ -9,8 +9,10 @@
 #
 
 import json
+import sys
 from CustomCloud import CustomCloud
 from Authentication import *
+from Exceptions.HologramError import HologramError
 import Event
 
 from HologramAuth.TOTPAuthentication import TOTPAuthentication
@@ -35,7 +37,7 @@ ERR_UNKNOWN = -1
 
 class HologramCloud(CustomCloud):
 
-    _authenticationHandlers = {
+    _authentication_handlers = {
         'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
         'totp' : TOTPAuthentication,
     }
@@ -55,21 +57,31 @@ class HologramCloud(CustomCloud):
     def __init__(self, credentials, enable_inbound = True, network = '',
                  authentication_type = 'csrpsk'):
         super(HologramCloud, self).__init__(credentials,
-                                            send_host = HOLOGRAM_HOST_SEND,
-                                            send_port = HOLOGRAM_PORT_SEND,
-                                            receive_host = HOLOGRAM_HOST_RECEIVE,
-                                            receive_port = HOLOGRAM_PORT_RECEIVE,
-                                            enable_inbound = enable_inbound,
-                                            network = network)
+                                            send_host=HOLOGRAM_HOST_SEND,
+                                            send_port=HOLOGRAM_PORT_SEND,
+                                            receive_host=HOLOGRAM_HOST_RECEIVE,
+                                            receive_port=HOLOGRAM_PORT_RECEIVE,
+                                            enable_inbound=enable_inbound,
+                                            network=network)
 
-        self.authenticationType = authentication_type
-        # Authentication Configuration
-        if self.authenticationType not in HologramCloud._authenticationHandlers:
-            raise Exception('Invalid authentication type: %s' % self.authenticationType)
+        self.setAuthenticationType(credentials, authentication_type=authentication_type)
 
-        self.authentication = HologramCloud._authenticationHandlers[self.authenticationType](credentials)
+    # EFFECTS: Authentication Configuration
+    def setAuthenticationType(self, credentials, authentication_type='csrpsk'):
+
+        try:
+            if authentication_type not in HologramCloud._authentication_handlers:
+                raise HologramError('Invalid authentication type: %s' % authentication_type)
+
+            self.authenticationType = authentication_type
+
+            self.authentication = HologramCloud._authentication_handlers[self.authenticationType](credentials)
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
     # EFFECTS: Sends the message to the cloud.
+
     def sendMessage(self, message, topics = None, timeout = 5):
 
         if not self._networkManager.networkActive:
@@ -90,13 +102,17 @@ class HologramCloud(CustomCloud):
 
     def sendSMS(self, destination_number, message):
 
-        self.__enforce_max_sms_length(message)
+        try:
+            self.__enforce_max_sms_length(message)
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         output = self.authentication.buildSMSPayloadString(destination_number,
                                                            message)
 
-        self.logger.info('Destination number: %s', destination_number)
-        self.logger.info('SMS: %s', message)
+        self.logger.debug('Destination number: %s', destination_number)
+        self.logger.debug('SMS: %s', message)
 
         result = super(HologramCloud, self).sendMessage(output)
 
@@ -140,8 +156,7 @@ class HologramCloud(CustomCloud):
 
     def __enforce_max_sms_length(self, message):
         if len(message) > MAX_SMS_LENGTH:
-            raise Exception('SMS cannot be more than ' + str(MAX_SMS_LENGTH)
-                            + ' characters long!')
+            raise HologramError('SMS cannot be more than %d characters long' % MAX_SMS_LENGTH)
 
     # REQUIRES: A result code (int).
     # EFFECTS: Returns a translated string based on the given hologram result code.
