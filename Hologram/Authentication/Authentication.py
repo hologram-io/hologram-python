@@ -8,6 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import logging
+from logging import NullHandler
 
 class Authentication(object):
 
@@ -15,7 +16,8 @@ class Authentication(object):
         self.credentials = credentials
 
         # Logging setup.
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
 
     @property
     def credentials(self):

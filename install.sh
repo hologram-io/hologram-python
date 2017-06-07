@@ -63,6 +63,11 @@ do
             pause "Installing $program. Press [Enter] key to continue...";
             install_software 'ppp'
         fi
+    elif [ "$program" == 'pip' ]; then
+        if ! check_if_installed "$program"; then
+            pause "Installing $program. Press [Enter] key to continue...";
+            install_software 'python-pip'
+        fi
     elif check_if_installed "$program"; then
         echo "$program is already installed."
     else

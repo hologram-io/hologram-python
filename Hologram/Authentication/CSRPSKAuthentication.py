@@ -57,7 +57,9 @@ class CSRPSKAuthentication(HologramAuthentication):
         self._data['d'] = messages
 
     def enforceValidDeviceKey(self):
-        if not (self.credentials['devicekey']):
+        if type(self.credentials) is not dict:
+            raise AuthenticationError('Credentials is not a dictionary')
+        elif not (self.credentials['devicekey']):
             raise AuthenticationError('Must set devicekey to use CSRPSKAuthentication')
         elif len(self.credentials['devicekey']) != DEVICE_KEY_LEN:
             raise AuthenticationError('Device key must be %d characters long' % DEVICE_KEY_LEN)

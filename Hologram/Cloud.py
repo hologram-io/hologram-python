@@ -8,11 +8,12 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import logging
+from logging import NullHandler
 import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.5.12'
+__version__ = '0.5.13'
 
 class Cloud(object):
 
@@ -28,7 +29,8 @@ class Cloud(object):
         self.__initialize_host_and_port(send_host, send_port,
                                         receive_host, receive_port)
         # Logging setup.
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
 
         self.initializeNetwork(network)
 

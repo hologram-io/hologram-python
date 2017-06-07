@@ -8,6 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import logging
+from logging import NullHandler
 from ...Event import Event
 
 # Modem error codes - this is similar to what we have in Dash system firmware.
@@ -28,7 +29,8 @@ class IModem(object):
 
     def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600', event=Event()):
         # Logging setup.
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
 
         self.event = event
         self.device_name = device_name

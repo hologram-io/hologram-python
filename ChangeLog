@@ -1,3 +1,6 @@
+2017-06-06 Hologram <support@hologram.io>
+    * Fixed regression on custom exceptions not having a handler.
+
 2017-06-05 Hologram <support@hologram.io>
     * Updated requirements.txt to always use the latest python sdk auth package.
     * Added custom Hologram exceptions to the SDK.

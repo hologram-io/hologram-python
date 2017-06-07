@@ -10,6 +10,7 @@
 from ..Event import Event
 import os
 import logging
+from logging import NullHandler
 
 class Network(object):
 
@@ -19,7 +20,8 @@ class Network(object):
     def __init__(self, event=Event()):
         self.event = event
         # Logging setup.
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
 
     def connect(self):
         self.event.broadcast('network.connected')
