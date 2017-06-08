@@ -36,7 +36,7 @@ function pause() {
 
 function install_software() {
     if [ "$OS" == 'LINUX' ]; then
-        sudo apt-get install "$*"
+        sudo apt-get -y install "$*"
     elif [ "$OS" == 'DARWIN' ]; then
         brew install "$*"
         echo 'TODO: macOS should go here'
