@@ -1,5 +1,7 @@
 # hologram-python
 
+[![PyPI version](https://badge.fury.io/py/hologram-python.svg)](https://badge.fury.io/py/hologram-python)
+
 [![Build Status](https://travis-ci.org/hologram-io/hologram-python.svg?branch=master)](https://travis-ci.org/hologram-io/hologram-python)
 
 ## Introduction
