@@ -13,7 +13,7 @@ import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.5.13'
+__version__ = '0.5.14'
 
 class Cloud(object):
 

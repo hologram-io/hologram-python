@@ -83,7 +83,6 @@ class Serial(ISerial):
         # Remove used AT command from the serial port buffer.
         response = self._get_at_response_from_buffer(expected_response)
         self._flush_used_response_from_serial_port_buffer(expected_response)
-
         return self._filter_return_values_from_at_response(msg, response)
 
     def __enforce_serial_port_open(self):

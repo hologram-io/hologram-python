@@ -13,6 +13,7 @@ from UtilClasses import Timestamp
 from UtilClasses import SMS
 from UtilClasses import RWLock
 from ....Event import Event
+from Exceptions.HologramError import HologramError
 
 from collections import deque
 import threading
@@ -59,7 +60,12 @@ class ISerial(ModemMode):
     # EFFECTS: Cuts out the response from the echoed serial output.
     # Example: 'CSQ\r\r\n+CSQ: 11,5\r\n\r\nOK\r\n' returns 11,5
     def _filter_return_values_from_at_response(self, msg, response):
+
         regEx = "\r\n" + msg + ': '
+
+        if msg.startswith("+ULOC"):
+            regEx = "+ULOC:"
+
         return response.strip('AT' + msg).strip(regEx).strip("OK\r\n")
 
     def _set_up_pdp_context(self):
@@ -197,7 +203,7 @@ class ISerial(ModemMode):
         index = self._serial_port_buffer.find(expected_response)
         if index == -1:
             self._serial_port_lock.writer_release()
-            raise Exception('Internal SDK error: expected AT response not found')
+            raise HologramError('Internal SDK error: expected AT response not found')
 
         # This stores what came before it
         str_left = self._serial_port_buffer[:index]
@@ -321,6 +327,8 @@ class ISerial(ModemMode):
     def location(self):
         self._set_up_pdp_context()
         response = self.write('+ULOC=2,2,0,360,10', expected_response='+UULOC')
+        if response.startswith('+UULOC: '):
+            response = response[8:]
         return self._populate_location_obj(response)
 
     @property

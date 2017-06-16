@@ -12,6 +12,7 @@
 import time
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
+from Exceptions.HologramError import HologramError
 import argparse
 from hologram_util import handle_timeout
 
@@ -93,11 +94,11 @@ def sendTOTP(args, data, is_sms=False):
         hologram.initializeNetwork('cellular-' + str(modem).lower())
 
     if (hologram.credentials['device_id'] is None) or (hologram.credentials['private_key'] is None):
-        raise Exception('Device id or private key not specified or cannot be pulled from modem. Please specify them or rerun the program with a provided device key')
+        raise HologramError('Device id or private key not specified or cannot be pulled from modem. Please specify them or rerun the program with a provided device key')
 
     result = hologram.network.connect()
     if result == False:
-        raise Exception('Failed to connect to cell network')
+        raise HologramError('Failed to connect to cell network')
 
     send_message_helper(hologram, args, is_sms=is_sms)
     hologram.network.disconnect()
@@ -109,7 +110,7 @@ def sendPSK(args, data, is_sms=False):
         args['devicekey'] = data['devicekey']
 
     if not args['devicekey']:
-        raise Exception('Device key not specified')
+        raise HologramError('Device key not specified')
 
     credentials = {'devicekey': args['devicekey']}
 
@@ -153,9 +154,9 @@ def send_message_helper(cloud, args, is_sms=False):
 def run_hologram_send(args):
 
     if args['message'] is None:
-        raise Exception('Message body cannot be empty')
+        raise HologramError('Message body cannot be empty')
     elif args['cloud'] and args['sms']:
-        raise Exception('must pick either one of cloud or sms')
+        raise HologramError('must pick either one of cloud or sms')
     elif args['sms']:
         run_hologram_send_sms(args)
     else:
@@ -173,9 +174,9 @@ def run_hologram_send_cloud(args):
 def run_hologram_send_sms(args):
 
     if args['devicekey'] is None:
-        raise Exception('--devicekey is required')
+        raise HologramError('--devicekey is required')
     elif args['destination'] is None:
-        raise Exception('--destination missing. A destination number must be provided in order to send SMS to it')
+        raise HologramError('--destination missing. A destination number must be provided in order to send SMS to it')
 
     data = dict()
     if args['authtype'] == 'totp' and not args['devicekey']:

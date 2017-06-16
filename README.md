@@ -7,7 +7,7 @@
 ## Introduction
 This is a Python SDK that allows you to send messages to either your or our cloud.
 
-You can also send SMSes via our cloud services to a given destination number of your choice!
+You can also send SMS via our cloud services to a given destination number of your choice!
 
 We understand that you may run this library in smaller, more power constraint devices.
 In the spirit of bringing connectivity to your devices, we also provided you with
@@ -18,26 +18,26 @@ choose within this SDK.
 
 ### Requirements:
 
-You will need `ppp` installed on your system for the SDK to work. On Debian based
-systems, this can be done by running:
+You will need `ppp` and Python 2.7 installed on your system for the SDK to work.
 
-`sudo apt-get install ppp`
+We wrote scripts to ease the installation process.
 
-### Pip Installation:
+Please run this command to download the script that installs the Python SDK:
 
-`pip install hologram-python`
+`curl -L hologram.io/python-install | bash`
 
-### Manual Installation:
+Please run this command to download the script that updates the Python SDK:
 
-1. Go ahead and `git clone` this repository.
-2. Type `cd hologram-python`
-3. After that, type `python setup.py install`
+`curl -L hologram.io/python-update | bash`
+
+If everything goes well, you’re done and ready to use the SDK.
 
 ## Directory Structure
 
 1. `tests` - This contains many of Hologram SDK unit tests.
 2. `scripts` -  This directory contains example Python scripts that utilize the Python SDK.
 3. `Hologram` - This directory contains all the Hologram class interfaces.
+4. `Exceptions` - This directory stores our custom `Exception` used in the SDK.
 
 You can also find more documentation [here](https://hologram.io/docs/reference/cloud/python-sdk).
 

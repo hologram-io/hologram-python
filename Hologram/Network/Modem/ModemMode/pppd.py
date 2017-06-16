@@ -8,50 +8,19 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import fcntl
+import logging
+from logging import NullHandler
 import os
 import re
 import signal
+import sys
 import time
 import threading
-
 from subprocess import Popen, PIPE, STDOUT
+from Exceptions.HologramError import PPPError, PPPConnectionError
 
 __version__ = '1.0.3'
 DEFAULT_CONNECT_TIMEOUT = 200
-
-class PPPConnectionError(Exception):
-
-    _PPPD_RETURNCODES = {
-        1:  'Fatal error occured',
-        2:  'Error processing options',
-        3:  'Not executed as root or setuid-root',
-        4:  'No kernel support, PPP kernel driver not loaded',
-        5:  'Received SIGINT, SIGTERM or SIGHUP',
-        6:  'Modem could not be locked',
-        7:  'Modem could not be opened',
-        8:  'Connect script failed',
-        9:  'pty argument command could not be run',
-        10: 'PPP negotiation failed',
-        11: 'Peer failed (or refused) to authenticate',
-        12: 'The link was terminated because it was idle',
-        13: 'The link was terminated because the connection time limit was reached',
-        14: 'Callback negotiated',
-        15: 'The link was terminated because the peer was not responding to echo requests',
-        16: 'The link was terminated by the modem hanging up',
-        17: 'PPP negotiation failed because serial loopback was detected',
-        18: 'Init script failed',
-        19: 'Failed to authenticate to the peer',
-    }
-
-    def __init__(self, code, output=None):
-        self.code = code
-        self.message = self._PPPD_RETURNCODES.get(code, 'Undocumented error occured')
-        self.output = output
-
-        super(PPPConnectionError, self).__init__(code, output)
-
-    def __repr__(self):
-        return self.message
 
 class PPPConnection(object):
 
@@ -59,6 +28,10 @@ class PPPConnection(object):
         return type(self).__name__
 
     def __init__(self, *args, **kwargs):
+        # Logging setup.
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
+
         self._laddr = None
         self._raddr = None
         self._connectThread = None
@@ -132,10 +105,15 @@ class PPPConnection(object):
             if self.laddr != None and self.raddr != None:
                 result[0] = True
                 return
-            elif 'Modem hangup' in self.output:
-                raise Exception('Modem hangup - possibly due to an unregistered SIM')
-            elif self.proc.poll():
-                raise PPPConnectionError(self.proc.returncode, self.output)
+
+            try:
+                if 'Modem hangup' in self.output:
+                    raise PPPError('Modem hangup - possibly due to an unregistered SIM')
+                elif self.proc.poll():
+                    raise PPPConnectionError(self.proc.returncode, self.output)
+            except (PPPError, PPPConnectionError) as e:
+                self.logger.error(repr(e))
+                sys.exit(1)
 
     # EFFECTS: Disconnects from the network.
     #          Returns true if successful, false otherwise.

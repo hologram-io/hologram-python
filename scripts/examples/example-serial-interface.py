@@ -16,14 +16,7 @@ sys.path.append("../..")
 
 from Hologram.HologramCloud import HologramCloud
 
-if __name__ == "__main__":
-    print ""
-    print ""
-    print "Testing Hologram Cloud class..."
-    print ""
-    print "* Note: You can obtain device keys from the Devices page"
-    print "* at https://dashboard.hologram.io"
-    print ""
+if __name__ == '__main__':
 
     hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
 
@@ -36,3 +29,4 @@ if __name__ == "__main__":
     location = hologram.network.location
     print 'Latitude: ' + location.latitude
     print 'Longitude: ' + location.longitude
+    print 'Date: ' + location.date

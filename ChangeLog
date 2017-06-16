@@ -1,3 +1,7 @@
+2017-06-16 Hologram <support@hologram.io>
+    * Fixed out of range Exception bug in modem location property.
+    * Fixed bug in Location date property parser.
+
 2017-06-06 Hologram <support@hologram.io>
     * Fixed regression on custom exceptions not having a handler.
 

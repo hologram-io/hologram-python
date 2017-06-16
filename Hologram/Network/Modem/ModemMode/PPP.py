@@ -8,8 +8,10 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import subprocess
+import sys
 from pppd import PPPConnection
 from IPPP import IPPP
+from Exceptions.HologramError import PPPError
 
 DEFAULT_PPP_TIMEOUT = 200
 
@@ -22,7 +24,11 @@ class PPP(IPPP):
         super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                   chatscript_file=chatscript_file)
 
-        self.__enforce_no_existing_ppp_session()
+        try:
+            self.__enforce_no_existing_ppp_session()
+        except PPPError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
                                   'usepeerdns', 'defaultroute', 'persist', 'noauth',
@@ -35,7 +41,11 @@ class PPP(IPPP):
     #          reroute packets to ppp0 interface.
     def connect(self, timeout=DEFAULT_PPP_TIMEOUT):
 
-        self.__enforce_no_existing_ppp_session()
+        try:
+            self.__enforce_no_existing_ppp_session()
+        except PPPError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         result = self._ppp.connect(timeout=timeout)
 
@@ -58,7 +68,7 @@ class PPP(IPPP):
             return
 
         pid = process.split(' ')[1]
-        raise Exception('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
+        raise PPPError('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
                          % (pid, self.device_name))
 
     def __shut_down_existing_ppp_session(self):
@@ -68,11 +78,12 @@ class PPP(IPPP):
             return
 
         pid = process.split(' ')[1]
-        kill_command = 'kill ' + str(pid)
 
-        self.logger.info('Killing pid %s that currently have an active PPP session',
+        if pid is not None:
+            kill_command = 'kill ' + str(pid)
+            self.logger.info('Killing pid %s that currently have an active PPP session',
                          pid)
-        subprocess.call(kill_command, shell=True)
+            subprocess.call(kill_command, shell=True)
 
     def __check_for_existing_ppp_sessions(self):
         self.logger.info('Checking for existing PPP sessions')
