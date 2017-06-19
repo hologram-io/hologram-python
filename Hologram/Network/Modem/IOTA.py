@@ -12,8 +12,8 @@ from ModemMode import Serial
 from Modem import Modem
 from ...Event import Event
 
-IOTA_PPP_DEVICE_NAME = '/dev/ttyACM0'
-IOTA_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
+IOTA_PPP_DEVICE_NAME = '/dev/ttyIOTA0'
+IOTA_SERIAL_DEVICE_NAME = '/dev/ttyIOTA1'
 DEFAULT_IOTA_TIMEOUT = 200
 
 class IOTA(Modem):

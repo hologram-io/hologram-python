@@ -1,0 +1,2 @@
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{iad_bFirstInterface}=="00", ENV{ID_VENDOR_ID}=="1546", ENV{ID_MODEL_ID}=="1102", SYMLINK+="ttyIOTA0"
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", ATTRS{iad_bFirstInterface}=="02", ENV{ID_VENDOR_ID}=="1546", ENV{ID_MODEL_ID}=="1102", SYMLINK+="ttyIOTA1"
