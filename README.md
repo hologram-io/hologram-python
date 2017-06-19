@@ -38,6 +38,7 @@ If everything goes well, you’re done and ready to use the SDK.
 2. `scripts` -  This directory contains example Python scripts that utilize the Python SDK.
 3. `Hologram` - This directory contains all the Hologram class interfaces.
 4. `Exceptions` - This directory stores our custom `Exception` used in the SDK.
+5. `rules` - This directory contains the UDEV rule for the IOTA dongle
 
 You can also find more documentation [here](https://hologram.io/docs/reference/cloud/python-sdk).
 
