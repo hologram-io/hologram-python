@@ -61,15 +61,15 @@ class PPP(IPPP):
     #          device interface.
     def __enforce_no_existing_ppp_session(self):
 
-
         process = self.__check_for_existing_ppp_sessions()
 
         if process is None:
             return
 
-        pid = process.split(' ')[1]
-        raise PPPError('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
-                         % (pid, self.device_name))
+        pid = self.__split_PID_from_process(process)
+        if pid is not None:
+            raise PPPError('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
+                             % (pid, self.device_name))
 
     def __shut_down_existing_ppp_session(self):
         process = self.__check_for_existing_ppp_sessions()
@@ -77,12 +77,13 @@ class PPP(IPPP):
         if process is None:
             return
 
-        pid = process.split(' ')[1]
+        pid = self.__split_PID_from_process(process)
 
+        # Process this only if it is a valid PID integer.
         if pid is not None:
             kill_command = 'kill ' + str(pid)
             self.logger.info('Killing pid %s that currently have an active PPP session',
-                         pid)
+                             pid)
             subprocess.call(kill_command, shell=True)
 
     def __check_for_existing_ppp_sessions(self):
@@ -98,6 +99,19 @@ class PPP(IPPP):
             if 'pppd' in process and temp_device_name in process:
                 self.logger.info('Found existing PPP session on %s', temp_device_name)
                 return process
+
+        return None
+
+    # REQUIRES: A string process
+    # EFFECTS: Returns the pid in integer form, None otherwise.
+    def __split_PID_from_process(self, process):
+        processList = process.split(' ')
+
+        # iterate through the list and return the pid. PID should always come out
+        # in front.
+        for x in processList:
+            if x.isdigit():
+                return int(x)
 
         return None
 

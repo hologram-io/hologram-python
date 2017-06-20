@@ -13,6 +13,9 @@ from Wifi import Wifi
 from Ethernet import Ethernet
 from BLE import BLE
 from Cellular import Cellular
+from Exceptions.HologramError import NetworkError
+import logging
+from logging import NullHandler
 import os
 import sys
 
@@ -31,6 +34,11 @@ class NetworkManager(object):
         }
 
     def __init__(self, event, network):
+
+        # Logging setup.
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
+
         self.event = event
         self.networkActive = False
         self.network = network
@@ -51,19 +59,23 @@ class NetworkManager(object):
 
     @network.setter
     def network(self, network):
-        if not network: # non-network mode
-            self.networkConnected()
-            self._network = None
-        elif network not in self._networkHandlers:
-            raise Exception('Invalid network type: %s' % network)
-        else:
-            self.__enforce_network_privileges()
-
-            # trim away the 2nd word (e303 in cellular-e303) and pass it into the Cellular constructor
-            if network.startswith('cellular'):
-                self._network = self._networkHandlers[network](network[9:], self.event)
+        try:
+            if not network: # non-network mode
+                self.networkConnected()
+                self._network = None
+            elif network not in self._networkHandlers:
+                raise NetworkError('Invalid network type: %s' % network)
             else:
-                self._network = self._networkHandlers[network](self.event)
+                self.__enforce_network_privileges()
+
+                # trim away the 2nd word (e303 in cellular-e303) and pass it into the Cellular constructor
+                if network.startswith('cellular'):
+                    self._network = self._networkHandlers[network](network[9:], self.event)
+                else:
+                    self._network = self._networkHandlers[network](self.event)
+        except NetworkError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
     def __repr__(self):
         if not self.network:
@@ -76,7 +88,7 @@ class NetworkManager(object):
         try:
             if os.geteuid() != 0:
                 raise RuntimeError
-        except RuntimeError  as e:
+        except RuntimeError as e:
             sys.exit('You need to have root privileges to use this interface.' \
                    + '\nPlease try again, this time using sudo.')
 

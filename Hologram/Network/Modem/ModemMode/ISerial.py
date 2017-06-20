@@ -70,7 +70,7 @@ class ISerial(ModemMode):
 
     def _set_up_pdp_context(self):
         self.logger.info('Setting up PDP context')
-        self.write('+UPSD=0,1,\"apn.konekt.io\"')
+        self.write('+UPSD=0,1,\"hologram\"')
         self.write('+UPSD=0,7,\"0.0.0.0\"')
         self.write('+UPSDA=0,3')
 

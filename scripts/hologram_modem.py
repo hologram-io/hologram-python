@@ -48,11 +48,19 @@ def run_modem_disconnect(args):
     for process in out_list:
         if 'pppd' in process:
             print 'Found existing PPP session'
-            pid = process.split(' ')[1]
-            kill_command = 'kill ' + str(pid)
+            pid = split_PID_from_process(process)
 
-            print 'Killing pid %s that currently have an active PPP session' % pid
-            subprocess.call(kill_command, shell=True)
+            if pid is not None:
+                kill_command = 'kill ' + str(pid)
+                print 'Killing pid %s that currently have an active PPP session' % pid
+                subprocess.call(kill_command, shell=True)
+
+def split_PID_from_process(process):
+    processList = process.split(' ')
+    for x in processList:
+        if x.isdigit():
+            return int(x)
+    return None
 
 def run_modem_signal(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')

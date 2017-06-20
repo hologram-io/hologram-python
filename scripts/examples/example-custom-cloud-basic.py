@@ -10,21 +10,18 @@
 
 import sys
 
-sys.path.append(".")
-sys.path.append("..")
-sys.path.append("../..")
+sys.path.append('.')
+sys.path.append('..')
+sys.path.append('../..')
 
 from Hologram.CustomCloud import CustomCloud
 
-if __name__ == "__main__":
-    print ""
-    print "Testing Cloud class..."
-    print ""
+if __name__ == '__main__':
 
-    send_host = raw_input("What is your host? ")
-    send_port = raw_input("What is your port? ")
+    send_host = raw_input('What is your host? ')
+    send_port = raw_input('What is your port? ')
 
-    customCloud = CustomCloud(None, send_host = send_host, send_port = send_port)
+    customCloud = CustomCloud(None, send_host=send_host, send_port=send_port)
 
     print ''
     recv = customCloud.sendMessage('Hello, Python!') # Send message to Cloud

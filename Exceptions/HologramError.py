@@ -6,7 +6,10 @@ class HologramError(Exception):
 class AuthenticationError(HologramError):
     pass
 
-class PPPError(HologramError):
+class NetworkError(HologramError):
+    pass
+
+class PPPError(NetworkError):
     pass
 
 class PPPConnectionError(PPPError):

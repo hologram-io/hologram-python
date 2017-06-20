@@ -1,3 +1,7 @@
+2017-06-20 Hologram <support@hologram.io>
+    * Fixed incorrect pid parser that cause PPP processes to not be detected
+      or killed.
+
 2017-06-16 Hologram <support@hologram.io>
     * Fixed out of range Exception bug in modem location property.
     * Fixed bug in Location date property parser.

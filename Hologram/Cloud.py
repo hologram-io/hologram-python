@@ -9,11 +9,12 @@
 
 import logging
 from logging import NullHandler
+import sys
 import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.5.14'
+__version__ = '0.5.15'
 
 class Cloud(object):
 
@@ -23,14 +24,15 @@ class Cloud(object):
     def __init__(self, credentials, send_host = '', send_port = 0,
                  receive_host = '', receive_port = 0, network = ''):
 
+        # Logging setup.
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(NullHandler())
+
         self.authentication = None
 
         # Host and port configuration
         self.__initialize_host_and_port(send_host, send_port,
                                         receive_host, receive_port)
-        # Logging setup.
-        self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(NullHandler())
 
         self.initializeNetwork(network)
 
@@ -109,7 +111,11 @@ class Cloud(object):
 
     @send_port.setter
     def send_port(self, send_port):
-        self._send_port = int(send_port)
+        try:
+            self._send_port = int(send_port)
+        except ValueError as e:
+            self.logger.error('Invalid port parameter. Unable to convert port to a valid integer')
+            sys.exit(1)
 
     @property
     def receive_host(self):

@@ -9,12 +9,14 @@
 #
 
 from ..Event import Event
+from Exceptions.HologramError import NetworkError
 from Modem import Modem
 from Modem import E303
 from Modem import IOTA
 from Modem import MS2131
 from Network import Network
 import subprocess
+import sys
 
 # Cellular return codes.
 CLOUD_DISCONNECTED = 0
@@ -106,11 +108,11 @@ class Cellular(Network):
             self.logger.info('/dev/ttyUSB0 found to be active modem interface')
             return 'ms2131'
         else:
-            raise Exception('Modem device name not found')
+            raise NetworkError('Modem device name not found')
 
     def _enforce_modem_attached(self):
         if self.isModemAttached() == False:
-            raise Exception('Modem is not physically connected')
+            raise NetworkError('Modem is not physically connected')
 
     # EFFECTS: Returns True if a supported modem is physically attached to the machine.
     def isModemAttached(self):
@@ -123,11 +125,15 @@ class Cellular(Network):
 
     @modem.setter
     def modem(self, modem):
-        modem = self._get_active_device_name()
-        if modem not in self._modemHandlers:
-            raise Exception('Invalid modem type: %s' % modem)
-        else:
-            self._modem = self._modemHandlers[modem](event=self.event)
+        try:
+            modem = self._get_active_device_name()
+            if modem not in self._modemHandlers:
+                raise NetworkError('Invalid modem type: %s' % modem)
+            else:
+                self._modem = self._modemHandlers[modem](event=self.event)
+        except NetworkError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
     @property
     def localIPAddress(self):

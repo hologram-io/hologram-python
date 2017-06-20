@@ -25,16 +25,21 @@ class CustomCloud(Cloud):
                  receive_host='', receive_port=0, enable_inbound=False,
                  network=''):
 
-        # Enforce that the send and receive configs are set before using the class.
-        if enable_inbound and (receive_host == '' or receive_port == 0):
-            raise Exception('Must set receive host and port for inbound connection')
-
         super(CustomCloud, self).__init__(credentials,
                                           send_host=send_host,
                                           send_port=send_port,
                                           receive_host=receive_host,
                                           receive_port=receive_port,
                                           network=network)
+
+        try:
+            # Enforce that the send and receive configs are set before using the class.
+            if enable_inbound and (receive_host == '' or receive_port == 0):
+                raise HologramError('Must set receive host and port for inbound connection')
+
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         self._periodic_msg_lock = threading.Lock()
         self._periodic_msg = None

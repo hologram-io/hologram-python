@@ -22,10 +22,10 @@ if __name__ == "__main__":
     print 'Testing CustomCloud class...'
     print ''
 
-    send_host = raw_input("What is your host? ")
-    send_port = raw_input("What is your port? ")
+    send_host = raw_input('What is your host? ')
+    send_port = raw_input('What is your port? ')
 
-    cloud = CustomCloud(None, send_host = send_host, send_port = send_port)
+    cloud = CustomCloud(None, send_host=send_host, send_port=send_port)
 
     print ''
 
@@ -35,13 +35,13 @@ if __name__ == "__main__":
     cloud.event.broadcast('network.disconnected')
 
     recv = cloud.sendMessage("Hello, Python!1") # Send message to Cloud
-    print "DATA RECEIVED: " + str(recv)
+    print 'DATA RECEIVED: ' + str(recv)
 
     recv = cloud.sendMessage("Hello, Python!2") # Send message to Cloud
-    print "DATA RECEIVED: " + str(recv)
+    print 'DATA RECEIVED: ' + str(recv)
 
     recv = cloud.sendMessage("Hello, Python!3") # Send message to Cloud
-    print "DATA RECEIVED: " + str(recv)
+    print 'DATA RECEIVED: ' + str(recv)
 
     cloud.event.broadcast('network.connected')
 

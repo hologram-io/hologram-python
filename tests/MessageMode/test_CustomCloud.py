@@ -28,7 +28,7 @@ class TestCustomCloud(object):
 
     def test_enable_inbound(self):
 
-        with pytest.raises(Exception, message='Must set receive host and port for inbound connection'):
+        with pytest.raises(SystemExit, message='Must set receive host and port for inbound connection'):
             customCloud = CustomCloud(None, send_host='receive.com',
                                       send_port=9999, enable_inbound=True)
 
