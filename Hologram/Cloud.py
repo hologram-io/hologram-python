@@ -14,7 +14,7 @@ import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.5.15'
+__version__ = '0.5.16'
 
 class Cloud(object):
 
@@ -65,10 +65,9 @@ class Cloud(object):
         for payload in self.__message_buffer:
 
             recv = self.sendMessage(payload)
-            self.logger.info("A buffered message has been sent since an "
-                             + "active connection is established")
-            self.logger.debug("The buffered message sent is: " + str(payload))
-            self.logger.info("The buffered response is: " + str(recv))
+            self.logger.info("A buffered message has been sent since an active connection is established")
+            self.logger.debug("The buffered message sent is: %s", str(payload))
+            self.logger.info("The buffered response is: %s", str(recv))
 
     def sendMessage(self, messages, topics = None):
         raise NotImplementedError('Must instantiate a Cloud type')

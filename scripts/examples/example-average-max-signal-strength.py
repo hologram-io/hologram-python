@@ -1,5 +1,5 @@
 #
-# example-average-max-signal-strength-iota.py - Example of getting average and max signal strength.
+# example-average-max-signal-strength.py - Example of getting average and max signal strength.
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
 
     sum_RSSI = 0.0
     sum_quality = 0.0

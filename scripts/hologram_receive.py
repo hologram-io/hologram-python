@@ -58,8 +58,7 @@ def run_hologram_receive(args):
 def run_hologram_receive_data(args):
 
     global hologram
-    hologram = HologramCloud(None, enable_inbound=False,
-                             network='cellular-' + str(args['modem']))
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
 
     hologram.event.subscribe('message.received', popReceivedMessage)
     result = hologram.network.connect()
@@ -79,7 +78,7 @@ def run_hologram_receive_data(args):
 def run_hologram_receive_sms(args):
 
     global hologram
-    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
 
     hologram.event.subscribe('sms.received', popReceivedSMS)
     hologram.enableSMS()

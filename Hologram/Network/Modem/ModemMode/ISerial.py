@@ -226,14 +226,14 @@ class ISerial(ModemMode):
         expected_response = expected_response[1:]
 
         self._serial_port_lock.reader_acquire()
-        self.logger.debug('current serial port buffer: '
-                          + self._serial_port_buffer.encode('string_escape'))
+        self.logger.debug('current serial port buffer: %s',
+                          self._serial_port_buffer.encode('string_escape'))
 
         # Get the response list by splitting them based on AT+ commands.
         # At any point in time, this list will look like:
         # ['', 'CSQ\r\r\n+CSQ: 11,5\r\n\r\nOK\r\n', 'CIMI\r\r\n234507095599838\r\n\r\nOK\r\n']
         response_list = self._serial_port_buffer.split('AT+')
-        self.logger.debug('response_list: ' + str(response_list))
+        self.logger.debug('response_list: %s', str(response_list))
 
         self._serial_port_lock.reader_release()
 
@@ -283,10 +283,15 @@ class ISerial(ModemMode):
 
     @property
     def modem_mode(self):
+        mode_number = None
         # trim:
         # +UUSBCONF: 0,"",,"0x1102" -> 0
         # +UUSBCONF: 2,"ECM",,"0x1104" -> 2
-        return (int)(self.write('+UUSBCONF?', '+UUSBCONF')[0])
+        try:
+            mode_number = (int)(self.write('+UUSBCONF?', '+UUSBCONF')[0])
+        except ValueError as e:
+            self.logger.error(repr(e))
+        return mode_number
 
     @modem_mode.setter
     def modem_mode(self, mode):

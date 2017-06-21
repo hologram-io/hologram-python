@@ -36,7 +36,7 @@ help_location = '''This subcommand prints the encoded location of the modem.\n
 '''
 
 def run_modem_connect(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     cloud.network.connect()
 
 def run_modem_disconnect(args):
@@ -63,7 +63,7 @@ def split_PID_from_process(process):
     return None
 
 def run_modem_signal(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
 
     if args['repeat'] != 0:
         while True:
@@ -73,19 +73,19 @@ def run_modem_signal(args):
         print 'Signal strength: ' + cloud.network.signal_strength
 
 def run_modem_sim(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     print 'ICCID: ' + cloud.network.iccid
 
 def run_modem_operator(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     print 'Operator: ' + cloud.network.operator
 
 def run_modem_type(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     print 'Type: ' + str(cloud.network.active_modem_interface)
 
 def run_modem_location(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular-ms2131')
+    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     location_obj = cloud.network.location
     print 'Location: ' + convert_location_into_json(location_obj)
 

@@ -143,15 +143,17 @@ class HologramCloud(CustomCloud):
     def __parse_hologram_compact_result(self, result):
 
         # convert the returned response to formatted list.
-        resultList = []
-        if not result:
-            resultList = [ERR_UNKNOWN]
+        resultList = [ERR_UNKNOWN]
+        if result is None:
+            return resultList
+
         for x in result:
             try:
                 resultList.append(int(x))
             except ValueError:
                 self.logger.error('Server replied with invalid JSON [%s]', result)
                 resultList = [ERR_UNKNOWN]
+
         return resultList
 
     def __enforce_max_sms_length(self, message):
@@ -160,7 +162,7 @@ class HologramCloud(CustomCloud):
 
     # REQUIRES: A result code (int).
     # EFFECTS: Returns a translated string based on the given hologram result code.
-    def getResultString(self, resultCode):
-        if resultCode not in self._errorCodeDescription:
+    def getResultString(self, result_code):
+        if result_code not in self._errorCodeDescription:
             return 'Unknown response code'
-        return self._errorCodeDescription[resultCode]
+        return self._errorCodeDescription[result_code]

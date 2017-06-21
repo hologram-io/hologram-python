@@ -67,13 +67,13 @@ class CustomCloud(Cloud):
                 return ''
 
             self.logger.info("Connecting to: %s", self.send_host)
-            self.logger.info("%s", self.send_port)
+            self.logger.info("Port: %s", self.send_port)
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout)
             sock.connect((self.send_host, self.send_port))
 
-            self.logger.info("Sending message of length %d...", len(message))
+            self.logger.info("Sending message with body of length %d", len(message))
             self.logger.debug('Send: ')
 
             self.logger.debug(message)
@@ -124,8 +124,12 @@ class CustomCloud(Cloud):
 
         self._periodic_msg_lock.acquire()
 
-        if self._periodic_msg_enabled == True:
-            raise Exception('Cannot have more than 1 periodic message job at once')
+        try:
+            if self._periodic_msg_enabled == True:
+                raise HologramError('Cannot have more than 1 periodic message job at once')
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
 
         self._periodic_msg_enabled = True
 
@@ -153,7 +157,7 @@ class CustomCloud(Cloud):
 
             self.logger.info('Sending another periodic message...')
             response = function(*args)
-            self.logger.info('DATA RECEIVED: ' +  str(response))
+            self.logger.info('DATA RECEIVED: %s', str(response))
 
             self._periodic_msg_lock.release()
             time.sleep(interval)

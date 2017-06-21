@@ -26,12 +26,9 @@ class NetworkManager(object):
     _networkHandlers =  {
         'wifi' : Wifi,
         'cellular': Cellular,
-        'cellular-ms2131': Cellular,
-        'cellular-e303': Cellular,
-        'cellular-iota': Cellular,
         'ble' : BLE,
         'ethernet' : Ethernet,
-        }
+    }
 
     def __init__(self, event, network):
 

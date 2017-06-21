@@ -8,40 +8,40 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
+import logging
 import sys
 
-sys.path.append(".")
-sys.path.append("..")
-sys.path.append("../..")
+sys.path.append('.')
+sys.path.append('..')
+sys.path.append('../..')
 
 from Hologram.HologramCloud import HologramCloud
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     print ''
     print ''
-    print "Testing Hologram Cloud class..."
+    print 'Testing Hologram Cloud class...'
     print ''
-    print "* Note: You can obtain device keys from the Devices page"
-    print "* at https://dashboard.hologram.io"
+    print '* Note: You can obtain device keys from the Devices page'
+    print '* at https://dashboard.hologram.io'
     print ''
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     device_key = raw_input('What is your device key? ')
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound = False)
+    hologram = HologramCloud(credentials, enable_inbound=False)
     print ''
 
     hologram.event.broadcast('network.disconnected')
 
-    recv = hologram.sendMessage("one!", topics = ["TWO MORE TIMES","TOPIC TOPIC"]) # Send advanced message
-    print "RESPONSE CODE RECEIVED: " + str(recv)
+    recv = hologram.sendMessage('one!', topics = ['TWO MORE TIMES', 'TOPIC TOPIC']) # Send advanced message
 
-    recv = hologram.sendMessage("two!", topics = ["TWO MORE TIMES","TOPIC TOPIC"]) # Send advanced message
-    print "RESPONSE CODE RECEIVED: " + str(recv)
+    recv = hologram.sendMessage('two!', topics = ['TWO MORE TIMES', 'TOPIC TOPIC']) # Send advanced message
 
-    recv = hologram.sendMessage("three!", topics = ["TWO MORE TIMES","TOPIC TOPIC"]) # Send advanced message
-    print "RESPONSE CODE RECEIVED: " + str(recv)
+    recv = hologram.sendMessage('three!', topics = ['TWO MORE TIMES', 'TOPIC TOPIC']) # Send advanced message
 
     hologram.event.broadcast('network.connected')
 

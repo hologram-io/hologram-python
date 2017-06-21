@@ -27,15 +27,15 @@ class Modem(IModem):
             # Get the absolute path of the chatscript file.
             chatscript_file = os.path.dirname(__file__) + DEFAULT_CHATSCRIPT_PATH
 
-        self.logger.info('chatscript file: ' + chatscript_file)
+        self.logger.info('chatscript file: %s', chatscript_file)
 
         # This serial mode device name/port will always be equivalent to whatever the
         # default port is for the specific modem.
         self._serial_mode = Serial(device_name=self.device_name, event=self.event)
         self._mode = PPP(device_name=self.device_name, baud_rate=baud_rate,
                          chatscript_file=chatscript_file)
-        self.logger.info('Instantiated a ' + self.__repr__() \
-                         + ' interface with device name of ' + self.device_name)
+        self.logger.info('Instantiated a %s interface with device name of %s',
+                         self.__repr__(), self.device_name)
 
     def isConnected(self):
         raise NotImplementedError('Must instantiate a Modem type')

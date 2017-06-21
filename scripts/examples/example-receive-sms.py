@@ -18,7 +18,7 @@ from Hologram.HologramCloud import HologramCloud
 
 if __name__ == '__main__':
 
-    hologram = HologramCloud(None, enable_inbound=False, network='cellular-iota')
+    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
 
     hologram.enableSMS()
 

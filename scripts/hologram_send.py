@@ -88,10 +88,8 @@ def sendTOTP(args, data, is_sms=False):
     modem = ''
     # Load the ICCID and IMSI values if modem is physically attached to machine
     if hologram.network.isModemAttached():
-        modem = hologram.network.active_modem_interface
         hologram.credentials = {'device_id': hologram.network.iccid,
                                 'private_key': hologram.network.imsi}
-        hologram.initializeNetwork('cellular-' + str(modem).lower())
 
     if (hologram.credentials['device_id'] is None) or (hologram.credentials['private_key'] is None):
         raise HologramError('Device id or private key not specified or cannot be pulled from modem. Please specify them or rerun the program with a provided device key')
