@@ -1,3 +1,8 @@
+2017-07-10 Hologram <support@hologram.io>
+    * Renamed iota to Nova
+    * Moved examples folder to the top level directory
+    * Fixed false negative debug output that says a message isn't sent via OTP.
+
 2017-06-20 Hologram <support@hologram.io>
     * Fixed incorrect pid parser that cause PPP processes to not be detected
       or killed.

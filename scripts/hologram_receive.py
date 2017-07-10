@@ -28,8 +28,8 @@ def popReceivedSMS():
     print 'Received SMS: ' + str(recv)
 
 def parse_hologram_receive_args(parser):
-    parser.add_argument('-m', '--modem', nargs='?', default='iota',
-                        help='The modem type. Choose between iota, ms2131 and e303.')
+    parser.add_argument('-m', '--modem', nargs='?', default='nova',
+                        help='The modem type. Choose between nova, ms2131 and e303.')
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
                         help='The number of seconds before the socket is closed. \

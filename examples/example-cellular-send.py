@@ -1,6 +1,6 @@
 #
-# example-cellular-send.py - Example of using the iota modem to send messages
-#                          to the Hologram Cloud.
+# example-cellular-send.py - Example of using a supported modem to send messages
+#                            to the Hologram Cloud.
 #
 # Author: Hologram <support@hologram.io>
 #

@@ -13,5 +13,6 @@ include Hologram/Network/Modem/chatscripts/default-script
 recursive-include Hologram *.py
 recursive-include Exceptions *.py
 recursive-include UtilClasses *.py
+recursive-include examples *.py
 recursive-include tests *.py
 recursive-include scripts *.py

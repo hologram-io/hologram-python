@@ -1,2 +1,2 @@
-__all__ = ['Modem', 'MockModem', 'MS2131', 'IOTA', 'E303']
+__all__ = ['Modem', 'MockModem', 'MS2131', 'Nova', 'E303']
 from Modem import *

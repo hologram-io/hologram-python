@@ -143,10 +143,10 @@ class HologramCloud(CustomCloud):
     def __parse_hologram_compact_result(self, result):
 
         # convert the returned response to formatted list.
-        resultList = [ERR_UNKNOWN]
         if result is None:
-            return resultList
+            return [ERR_UNKNOWN]
 
+        resultList = []
         for x in result:
             try:
                 resultList.append(int(x))

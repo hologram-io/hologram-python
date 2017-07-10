@@ -40,4 +40,4 @@ class TestCloud(object):
     def test_sdk_version(self):
         cloud = Cloud(None, send_host = '127.0.0.1', send_port = 9999)
 
-        assert cloud.version == '0.5.16'
+        assert cloud.version == '0.5.18'

@@ -12,7 +12,7 @@ from ..Event import Event
 from Exceptions.HologramError import NetworkError
 from Modem import Modem
 from Modem import E303
-from Modem import IOTA
+from Modem import Nova
 from Modem import MS2131
 from Network import Network
 import subprocess
@@ -32,7 +32,7 @@ class Cellular(Network):
     _modemHandlers = {
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
-        'iota' : IOTA.IOTA,
+        'nova': Nova.Nova,
         '': Modem
     }
 
@@ -103,7 +103,7 @@ class Cellular(Network):
         dev_devices = self._get_attached_devices()
         if '/dev/ttyACM0' in dev_devices:
             self.logger.info('/dev/ttyACM0 found to be active modem interface')
-            return 'iota'
+            return 'nova'
         elif '/dev/ttyUSB0' in dev_devices:
             self.logger.info('/dev/ttyUSB0 found to be active modem interface')
             return 'ms2131'
