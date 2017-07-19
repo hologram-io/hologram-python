@@ -87,7 +87,10 @@ def run_modem_type(args):
 def run_modem_location(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular')
     location_obj = cloud.network.location
-    print 'Location: ' + convert_location_into_json(location_obj)
+    if location_obj is None:
+        print 'Location: Not Available'
+    else:
+        print 'Location: ' + convert_location_into_json(location_obj)
 
 _run_handlers = {
     'modem_connect': run_modem_connect,

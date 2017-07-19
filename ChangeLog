@@ -1,3 +1,6 @@
+2017-07-17 Hologram <support@hologram.io>
+    * Refactored Serial interfaces.
+
 2017-07-10 Hologram <support@hologram.io>
     * Renamed iota to Nova
     * Moved examples folder to the top level directory

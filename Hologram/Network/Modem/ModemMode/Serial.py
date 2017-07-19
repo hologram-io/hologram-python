@@ -18,7 +18,8 @@ DEFAULT_SERIAL_BAUD_RATE = 9600
 class Serial(ISerial):
 
     def __init__(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                 baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1,
+                 baud_rate=DEFAULT_SERIAL_BAUD_RATE,
+                 timeout=ISerial.DEFAULT_SERIAL_TIMEOUT,
                  event=Event()):
         super(Serial, self).__init__(device_name=device_name,
                                      baud_rate=DEFAULT_SERIAL_BAUD_RATE,
@@ -26,13 +27,14 @@ class Serial(ISerial):
                                      event=event)
 
     def openSerialPort(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                       baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1):
+                       baud_rate=DEFAULT_SERIAL_BAUD_RATE,
+                       timeout=ISerial.DEFAULT_SERIAL_TIMEOUT):
 
         try:
             self.serial_port = serial.Serial(device_name, baudrate=baud_rate,
                                              bytesize=8, parity='N', stopbits=1,
                                              timeout=timeout)
-        except Exception:
+        except Exception as e:
             self.logger.error('Failed to initialize serial port')
             return False
 
@@ -51,40 +53,36 @@ class Serial(ISerial):
         except Exception:
             self.logger.error('Failed to close serial port')
 
-    def write(self, msg, expected_response=None):
-
-        self._serial_port_lock.writer_acquire()
-
-        if expected_response is None:
-            expected_response = msg
-
-        self.__enforce_serial_port_open()
-
-        command = 'AT' + msg + "\r"
-        self.logger.info('write command: ' + command)
-
-        self.serial_port.write(command.encode())
-        self.serial_port.flush()
-
-        self._serial_port_buffer += self.serial_port.read(256)
-        self._serial_port_lock.writer_release()
-
-        self._serial_port_lock.reader_acquire()
-
-        while self._serial_port_buffer.find(expected_response) == -1:
-            self._serial_port_lock.reader_release()
-
-            self._poll_and_read_from_serial_port(timeout=1)
-
-            self._serial_port_lock.reader_acquire()
-
-        self._serial_port_lock.reader_release()
-
-        # Remove used AT command from the serial port buffer.
-        response = self._get_at_response_from_buffer(expected_response)
-        self._flush_used_response_from_serial_port_buffer(expected_response)
-        return self._filter_return_values_from_at_response(msg, response)
-
     def __enforce_serial_port_open(self):
         if (not self.serial_port) or (not self.serial_port.isOpen()):
             raise Exception('Serial port not open')
+
+    def _write(self, message):
+        self.serial_port.write(message.encode())
+        self.serial_port.flush()
+
+    def _read(self, timeout=None, size=ISerial.DEFAULT_SERIAL_READ_SIZE):
+        if timeout is not None:
+            self.serial_port.timeout = timeout
+        r = self.serial_port.read(size)
+        if timeout is not None:
+            self.serial_port.timeout = timeout
+        return r
+
+    def _readline(self, timeout=None):
+        if timeout is not None:
+            self.serial_port.timeout = timeout
+        r = self.serial_port.readline()
+        if len(r) > 0:
+            self.logger.debug('{' + r.rstrip('\r\n') + '}')
+        if timeout is not None:
+            self.serial_port.timeout = self.timeout
+        return r
+
+    @property
+    def serial_port(self):
+        return self._serial_port
+
+    @serial_port.setter
+    def serial_port(self, serial_port):
+        self._serial_port = serial_port

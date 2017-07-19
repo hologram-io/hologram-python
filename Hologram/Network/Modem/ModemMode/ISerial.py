@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ISerial.py - Hologram Python SDK Modem ISerial interface
 #
 # Author: Hologram <support@hologram.io>
@@ -9,277 +10,372 @@
 #
 from ModemMode import ModemMode
 from UtilClasses import Location
-from UtilClasses import Timestamp
 from UtilClasses import SMS
-from UtilClasses import RWLock
+from UtilClasses import ModemResult
 from ....Event import Event
 from Exceptions.HologramError import HologramError
 
-from collections import deque
-import threading
 import time
-
-DEFAULT_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
-DEFAULT_SERIAL_BAUD_RATE = 9600
-DEFAULT_SMS_RECEIVE_POLL_RATE = 1
-MODEM_RESTART_TIME = 20
+import datetime
 
 class ISerial(ModemMode):
 
+    DEFAULT_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
+    DEFAULT_SERIAL_BAUD_RATE = 9600
+    DEFAULT_MODEM_RESTART_TIME = 20
+    DEFAULT_SERIAL_READ_SIZE = 256
+    DEFAULT_SERIAL_TIMEOUT = 1
+    DEFAULT_SERIAL_RETRIES = 0
+
     def __init__(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                 baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1,
+                 baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=DEFAULT_SERIAL_TIMEOUT,
                  event=Event()):
 
         super(ISerial, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                       event=Event())
 
-        # These are used for buffering received SMS messages
-        self._receive_buffer_lock = threading.Lock()
-        self._receive_buffer = deque()
-        self._sms_listen_thread = None
-        self.sms_disabled = True
-
         self.carrier = None
         self.serial_port = None
-        self._serial_port_buffer = ''
-        self._serial_port_lock = RWLock()
+        self.timeout = timeout
+        self.response = []
+        self.last_location = None
+        self.result = ModemResult.OK
+        self.debug_out = ''
+        self.gsm = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+        self.in_ext = False
+        self.ext = {
+            0x40: u'|',
+            0x14: u'^',
+            0x65: u'€',
+            0x28: u'{',
+            0x29: u'}',
+            0x3C: u'[',
+            0x3D: u'~',
+            0x3E: u']',
+            0x2F: u'\\',
+        }
 
-        self.openSerialPort(device_name=self.device_name, baud_rate=self.baud_rate,
-                            timeout=timeout)
+        if self.openSerialPort(device_name=self.device_name, baud_rate=self.baud_rate, timeout=timeout):
+            self._init_modem()
 
     def write(self, msg, expected_response=None):
         raise NotImplementedError('Must instantiate a Serial type')
 
     def openSerialPort(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                       baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=1):
+                       baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=DEFAULT_SERIAL_TIMEOUT):
         raise NotImplementedError('Must instantiate a Serial type')
 
     def closeSerialPort(self):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    # EFFECTS: Cuts out the response from the echoed serial output.
-    # Example: 'CSQ\r\r\n+CSQ: 11,5\r\n\r\nOK\r\n' returns 11,5
-    def _filter_return_values_from_at_response(self, msg, response):
+    def _write(self, message):
+        raise NotImplementedError('Must instantiate a Serial type')
 
-        regEx = "\r\n" + msg + ': '
+    def _read(self, timeout=None, size=DEFAULT_SERIAL_READ_SIZE):
+        raise NotImplementedError('Must instantiate a Serial type')
 
-        if msg.startswith("+ULOC"):
-            regEx = "+ULOC:"
+    def _readline(self, timeout=None):
+        raise NotImplementedError('Must instantiate a Serial type')
 
-        return response.strip('AT' + msg).strip(regEx).strip("OK\r\n")
+    def _init_modem(self):
+        self.command("E0") #echo off
+        self.command("+CMEE", "2") #set verbose error codes
+        self.command("+CPIN?")
+        self.command("+CTZU", "1") #time/zone sync
+        self.command("+CTZR", "1") #time/zone URC
+        #self.command("+CPIN", "") #set SIM PIN
+        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.command("+CMGF", "0") #SMS PDU format
+        self.command("+CNMI", "2,1") #SMS New Message Indication
+        self.command("+CREG", "2")
+        self.command("+CGREG", "2")
+
+    def _handleURC(self, urc):
+        self.logger.debug("URC! %s",  urc)
+        if urc.startswith("+CMTI: "):
+            self.event.broadcast('sms.received')
+        elif urc.startswith('+UULOC: '):
+            self._populate_location_obj(urc.lstrip('+UULOC: '))
+            self.event.broadcast('location.received')
+
+    def _debugwrite(self, x):
+        self.debug_out += x
+        self._write(x)
+
+    def _modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
+                    end=False):
+        if start:
+            self.debug_out = '['
+        if at:
+            self._debugwrite('AT')
+        self._debugwrite(cmd)
+        if seteq:
+            self._debugwrite('=')
+        if read:
+            self._debugwrite('?')
+        if end:
+            self.logger.debug(self.debug_out + ']')
+            self._write('\r\n')
+
+    def checkURC(self):
+        while(True):
+            response = self._readline(0)
+            if len(response) > 0 and response.startswith('+'):
+                urc = response.rstrip('\r\n')
+                self._handleURC(urc)
+            else:
+                return
+
+    def _process_response(self, cmd, timeout=None):
+        self.response = []
+        while(True):
+            response = self._readline(timeout)
+            if len(response) == 0:
+                return ModemResult.Timeout
+
+            response = response.rstrip('\r\n')
+
+            if len(response) == 0:
+                continue
+
+            if response == 'ERROR':
+                return ModemResult.Error
+
+            if response.startswith('+CME ERROR:') or response.startswith('+CMS ERROR:'):
+                self.response.append(response)
+                return ModemResult.Error
+
+            if response == 'OK':
+                return ModemResult.OK
+
+            if response.startswith('+'):
+                if response.lower().startswith(cmd.lower() + ': '):
+                    self.response.append(response)
+                else:
+                    self._handleURC(response)
+            elif response.startswith('AT'+cmd):
+                continue #echo log???
+            else:
+                self.response.append(response)
+
+        return ModemResult.Timeout
+
+    def read(self, cmd, expected=None, timeout=None, retries=DEFAULT_SERIAL_RETRIES):
+        return self.command(cmd, None, expected, timeout, retries, read=True)
+
+    def set(self, cmd, value, expected=None, timeout=None, retries=DEFAULT_SERIAL_RETRIES,
+            prompt=None, data=None):
+        return self.command(cmd, value, expected, timeout, retries, prompt=prompt, data=data)
+
+    def test(self, cmd, expected=None, timeout=None, retries=DEFAULT_SERIAL_RETRIES):
+        return self.command(cmd, None, expected, timeout, retries, True, True)
+
+    def _commandResult(self):
+        if self.result == ModemResult.OK:
+            if len(self.response) == 1:
+                return ModemResult.OK, self.response[0]
+            else:
+                return ModemResult.OK, self.response
+        else:
+            return self.result, self.response
+
+    def command(self, cmd='', value=None, expected=None, timeout=None,
+                retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
+                prompt=None, data=None):
+        self.result = ModemResult.Timeout
+
+        if cmd.endswith('?'):
+            read = True
+            if cmd.endswith('=?'):
+                cmd = cmd[:-2]
+                seteq = True
+            else:
+                cmd = cmd[:-1]
+
+        for i in range(retries+1):
+            self.checkURC()
+
+            if value is None:
+                self._modemwrite(cmd, start=True, at=True, read=read, end=True,
+                                 seteq=seteq)
+            elif read:
+                self.result = ModemResult.Invalid
+                return self._commandResult()
+            else:
+                self._modemwrite(cmd, start=True, at=True, seteq=True)
+                self._modemwrite(value, end=True)
+
+            if prompt is not None and data is not None:
+                p = self._read(timeout, len(prompt))
+                if p == prompt:
+                    self._write(data)
+
+            self.result = self._process_response(cmd, timeout)
+            if self.result == ModemResult.OK:
+                if expected is not None:
+                    self.result = ModemResult.NoMatch
+                    for s in self.response:
+                        if s.startswith(expected):
+                            self.result = ModemResult.OK
+                            break
+                break
+        return self._commandResult()
+
+    def _gsm7tochr(self, c):
+        #self.logger.debug('G: ' + hex(c) + ' ' + chr(c))
+        if self.in_ext:
+            self.in_ext = False
+            if c in self.ext.keys():
+                return self.ext[c]
+        elif c == 0x1B:
+            self.in_ext = True
+            return u''
+        elif c < len(self.gsm):
+            return self.gsm[c]
+        return u' '
+
+    def _convert7to8bit(self, pdu, msg_len):
+        last = 0
+        current = 0
+        i = 0
+        msg = u''
+        for count in range(msg_len):
+            offset = count % 8
+            last = current
+            if offset < 7:
+                current = int(pdu[i*2:i*2+2],16)
+                i += 1
+            c = (last >> (8-offset)) | (current << offset)
+            msg += self._gsm7tochr(c & 0x7F)
+        return msg
+
+    # ['+CMGL: 2,1,,26', '0791447779071413040C9144977304250500007160421062944008D4F29C0E8AC966'])
+    def _parsePDU(self, header, pdu):
+        try:
+            if not header.startswith("+CMGL: "): return None, None
+            index, stat, alpha, length = header[7:].split(',')
+            #parse PDU
+            smsc_len = int(pdu[0:2],16)
+            # smsc_number_type = int(pdu[2:4],16)
+            # if smsc_number_type != 0x81 and smsc_number_type != 0x91: return (-2, hex(smsc_number_type))
+            offset = smsc_len*2 + 3
+            sms_deliver = int(pdu[offset],16)
+            if sms_deliver & 0x03 != 0: return None
+            offset += 1
+            sender_len = int(pdu[offset:offset+2],16)
+            offset += 2
+            sender_number_type = int(pdu[offset:offset+2],16)
+            offset += 2
+            sender_read = sender_len
+            if sender_read & 1 != 0: sender_read += 1
+            sender_raw = pdu[offset:offset+sender_read]
+            if sender_number_type & 0x50 == 0x50:
+                #GSM-7
+                sender = self._convert7to8bit(sender_raw, sender_len*4/7)
+            else:
+                sender = ''.join([ sender_raw[x:x+2][::-1] for x in range(0, len(sender_raw), 2) ])
+                if sender_read & 1 != 0: sender = sender[:-1]
+            offset += sender_read
+            if pdu[offset:offset+4] != '0000': return -4
+            offset += 4
+            ts_raw = pdu[offset:offset+14]
+            ts = ''.join([ ts_raw[x:x+2][::-1] for x in range(0, len(ts_raw), 2) ])
+            dt = datetime.datetime.strptime(ts[:-2], '%y%m%d%H%M%S')
+            delta = datetime.timedelta(minutes=15*int(ts[-2:]))
+            dt += delta #UTC, adjusted for DST
+            offset += 14
+            msg_len = int(pdu[offset:offset+2],16)
+            offset += 2
+            message = self._convert7to8bit(pdu[offset:], msg_len)
+
+            return SMS(sender, dt, message), index
+
+        except ValueError as e:
+            self.logger.error(repr(e))
+
+        return None, None
+
+    def popReceivedSMS(self):
+        self.checkURC()
+        result, response = self.command("+CMGL")
+        if result != ModemResult.OK: return None
+        oldest = None
+        oldest_index = None
+        for i in range(0,len(response),2):
+            current, current_index = self._parsePDU(response[i], response[i+1])
+            if current is None: continue
+            if oldest is None or current.timestamp < oldest.timestamp:
+                self.logger.debug("Found Oldest: (%s) %s",  current_index, current.timestamp)
+                oldest = current
+                oldest_index = current_index
+        if oldest_index is not None:
+            self.set("+CMGD", str(oldest_index))
+        return oldest
+
+    #EXPECTS: '+CREG' or '+CGREG'
+    def _check_registered(self, cmd):
+        ok, r = self.read(cmd)
+        if ok == ModemResult.OK:
+            try:
+                regstatus = int(r.lstrip(cmd).lstrip(': ').split(',')[1])
+                # 1: registered home network
+                # 5: registered roaming
+                return regstatus == 1 or regstatus == 5
+            except (IndexError, ValueError) as e:
+                self.logger.error(repr(e))
+        return False
+
+    def _is_registered(self):
+        return self._check_registered('+CREG') or self._check_registered('+CGREG')
+
+    def _tear_down_pdp_context(self):
+        self.set('+UPSDA', '0,4')
+
+    def _pdp_context_active(self):
+        if not self._is_registered():
+            return False
+
+        ok, r = self.set('+UPSND', '0,8')
+        if ok == ModemResult.OK:
+            try:
+                pdpstatus = int(r.lstrip('UPSND: ').split(',')[2])
+                # 1: PDP active
+                return pdpstatus == 1
+            except (IndexError, ValueError) as e:
+                self.logger.error(repr(e))
+        return False
 
     def _set_up_pdp_context(self):
+        if self._pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
-        self.write('+UPSD=0,1,\"hologram\"')
-        self.write('+UPSD=0,7,\"0.0.0.0\"')
-        self.write('+UPSDA=0,3')
-
-    def _enable_sms_text_mode(self):
-        self.logger.info('Enabling SMS text mode')
-        self.write('+CMGF=1')
-        self.write('+CNMI=2,2')
-
-    # EFFECTS: Enables receive sms.
-    def enableSMS(self):
-
-        self._serial_port_lock.acquire()
-        # SMS mode is already enabled.
-        if self.sms_disabled == False:
-            self._serial_port_lock.release()
-            return
-        self._serial_port_lock.release()
-
-        self._enable_sms_text_mode()
-
-        self._serial_port_lock.acquire()
-        self.logger.info('Enabling SMS')
-        self.sms_disabled = False
-        self._serial_port_lock.release()
-
-        # Spin a new thread for accepting incoming operations
-        self._sms_listen_thread = threading.Thread(target=self._listen_to_sms_event)
-        self._sms_listen_thread.daemon = True
-        self._sms_listen_thread.start()
-
-    # EFFECTS: A thread that listens on sms events and calls a separate thread
-    #          to handle it. This will run until sms receive is explicitly disabled.
-    def _listen_to_sms_event(self):
-
-        expected_response = '+CMT'
-
-        while True:
-            self._serial_port_lock.reader_acquire()
-
-            while self._serial_port_buffer.find(expected_response) == -1:
-
-                if self.sms_disabled == True:
-                    self._serial_port_lock.reader_release()
-                    return
-
-                self._serial_port_lock.reader_release()
-
-                self._poll_and_read_from_serial_port(timeout=DEFAULT_SMS_RECEIVE_POLL_RATE)
-
-                self._serial_port_lock.reader_acquire()
-
-            self._serial_port_lock.reader_release()
-
-            # Remove used AT command from the serial port buffer.
-            response = self._get_at_response_from_buffer(expected_response)
-            self._flush_used_response_from_serial_port_buffer(expected_response)
-
-            # Spin a new thread to handle the current incoming operation.
-            threading.Thread(target=self.__incoming_sms_thread,
-                             args=[response]).start()
-
-    def _poll_and_read_from_serial_port(self, timeout=1):
-
-        # Wait a while before polling again.
-        time.sleep(timeout)
-
-        # Acquire the write lock and start writing to the serial port buffer.
-        self._serial_port_lock.writer_acquire()
-        self._serial_port_buffer += self.serial_port.read(256)
-        self._serial_port_lock.writer_release()
-
-    # REQUIRES: A SMS URC event.
-    # EFFECTS: This threaded method accepts an inbound SMS,
-    #          processes the SMS fields and appends
-    #          it onto the receive buffer.
-    #          It also broadcasts the sms.received event
-    def __incoming_sms_thread(self, response_string):
-
-        self._receive_buffer_lock.acquire()
-
-        serial_response = self._parse_encoded_sms_response(response_string)
-
-        self.logger.info('Received a SMS: ' + str(serial_response))
-
-        # Append received message into receive buffer
-        self._receive_buffer.append(serial_response)
-        self.logger.info('Receive buffer: ' + str(self._receive_buffer))
-
-        self._receive_buffer_lock.release()
-        self.event.broadcast('sms.received')
-
-    # EFFECTS: Process serial response and return a SMS object.
-    def _parse_encoded_sms_response(self, encoded_response):
-        msg = '+CMT'
-        serial_response = self._filter_return_values_from_at_response(msg, encoded_response)
-        response_list = serial_response.split(',')
-
-        # Handle sender
-        index = response_list[0].find(':')
-        sender = response_list[0][index:].strip(': \"').strip('\"')
-
-        message_timestamp_blob = response_list[-1].split('\r\n')
-
-        # Handle timestamp
-        timestamp_list = message_timestamp_blob[0].split(':')
-        tzquarter = timestamp_list[2][2:][:-1]
-        timestamp_list[2] = timestamp_list[2][:2]
-
-        # Handle message
-        message = message_timestamp_blob[-1]
-
-        # Handle date
-        date_list = response_list[-2].split('/')
-        date_list[0] = date_list[0].strip('\"')
-
-        timestamp_obj = Timestamp(year=date_list[0], month=date_list[1],
-                                  day=date_list[2], hour=timestamp_list[0],
-                                  minute=timestamp_list[1], second=timestamp_list[2],
-                                  tzquarter=tzquarter)
-
-        sms_obj = SMS(sender=sender, timestamp=timestamp_obj, message=message)
-        return sms_obj
-
-    # EFFECTS: Removes the used AT response from the serial port buffer.
-    def _flush_used_response_from_serial_port_buffer(self, expected_response):
-
-        self._serial_port_lock.writer_acquire()
-
-        # LEFT SUBSTRING
-        index = self._serial_port_buffer.find(expected_response)
-        if index == -1:
-            self._serial_port_lock.writer_release()
-            raise HologramError('Internal SDK error: expected AT response not found')
-
-        # This stores what came before it
-        str_left = self._serial_port_buffer[:index]
-        #print 'str_left: ' + str_left.encode('string_escape')
-
-        # RIGHT SUBSTRING
-        # Cut the substring off from the buffer by finding the 'right' position.
-        # Find the first occurrence of AT+ since index.
-        right = self._serial_port_buffer.find('AT', index)
-        str_right = self._serial_port_buffer[right:]
-        #print 'str_right: ' + str_right.encode('string_escape')
-
-        self._serial_port_buffer = str_left + str_right
-
-        self._serial_port_lock.writer_release()
-
-    def _get_at_response_from_buffer(self, expected_response):
-
-        # Remove the '+' sign from expected_response
-        expected_response = expected_response[1:]
-
-        self._serial_port_lock.reader_acquire()
-        self.logger.debug('current serial port buffer: %s',
-                          self._serial_port_buffer.encode('string_escape'))
-
-        # Get the response list by splitting them based on AT+ commands.
-        # At any point in time, this list will look like:
-        # ['', 'CSQ\r\r\n+CSQ: 11,5\r\n\r\nOK\r\n', 'CIMI\r\r\n234507095599838\r\n\r\nOK\r\n']
-        response_list = self._serial_port_buffer.split('AT+')
-        self.logger.debug('response_list: %s', str(response_list))
-
-        self._serial_port_lock.reader_release()
-
-        # Loop through encoded_responses and look for the right one to return.
-        for encoded_response in response_list:
-            if expected_response in encoded_response:
-                return encoded_response
-
-        return None
-
-    # EFFECTS: Returns the receive buffer and pops the oldest element in it.
-    def popReceivedSMS(self):
-        self._receive_buffer_lock.acquire()
-
-        if len(self._receive_buffer) == 0:
-            data = None
+        self.set('+UPSD', '0,1,\"hologram\"')
+        self.set('+UPSD', '0,7,\"0.0.0.0\"')
+        ok, _ = self.set('+UPSDA', '0,3', timeout=30)
+        if ok != ModemResult.OK:
+            self.logger.error('PDP Context setup failed')
         else:
-            data = self._receive_buffer.popleft()
+            self.logger.info('PDP context active')
+        return ok == ModemResult.OK
 
-        self._receive_buffer_lock.release()
-        return data
+    # EFFECTS: backwards compatibility only
+    def enableSMS(self):
+        self.checkURC()
+        ok, r = self.read("+CPMS")
+        if ok == ModemResult.OK:
+            try:
+                numsms = int(r.lstrip('+CPMS: ').split(',')[1])
+                for i in range(numsms):
+                    self.event.broadcast('sms.received')
+            except (IndexError, ValueError) as e:
+                self.logger.error(repr(e))
 
     def disableSMS(self):
-        self._serial_port_lock.writer_acquire()
-
-        self.logger.info('Disabling SMS')
-
-        self.sms_disabled = True
-
-        self._serial_port_lock.writer_release()
-
-        self._sms_listen_thread.join()
-
-        self._serial_port_lock.reader_acquire()
-        self.logger.info('SMS receive disabled.')
-        self._serial_port_lock.reader_release()
+        self.enableSMS()
 
     def _populate_location_obj(self, response):
         response_list = response.split(',')
-        self._location = Location(date=response_list[0],
-                                  time=response_list[1],
-                                  latitude=response_list[2],
-                                  longitude=response_list[3],
-                                  altitude=response_list[4],
-                                  uncertainty=response_list[5])
-        return self._location
+        self.last_location = Location(*response_list)
+        return self.last_location
 
     @property
     def modem_mode(self):
@@ -288,20 +384,21 @@ class ISerial(ModemMode):
         # +UUSBCONF: 0,"",,"0x1102" -> 0
         # +UUSBCONF: 2,"ECM",,"0x1104" -> 2
         try:
-            mode_number = (int)(self.write('+UUSBCONF?', '+UUSBCONF')[0])
-        except ValueError as e:
+            ok, res = self.read('+UUSBCONF')
+            if ok == ModemResult.OK:
+                mode_number = int(res.lstrip('+UUSBCONF: ').split(',')[0])
+        except (IndexError, ValueError) as e:
             self.logger.error(repr(e))
         return mode_number
 
     @modem_mode.setter
     def modem_mode(self, mode):
-        self.write('+UUSBCONF=' + str(mode), '')
+        self.set('+UUSBCONF', str(mode))
         self.logger.info('Restarting modem')
-        self.write('+CFUN=16', '') # restart the modem
-        self._serial_port_lock.writer_release()
+        self.set('+CFUN', '16') # restart the modem
         self.logger.info('Modem restarted')
         self.closeSerialPort()
-        time.sleep(MODEM_RESTART_TIME)
+        time.sleep(DEFAULT_MODEM_RESTART_TIME)
 
     @property
     def carrier(self):
@@ -311,35 +408,62 @@ class ISerial(ModemMode):
     def carrier(self, carrier):
         self._carrier = carrier
 
+    #returns the raw result of a command, with the 'CMD: ' prefix stripped
+    def _basic_command(self, cmd, prefix=True):
+        try:
+            ok, r = self.command(cmd)
+            if ok == ModemResult.OK:
+                if prefix and r.startswith(cmd+': '):
+                    return r.lstrip(cmd + ': ')
+                else:
+                    return r
+        except AttributeError as e:
+            self.logger.error(repr(e))
+        return None
+
+    def _basic_set(self, cmd, value):
+        try:
+            ok, r = self.set(cmd, value)
+            if ok == ModemResult.OK and r.startswith(cmd + ': ' + value + ','):
+                return r.lstrip(cmd + ': ' + value + ',')
+        except AttributeError as e:
+            self.logger.error(repr(e))
+        return None
+
     # EFFECTS: Returns the Received Signal Strength Indication (RSSI) value of the modem
     @property
     def signal_strength(self):
-        return self.write('+CSQ')
+        csq = self._basic_command('+CSQ')
+        if csq is None:
+            return '99,99'
+        return csq
 
     @property
     def imsi(self):
-        return self.write('+CIMI')
+        return self._basic_command('+CIMI', False)
 
     @property
     def iccid(self):
-        return self.write('+CCID')
+        return self._basic_command('+CCID')
 
     @property
     def operator(self):
-        return self.write('+UDOPN=12').strip(',')
+        op = self._basic_set('+UDOPN','12')
+        if op is not None:
+            return op.strip('"')
+        return op
 
     @property
     def location(self):
-        self._set_up_pdp_context()
-        response = self.write('+ULOC=2,2,0,360,10', expected_response='+UULOC')
-        if response.startswith('+UULOC: '):
-            response = response[8:]
-        return self._populate_location_obj(response)
-
-    @property
-    def serial_port(self):
-        return self._serial_port
-
-    @serial_port.setter
-    def serial_port(self, serial_port):
-        self._serial_port = serial_port
+        temp_loc = self.last_location
+        if self._set_up_pdp_context():
+            self.last_location = None
+            ok, r = self.set('+ULOC', '2,2,0,10,10')
+            if ok != ModemResult.OK:
+                self.logger.error('Location request failed')
+                return None
+            while self.last_location is None and self._pdp_context_active():
+                self.checkURC()
+        if self.last_location is None:
+            self.last_location = temp_loc
+        return self.last_location

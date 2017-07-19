@@ -10,6 +10,7 @@
 
 from Hologram.HologramCloud import HologramCloud
 from hologram_util import handle_timeout
+from hologram_util import handle_polling
 
 help_data = '''This subcommand allows you to listen on a given host and port for incoming cloud messages.\n
 '''
@@ -21,11 +22,13 @@ hologram = None
 
 def popReceivedMessage():
     recv = hologram.popReceivedMessage()
-    print 'Received message: ' + str(recv)
+    if recv is not None:
+        print 'Received message: ' + str(recv)
 
 def popReceivedSMS():
     recv = hologram.popReceivedSMS()
-    print 'Received SMS: ' + str(recv)
+    if recv is not None:
+        print 'Received SMS:', recv
 
 def parse_hologram_receive_args(parser):
     parser.add_argument('-m', '--modem', nargs='?', default='nova',
@@ -74,15 +77,9 @@ def run_hologram_receive_data(args):
 
     hologram.network.disconnect()
 
+
 # EFFECTS: Receives SMS from the Hologram Cloud.
 def run_hologram_receive_sms(args):
-
     global hologram
     hologram = HologramCloud(None, enable_inbound=False, network='cellular')
-
-    hologram.event.subscribe('sms.received', popReceivedSMS)
-    hologram.enableSMS()
-
-    handle_timeout(args['timeout'])
-
-    hologram.disableSMS()
+    handle_polling(args['timeout'], popReceivedSMS, 1)

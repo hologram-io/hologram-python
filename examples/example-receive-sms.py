@@ -32,6 +32,6 @@ if __name__ == '__main__':
     if sms_obj is None:
         print 'sms_obj: ' + str(sms_obj)
     else:
-        print 'sender: ' + str(sms_obj.sender)
-        print sms_obj.timestamp
-        print 'message: ' + str(sms_obj.message)
+        print 'sender:', sms_obj.sender
+        print sms_obj.timestamp.strftime('%c')
+        print u'message:', sms_obj.message

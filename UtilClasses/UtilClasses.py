@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # UtilClasses.py - Hologram Python SDK Util classes
 #
 # Author: Hologram <support@hologram.io>
@@ -24,33 +25,9 @@ class Location(object):
     def __repr__(self):
         return type(self).__name__
 
-class Timestamp(object):
-
-    def __init__(self, year=None, month=None, day=None, hour=None, minute=None,
-                 second=None, tzquarter=None):
-        self.year = year
-        self.month = month
-        self.day = day
-        self.hour = hour
-        self.minute = minute
-        self.second = second
-        self.tzquarter = tzquarter
-
-    def __repr__(self):
-        temp_str = type(self).__name__ + ': '
-        temp_str = temp_str + 'year: ' + repr(self.year) + ', '
-        temp_str = temp_str + 'month: ' + repr(self.month) + ', '
-        temp_str = temp_str + 'day: ' + repr(self.day) + ', '
-        temp_str = temp_str + 'hour: ' + repr(self.hour) + ', '
-        temp_str = temp_str + 'minute: ' + repr(self.minute) + ', '
-        temp_str = temp_str + 'second: ' + repr(self.second) + ', '
-        temp_str = temp_str + 'tzquarter: ' + repr(self.tzquarter)
-
-        return temp_str
-
 class SMS(object):
 
-    def __init__(self, sender='', timestamp=Timestamp(), message=''):
+    def __init__(self, sender, timestamp, message):
         self.sender = sender
         self.timestamp = timestamp
         self.message = message
@@ -59,10 +36,17 @@ class SMS(object):
 
         temp_str = type(self).__name__ + ': '
         temp_str = temp_str + 'sender: ' + self.sender + ', '
-        temp_str = temp_str + 'timestamp: ' + repr(self.timestamp) + ', '
+        temp_str = temp_str + 'timestamp: ' + self.timestamp.strftime('%c') + ', '
         temp_str = temp_str + 'message: ' + self.message
 
         return temp_str
+
+class ModemResult:
+    Invalid = 'Invalid'
+    NoMatch = 'NoMatch'
+    Error = 'Error'
+    Timeout = 'Timeout'
+    OK = 'OK'
 
 class RWLock(object):
 

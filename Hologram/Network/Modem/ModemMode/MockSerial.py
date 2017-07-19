@@ -8,6 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 from ISerial import ISerial
+from UtilClasses import ModemResult
 
 DEFAULT_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
 DEFAULT_SERIAL_BAUD_RATE = 9600
@@ -34,6 +35,23 @@ class MockSerial(ISerial):
     def getSerialBuffer(self):
         return self._serial_port_buffer
 
-    def write(self, msg):
+    def _write(self, msg):
         response = 'AT' + msg + '\r\r\n' + msg + ': 1234567890123456789\r\n\r\nOK\r\n'
-        return self._filter_return_values_from_at_response(msg, response)
+        return response
+
+    def _read(self, timeout=None, size=ISerial.DEFAULT_SERIAL_READ_SIZE):
+        response = '1234567890123456789\r\n\r\nOK\r\n'
+        return response
+
+    def command(self, cmd='', value=None, expected=None, timeout=None, retries=1,
+                seteq=False, read=False, prompt=None, data=None):
+        self.result = ModemResult.OK
+        self._commandResult()
+
+    def set(self, cmd, value, expected=None, timeout=None,
+            retries=1, prompt=None, data=None):
+        pass
+
+    def _readline(self, timeout=None):
+        response = '1234567890123456789\r\n\r\nOK\r\n'
+        return response
