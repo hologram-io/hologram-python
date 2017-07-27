@@ -57,7 +57,7 @@ class Serial(ISerial):
         if (not self.serial_port) or (not self.serial_port.isOpen()):
             raise Exception('Serial port not open')
 
-    def _write(self, message):
+    def write(self, message):
         self.serial_port.write(message.encode())
         self.serial_port.flush()
 
@@ -69,12 +69,14 @@ class Serial(ISerial):
             self.serial_port.timeout = timeout
         return r
 
-    def _readline(self, timeout=None):
+    def readline(self, timeout=None):
+        # Override set timeout with the given timeout if necessary
         if timeout is not None:
             self.serial_port.timeout = timeout
         r = self.serial_port.readline()
         if len(r) > 0:
             self.logger.debug('{' + r.rstrip('\r\n') + '}')
+        # Revert back to original default timeout
         if timeout is not None:
             self.serial_port.timeout = self.timeout
         return r

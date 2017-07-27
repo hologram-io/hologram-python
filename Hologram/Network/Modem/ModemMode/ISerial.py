@@ -68,13 +68,10 @@ class ISerial(ModemMode):
     def closeSerialPort(self):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    def _write(self, message):
-        raise NotImplementedError('Must instantiate a Serial type')
-
     def _read(self, timeout=None, size=DEFAULT_SERIAL_READ_SIZE):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    def _readline(self, timeout=None):
+    def readline(self, timeout=None):
         raise NotImplementedError('Must instantiate a Serial type')
 
     def _init_modem(self):
@@ -90,46 +87,46 @@ class ISerial(ModemMode):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")
 
-    def _handleURC(self, urc):
+    def handleURC(self, urc):
         self.logger.debug("URC! %s",  urc)
         if urc.startswith("+CMTI: "):
             self.event.broadcast('sms.received')
         elif urc.startswith('+UULOC: '):
-            self._populate_location_obj(urc.lstrip('+UULOC: '))
+            self.populate_location_obj(urc.lstrip('+UULOC: '))
             self.event.broadcast('location.received')
 
-    def _debugwrite(self, x):
+    def debugwrite(self, x):
         self.debug_out += x
-        self._write(x)
+        self.write(x)
 
-    def _modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
+    def modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
                     end=False):
         if start:
             self.debug_out = '['
         if at:
-            self._debugwrite('AT')
-        self._debugwrite(cmd)
+            self.debugwrite('AT')
+        self.debugwrite(cmd)
         if seteq:
-            self._debugwrite('=')
+            self.debugwrite('=')
         if read:
-            self._debugwrite('?')
+            self.debugwrite('?')
         if end:
             self.logger.debug(self.debug_out + ']')
-            self._write('\r\n')
+            self.write('\r\n')
 
     def checkURC(self):
         while(True):
-            response = self._readline(0)
+            response = self.readline(0)
             if len(response) > 0 and response.startswith('+'):
                 urc = response.rstrip('\r\n')
-                self._handleURC(urc)
+                self.handleURC(urc)
             else:
                 return
 
-    def _process_response(self, cmd, timeout=None):
+    def process_response(self, cmd, timeout=None):
         self.response = []
         while(True):
-            response = self._readline(timeout)
+            response = self.readline(timeout)
             if len(response) == 0:
                 return ModemResult.Timeout
 
@@ -152,7 +149,7 @@ class ISerial(ModemMode):
                 if response.lower().startswith(cmd.lower() + ': '):
                     self.response.append(response)
                 else:
-                    self._handleURC(response)
+                    self.handleURC(response)
             elif response.startswith('AT'+cmd):
                 continue #echo log???
             else:
@@ -196,21 +193,21 @@ class ISerial(ModemMode):
             self.checkURC()
 
             if value is None:
-                self._modemwrite(cmd, start=True, at=True, read=read, end=True,
+                self.modemwrite(cmd, start=True, at=True, read=read, end=True,
                                  seteq=seteq)
             elif read:
                 self.result = ModemResult.Invalid
                 return self._commandResult()
             else:
-                self._modemwrite(cmd, start=True, at=True, seteq=True)
-                self._modemwrite(value, end=True)
+                self.modemwrite(cmd, start=True, at=True, seteq=True)
+                self.modemwrite(value, end=True)
 
             if prompt is not None and data is not None:
                 p = self._read(timeout, len(prompt))
                 if p == prompt:
-                    self._write(data)
+                    self.write(data)
 
-            self.result = self._process_response(cmd, timeout)
+            self.result = self.process_response(cmd, timeout)
             if self.result == ModemResult.OK:
                 if expected is not None:
                     self.result = ModemResult.NoMatch
@@ -281,8 +278,13 @@ class ISerial(ModemMode):
             ts_raw = pdu[offset:offset+14]
             ts = ''.join([ ts_raw[x:x+2][::-1] for x in range(0, len(ts_raw), 2) ])
             dt = datetime.datetime.strptime(ts[:-2], '%y%m%d%H%M%S')
-            delta = datetime.timedelta(minutes=15*int(ts[-2:]))
-            dt += delta #UTC, adjusted for DST
+            tz_byte = int(ts[-2:],16)
+            delta = datetime.timedelta(minutes=15*(tz_byte & 0x7F))
+            #adjust to UTC from Service Center timestamp
+            if (tz_byte & 0x80) == 0x80:
+                dt += delta
+            else:
+                dt -= delta
             offset += 14
             msg_len = int(pdu[offset:offset+2],16)
             offset += 2
@@ -372,7 +374,7 @@ class ISerial(ModemMode):
     def disableSMS(self):
         self.enableSMS()
 
-    def _populate_location_obj(self, response):
+    def populate_location_obj(self, response):
         response_list = response.split(',')
         self.last_location = Location(*response_list)
         return self.last_location

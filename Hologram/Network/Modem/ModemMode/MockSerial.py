@@ -35,13 +35,16 @@ class MockSerial(ISerial):
     def getSerialBuffer(self):
         return self._serial_port_buffer
 
-    def _write(self, msg):
+    def write(self, msg):
         response = 'AT' + msg + '\r\r\n' + msg + ': 1234567890123456789\r\n\r\nOK\r\n'
         return response
 
     def _read(self, timeout=None, size=ISerial.DEFAULT_SERIAL_READ_SIZE):
         response = '1234567890123456789\r\n\r\nOK\r\n'
         return response
+
+    def readline(self, timeout=None):
+        return self.serial_port
 
     def command(self, cmd='', value=None, expected=None, timeout=None, retries=1,
                 seteq=False, read=False, prompt=None, data=None):
@@ -51,7 +54,3 @@ class MockSerial(ISerial):
     def set(self, cmd, value, expected=None, timeout=None,
             retries=1, prompt=None, data=None):
         pass
-
-    def _readline(self, timeout=None):
-        response = '1234567890123456789\r\n\r\nOK\r\n'
-        return response

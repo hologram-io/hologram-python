@@ -1,5 +1,10 @@
+2017-07-26 Hologram <support@hologram.io>
+    * Made write interface public and added Serial unit tests.
+
 2017-07-17 Hologram <support@hologram.io>
     * Refactored Serial interfaces.
+    * Fixed bug where AT commands made might cause the serial buffer to be in
+      an unexpected state that hang the modem.
 
 2017-07-10 Hologram <support@hologram.io>
     * Renamed iota to Nova
