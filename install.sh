@@ -76,5 +76,7 @@ do
     fi
 done
 
+sudo apt-get install libpython2.7-dev
+
 # Install SDK itself.
 sudo pip install hologram-python
