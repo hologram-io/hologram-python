@@ -70,15 +70,15 @@ def run_modem_signal(args):
             print 'Signal strength: ' + cloud.network.signal_strength
             handle_timeout(args['repeat'])
     else:
-        print 'Signal strength: ' + cloud.network.signal_strength
+        print 'Signal strength: ' + str(cloud.network.signal_strength)
 
 def run_modem_sim(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular')
-    print 'ICCID: ' + cloud.network.iccid
+    print 'ICCID: ' + str(cloud.network.iccid)
 
 def run_modem_operator(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular')
-    print 'Operator: ' + cloud.network.operator
+    print 'Operator: ' + str(cloud.network.operator)
 
 def run_modem_type(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular')

@@ -77,6 +77,10 @@ class IModem(object):
         raise NotImplementedError('Must instantiate a Modem type')
 
     @property
+    def modem_id(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    @property
     def imsi(self):
         raise NotImplementedError('Must instantiate a Modem type')
 

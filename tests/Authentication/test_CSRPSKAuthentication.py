@@ -16,7 +16,15 @@ class TestCSRPSKAuthentication(object):
         credentials = {'devicekey': '12345678'}
         auth = CSRPSKAuthentication(credentials)
         message = 'test without topics'
-        assert "{\"k\": \"12345678\", \"d\": \"test without topics\"}\r\r" == auth.buildPayloadString(message)
+        assert "{\"k\": \"12345678\", \"m\": \"\\u0001e303-None\", \"d\": \"test without topics\"}\r\r" \
+            == auth.buildPayloadString(message, modem_type='E303')
+
+    def test_build_payload_string_with_empty_modem_type_and_id(self):
+        credentials = {'devicekey': '12345678'}
+        auth = CSRPSKAuthentication(credentials)
+        message = 'test with empty modem_type and modem_id'
+        assert "{\"k\": \"12345678\", \"m\": \"\\u0001agnostic-None\", \"d\": \"test with empty modem_type and modem_id\"}\r\r" \
+            == auth.buildPayloadString(message, modem_type=None)
 
     def test_invalid_device_key_length(self):
         credentials = {'devicekey': '12345678'}

@@ -91,6 +91,10 @@ class Cellular(Network):
     def popReceivedSMS(self):
         return self.modem.popReceivedSMS()
 
+    # EFFECTS: Returns the sim otp response from the sim.
+    def get_sim_otp_response(self, command):
+        return self.modem.get_sim_otp_response(command)
+
     # EFFECTS: Returns a list of devices that are physically attached and recognized
     #          by the machine.
     def _get_attached_devices(self):
@@ -146,6 +150,10 @@ class Cellular(Network):
     @property
     def signal_strength(self):
         return self.modem.signal_strength
+
+    @property
+    def modem_id(self):
+        return self.modem.modem_id
 
     @property
     def imsi(self):

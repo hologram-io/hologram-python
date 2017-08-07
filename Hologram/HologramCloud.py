@@ -16,6 +16,7 @@ from Exceptions.HologramError import HologramError
 import Event
 
 from HologramAuth.TOTPAuthentication import TOTPAuthentication
+from HologramAuth.SIMOTPAuthentication import SIMOTPAuthentication
 
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
 HOLOGRAM_PORT_SEND = 9999
@@ -40,6 +41,7 @@ class HologramCloud(CustomCloud):
     _authentication_handlers = {
         'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
         'totp' : TOTPAuthentication,
+        'sim-otp' : SIMOTPAuthentication,
     }
 
     _errorCodeDescription = {
@@ -81,14 +83,32 @@ class HologramCloud(CustomCloud):
             sys.exit(1)
 
     # EFFECTS: Sends the message to the cloud.
-
     def sendMessage(self, message, topics = None, timeout = 5):
 
         if not self._networkManager.networkActive:
             self.addPayloadToBuffer(message)
             return ''
 
-        output = self.authentication.buildPayloadString(message, topics)
+        modem_type = None
+        modem_id = None
+        if self.network is not None:
+            modem_id = self.network.modem_id
+            modem_type = str(self.network.modem)
+
+        # Set the approriate credentials required for sim otp authentication.
+        if self.authenticationType == 'sim-otp':
+            nonce = self.request_nonce()
+            command = self.authentication.generate_sim_otp_command(imsi=self.network.imsi,
+                                                                   iccid=self.network.iccid,
+                                                                   nonce=nonce)
+            modem_response = self.network.get_sim_otp_response(command)
+            self.authentication.generate_sim_otp_token(modem_response)
+
+        output = self.authentication.buildPayloadString(message,
+                                                        topics=topics,
+                                                        modem_type=modem_type,
+                                                        modem_id=modem_id,
+                                                        version=self.version)
 
         result = super(HologramCloud, self).sendMessage(output, timeout)
 
@@ -118,6 +138,33 @@ class HologramCloud(CustomCloud):
 
         resultList = self.__parse_hologram_compact_result(result)
         return resultList[0]
+
+    # REQUIRES: Called only when sim otp authentication is required.
+    # EFFECTS: Request for nonce.
+    def request_nonce(self):
+
+        try:
+            self.open_send_socket()
+
+            # build nonce request payload string
+            request = self.authentication.buildNonceRequestPayloadString()
+
+            self.logger.debug("Sending nonce request with body of length %d", len(request))
+            self.logger.debug('Send: %s', request)
+
+            self.sock.send(request)
+            self.logger.debug('Nonce request sent.')
+
+            resultbuf = self.receive_send_socket()
+
+            if resultbuf is None:
+                raise HologramError('Internal nonce error')
+
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
+
+        return resultbuf
 
     def enableSMS(self):
         return self.network.enableSMS()

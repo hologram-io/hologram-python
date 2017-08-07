@@ -17,6 +17,7 @@ from Exceptions.HologramError import HologramError
 
 MAX_QUEUED_CONNECTIONS = 5
 RECEIVE_TIMEOUT = 5
+SEND_TIMEOUT = 5
 MIN_PERIODIC_INTERVAL = 10
 
 class CustomCloud(Cloud):
@@ -52,53 +53,30 @@ class CustomCloud(Cloud):
 
         self._accept_thread = None
         self.socketClose = True
+        self._is_send_socket_open = False
 
         if enable_inbound == True:
             self.initializeReceiveSocket()
 
     # EFFECTS: Sends the message to the cloud.
-    def sendMessage(self, message, timeout=5):
+    def sendMessage(self, message, timeout=SEND_TIMEOUT):
 
         try:
-            self.__enforce_send_host_and_port()
-
             if not self._networkManager.networkActive:
                 self.addPayloadToBuffer(message)
                 return ''
 
-            self.logger.info("Connecting to: %s", self.send_host)
-            self.logger.info("Port: %s", self.send_port)
-
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect((self.send_host, self.send_port))
+            self.open_send_socket(timeout=timeout)
 
             self.logger.info("Sending message with body of length %d", len(message))
-            self.logger.debug('Send: ')
+            self.logger.debug('Send: %s', message)
 
-            self.logger.debug(message)
-
-            sock.send(message)
-
+            self.sock.send(message)
             self.logger.info('Sent.')
 
-            resultbuf = ''
-            while True:
-                try:
-                    result = sock.recv(1024)
-                except socket.timeout:
-                    break
-                if not result:
-                    break
-                resultbuf += result
+            resultbuf = self.receive_send_socket()
 
-            try:
-                sock.shutdown(socket.SHUT_RDWR)
-            except socket.error:
-                pass
-
-            sock.close()
-            self.logger.info('Socket closed.')
+            self.close_send_socket()
 
             self.event.broadcast('message.sent')
             return resultbuf
@@ -110,6 +88,60 @@ class CustomCloud(Cloud):
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
             return ''
+
+    def open_send_socket(self, timeout=SEND_TIMEOUT):
+
+        if self._is_send_socket_open:
+            return
+
+        try:
+            self.__enforce_send_host_and_port()
+            self.logger.info("Connecting to: %s", self.send_host)
+            self.logger.info("Port: %s", self.send_port)
+
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(timeout)
+            self.sock.connect((self.send_host, self.send_port))
+            self._is_send_socket_open = True
+
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
+        except (IOError):
+            self.logger.error('An error occurred while attempting to send the message to the cloud')
+            self.logger.error('Please try again.')
+
+    def close_send_socket(self):
+        try:
+
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                pass
+
+            self.sock.close()
+            self._is_send_socket_open = False
+            self.logger.info('Socket closed.')
+
+        except HologramError as e:
+            self.logger.error(repr(e))
+            sys.exit(1)
+        except (IOError):
+            self.logger.error('An error occurred while attempting to send the message to the cloud')
+            self.logger.error('Please try again.')
+
+    # EFFECTS: Receives data from inbound socket.
+    def receive_send_socket(self):
+        resultbuf = ''
+        while True:
+            try:
+                result = self.sock.recv(1024)
+            except socket.timeout:
+                break
+            if not result:
+                break
+            resultbuf += result
+        return resultbuf
 
     # REQUIRES: The interval in seconds, message body, optional topic(s) and a timeout value
     #           for how long in seconds before the socket is closed.
@@ -213,6 +245,8 @@ class CustomCloud(Cloud):
 
         # Set socketClose back to False since we're opening it again.
         self.socketClose = False
+        self.sock = None
+        self._is_send_socket_open = False
 
         # become a server socket
         self._receive_socket.listen(MAX_QUEUED_CONNECTIONS)

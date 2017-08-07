@@ -20,13 +20,17 @@ if __name__ == '__main__':
 
     hologram = HologramCloud(None, enable_inbound=False, network='cellular')
 
-    print 'Signal strength: ' + hologram.network.signal_strength
-    print 'IMSI: ' + hologram.network.imsi
-    print 'ICCID: ' + hologram.network.iccid
-    print 'Operator: ' + hologram.network.operator
-    print 'Modem name: ' + hologram.network.active_modem_interface
+    print 'Signal strength: ' + str(hologram.network.signal_strength)
+    print 'Modem id: ' + str(hologram.network.modem_id)
+    print 'IMSI: ' + str(hologram.network.imsi)
+    print 'ICCID: ' + str(hologram.network.iccid)
+    print 'Operator: ' + str(hologram.network.operator)
+    print 'Modem name: ' + str(hologram.network.active_modem_interface)
 
     location = hologram.network.location
-    print 'Latitude: ' + location.latitude
-    print 'Longitude: ' + location.longitude
-    print 'Date: ' + location.date
+    if location is None:
+        print 'Location: ' + str(location)
+    else:
+        print 'Latitude: ' + str(location.latitude)
+        print 'Longitude: ' + str(location.longitude)
+        print 'Date: ' + str(location.date)

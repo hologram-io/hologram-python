@@ -1,3 +1,9 @@
+2017-07-28 Hologram <support@hologram.io>
+    * Added cellular modem id property in ISerial interface
+
+2017-07-27 Hologram <support@hologram.io>
+    * Fixed existing PPP session check whenever a double cellular connect is called.
+
 2017-07-26 Hologram <support@hologram.io>
     * Made write interface public and added Serial unit tests.
 

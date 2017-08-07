@@ -39,6 +39,7 @@ class ISerial(ModemMode):
         self.timeout = timeout
         self.response = []
         self.last_location = None
+        self.last_sim_otp_command_response = None
         self.result = ModemResult.OK
         self.debug_out = ''
         self.gsm = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
@@ -87,6 +88,7 @@ class ISerial(ModemMode):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")
 
+    # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
         self.logger.debug("URC! %s",  urc)
         if urc.startswith("+CMTI: "):
@@ -94,6 +96,12 @@ class ISerial(ModemMode):
         elif urc.startswith('+UULOC: '):
             self.populate_location_obj(urc.lstrip('+UULOC: '))
             self.event.broadcast('location.received')
+        elif urc.startswith('+CSIM: '):
+            self.parse_and_populate_last_sim_otp_response(urc.lstrip('+CSIM: '))
+
+    # EFFECTS: Parses and populates the last sim otp response.
+    def parse_and_populate_last_sim_otp_response(self, response):
+        self.last_sim_otp_command_response = response.split(',')[-1].strip('"')
 
     def debugwrite(self, x):
         self.debug_out += x
@@ -400,7 +408,7 @@ class ISerial(ModemMode):
         self.set('+CFUN', '16') # restart the modem
         self.logger.info('Modem restarted')
         self.closeSerialPort()
-        time.sleep(DEFAULT_MODEM_RESTART_TIME)
+        time.sleep(ISerial.DEFAULT_MODEM_RESTART_TIME)
 
     @property
     def carrier(self):
@@ -445,6 +453,10 @@ class ISerial(ModemMode):
         return self._basic_command('+CIMI', False)
 
     @property
+    def modem_id(self):
+        return self._basic_command('+CGMM')
+
+    @property
     def iccid(self):
         return self._basic_command('+CCID')
 
@@ -469,3 +481,13 @@ class ISerial(ModemMode):
         if self.last_location is None:
             self.last_location = temp_loc
         return self.last_location
+
+    # EFFECTS: Returns the sim otp response from the sim
+    def get_sim_otp_response(self, command):
+
+        self.command("+CSIM=46,\"008800801110" + command + "00\"")
+
+        while self.last_sim_otp_command_response is None:
+            self.checkURC()
+
+        return self.last_sim_otp_command_response

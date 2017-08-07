@@ -21,7 +21,8 @@ class CSRPSKAuthentication(HologramAuthentication):
         self._data = {}
         super(CSRPSKAuthentication, self).__init__(credentials=credentials)
 
-    def buildPayloadString(self, messages, topics=None):
+    def buildPayloadString(self, messages, topics=None, modem_type=None,
+                           modem_id=None, version=None):
 
         try:
             self.enforceValidDeviceKey()
@@ -29,7 +30,11 @@ class CSRPSKAuthentication(HologramAuthentication):
             self.logger.error(repr(e))
             sys.exit(1)
 
-        super(CSRPSKAuthentication, self).buildPayloadString(messages,topics=topics)
+        super(CSRPSKAuthentication, self).buildPayloadString(messages,
+                                                             topics=topics,
+                                                             modem_type=modem_type,
+                                                             modem_id=modem_id,
+                                                             version=version)
 
         return json.dumps(self._data) + "\r\r"
 
@@ -49,6 +54,12 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def buildAuthString(self, timestamp=None, sequence_number=None):
         self._data['k'] = self.credentials['devicekey']
+
+    def buildMetadataString(self, modem_type, modem_id, version):
+
+        self._data['m'] = self.metadata_version \
+                          + self.build_modem_type_id_str(modem_type, modem_id) \
+                          + '-' + str(version)
 
     def buildTopicString(self, topics):
         self._data['t'] = topics
