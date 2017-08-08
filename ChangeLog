@@ -1,3 +1,6 @@
+2017-08-08 Hologram <support@hologram.io>
+    * Fixed SMS timestamp issue. (wrong offset value)
+
 2017-07-28 Hologram <support@hologram.io>
     * Added cellular modem id property in ISerial interface
 

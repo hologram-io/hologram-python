@@ -287,7 +287,8 @@ class ISerial(ModemMode):
             ts = ''.join([ ts_raw[x:x+2][::-1] for x in range(0, len(ts_raw), 2) ])
             dt = datetime.datetime.strptime(ts[:-2], '%y%m%d%H%M%S')
             tz_byte = int(ts[-2:],16)
-            delta = datetime.timedelta(minutes=15*(tz_byte & 0x7F))
+            tz_bcd = ((tz_byte & 0x70) >> 4)*10 + (tz_byte & 0x0F)
+            delta = datetime.timedelta(minutes=15*tz_bcd)
             #adjust to UTC from Service Center timestamp
             if (tz_byte & 0x80) == 0x80:
                 dt += delta
