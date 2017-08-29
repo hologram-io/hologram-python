@@ -8,6 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
+import binascii
 import json
 import sys
 from CustomCloud import CustomCloud
@@ -155,7 +156,7 @@ class HologramCloud(CustomCloud):
             self.sock.send(request)
             self.logger.debug('Nonce request sent.')
 
-            resultbuf = self.receive_send_socket()
+            resultbuf = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
 
             if resultbuf is None:
                 raise HologramError('Internal nonce error')

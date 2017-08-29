@@ -72,7 +72,7 @@ class ISerial(ModemMode):
     def _read(self, timeout=None, size=DEFAULT_SERIAL_READ_SIZE):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    def readline(self, timeout=None):
+    def readline(self, timeout=None, hide=False):
         raise NotImplementedError('Must instantiate a Serial type')
 
     def _init_modem(self):
@@ -90,51 +90,56 @@ class ISerial(ModemMode):
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
+        if urc.startswith('+CSIM: '):
+            self.parse_and_populate_last_sim_otp_response(urc.lstrip('+CSIM: '))
+            return
+
         self.logger.debug("URC! %s",  urc)
         if urc.startswith("+CMTI: "):
             self.event.broadcast('sms.received')
         elif urc.startswith('+UULOC: '):
             self.populate_location_obj(urc.lstrip('+UULOC: '))
             self.event.broadcast('location.received')
-        elif urc.startswith('+CSIM: '):
-            self.parse_and_populate_last_sim_otp_response(urc.lstrip('+CSIM: '))
 
     # EFFECTS: Parses and populates the last sim otp response.
     def parse_and_populate_last_sim_otp_response(self, response):
         self.last_sim_otp_command_response = response.split(',')[-1].strip('"')
 
-    def debugwrite(self, x):
-        self.debug_out += x
+    def debugwrite(self, x, hide=False):
+        if not hide:
+            self.debug_out += x
         self.write(x)
 
     def modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
-                    end=False):
-        if start:
+                    end=False, hide=False):
+        # Skip debugs for modem write commands if hidden mode is enabled.
+        if start and not hide:
             self.debug_out = '['
         if at:
-            self.debugwrite('AT')
-        self.debugwrite(cmd)
+            self.debugwrite('AT', hide=hide)
+        self.debugwrite(cmd, hide=hide)
         if seteq:
-            self.debugwrite('=')
+            self.debugwrite('=', hide=hide)
         if read:
-            self.debugwrite('?')
+            self.debugwrite('?', hide=hide)
         if end:
-            self.logger.debug(self.debug_out + ']')
+            if not hide:
+                self.logger.debug(self.debug_out + ']')
             self.write('\r\n')
 
-    def checkURC(self):
+    def checkURC(self, hide=False):
         while(True):
-            response = self.readline(0)
+            response = self.readline(0, hide=hide)
             if len(response) > 0 and response.startswith('+'):
                 urc = response.rstrip('\r\n')
                 self.handleURC(urc)
             else:
                 return
 
-    def process_response(self, cmd, timeout=None):
+    def process_response(self, cmd, timeout=None, hide=False):
         self.response = []
         while(True):
-            response = self.readline(timeout)
+            response = self.readline(timeout, hide=hide)
             if len(response) == 0:
                 return ModemResult.Timeout
 
@@ -186,7 +191,7 @@ class ISerial(ModemMode):
 
     def command(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None):
+                prompt=None, data=None, hide=False):
         self.result = ModemResult.Timeout
 
         if cmd.endswith('?'):
@@ -198,24 +203,24 @@ class ISerial(ModemMode):
                 cmd = cmd[:-1]
 
         for i in range(retries+1):
-            self.checkURC()
+            self.checkURC(hide=hide)
 
             if value is None:
                 self.modemwrite(cmd, start=True, at=True, read=read, end=True,
-                                 seteq=seteq)
+                                 seteq=seteq, hide=hide)
             elif read:
                 self.result = ModemResult.Invalid
                 return self._commandResult()
             else:
-                self.modemwrite(cmd, start=True, at=True, seteq=True)
-                self.modemwrite(value, end=True)
+                self.modemwrite(cmd, start=True, at=True, seteq=True, hide=hide)
+                self.modemwrite(value, end=True, hide=hide)
 
             if prompt is not None and data is not None:
                 p = self._read(timeout, len(prompt))
                 if p == prompt:
                     self.write(data)
 
-            self.result = self.process_response(cmd, timeout)
+            self.result = self.process_response(cmd, timeout, hide=hide)
             if self.result == ModemResult.OK:
                 if expected is not None:
                     self.result = ModemResult.NoMatch
@@ -227,7 +232,6 @@ class ISerial(ModemMode):
         return self._commandResult()
 
     def _gsm7tochr(self, c):
-        #self.logger.debug('G: ' + hex(c) + ' ' + chr(c))
         if self.in_ext:
             self.in_ext = False
             if c in self.ext.keys():
@@ -486,9 +490,9 @@ class ISerial(ModemMode):
     # EFFECTS: Returns the sim otp response from the sim
     def get_sim_otp_response(self, command):
 
-        self.command("+CSIM=46,\"008800801110" + command + "00\"")
+        self.command("+CSIM=46,\"008800801110" + command + "00\"", hide=True)
 
         while self.last_sim_otp_command_response is None:
-            self.checkURC()
+            self.checkURC(hide=True)
 
         return self.last_sim_otp_command_response

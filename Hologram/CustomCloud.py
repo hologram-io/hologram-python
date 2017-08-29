@@ -15,6 +15,7 @@ import time
 from Cloud import Cloud
 from Exceptions.HologramError import HologramError
 
+MAX_RECEIVE_BYTES = 1024
 MAX_QUEUED_CONNECTIONS = 5
 RECEIVE_TIMEOUT = 5
 SEND_TIMEOUT = 5
@@ -131,16 +132,17 @@ class CustomCloud(Cloud):
             self.logger.error('Please try again.')
 
     # EFFECTS: Receives data from inbound socket.
-    def receive_send_socket(self):
+    def receive_send_socket(self, max_receive_bytes=MAX_RECEIVE_BYTES):
         resultbuf = ''
-        while True:
+        while max_receive_bytes > 0:
             try:
-                result = self.sock.recv(1024)
+                result = self.sock.recv(max_receive_bytes)
             except socket.timeout:
                 break
             if not result:
                 break
             resultbuf += result
+            max_receive_bytes -= len(result)
         return resultbuf
 
     # REQUIRES: The interval in seconds, message body, optional topic(s) and a timeout value
@@ -312,7 +314,7 @@ class CustomCloud(Cloud):
         recv = ''
         while True:
             try:
-                result = clientsocket.recv(1024)
+                result = clientsocket.recv(MAX_RECEIVE_BYTES)
             except socket.timeout:
                 break
             if not result:

@@ -69,12 +69,12 @@ class Serial(ISerial):
             self.serial_port.timeout = timeout
         return r
 
-    def readline(self, timeout=None):
+    def readline(self, timeout=None, hide=False):
         # Override set timeout with the given timeout if necessary
         if timeout is not None:
             self.serial_port.timeout = timeout
         r = self.serial_port.readline()
-        if len(r) > 0:
+        if len(r) > 0 and not hide:
             self.logger.debug('{' + r.rstrip('\r\n') + '}')
         # Revert back to original default timeout
         if timeout is not None:
