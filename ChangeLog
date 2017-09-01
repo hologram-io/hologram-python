@@ -1,3 +1,7 @@
+2017-09-01 Hologram <support@hologram.io>
+    * Fixed topic parsing in hologram_send that can cause message body to be
+      empty.
+
 2017-08-31 Hologram <support@hologram.io>
     * Updated install script to include libpython2.7-dev as a require dependency.
     * added better error messages for unsupported operating systems/platforms.

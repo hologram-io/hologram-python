@@ -56,7 +56,7 @@ def parse_cloud_args(parser):
                         help='Time period for each message send')
     parser.add_argument('--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
                         help='The period in seconds before the socket closes if it doesn\'t receive a response')
-    parser.add_argument('-t', '--topic', nargs = '*',
+    parser.add_argument('-t', '--topic', nargs = '?', action='append',
                         help='Topics for the message (optional)')
 
 # EFFECTS: Parses the send sms options. Sets the default command_selected option
