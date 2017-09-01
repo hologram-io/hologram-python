@@ -11,7 +11,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 DEFAULT_TIMEOUT = 5
-DEFAULT_REPEAT_PERIOD = 10
+DEFAULT_REPEAT_PERIOD = 30
 
 # Hologram heartbeat is basically an alias for send cloud with a specified timeout.
 from scripts.hologram_send import run_hologram_send

@@ -4,7 +4,7 @@ set -euo pipefail
 # This script will install the Hologram SDK and the necessary software dependencies
 # for it to work.
 
-required_programs=('python' 'pip' 'ps' 'kill')
+required_programs=('python' 'pip' 'ps' 'kill' 'libpython2.7-dev')
 OS=''
 
 # Check OS.
@@ -30,6 +30,12 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
     OS='WINDOWS'
 fi
 
+# Error out on unsupported OS.
+if [ "$OS" == 'DARWIN' ] || [ "$OS" == 'WINDOWS' ]; then
+    echo "$OS is not supported right now"
+    exit 1
+fi
+
 function pause() {
     read -p "$*"
 }
@@ -45,7 +51,7 @@ function install_software() {
     fi
 }
 
-# EFECTS: Returns true if the specified program is installed, false otherwise.
+# EFFECTS: Returns true if the specified program is installed, false otherwise.
 function check_if_installed() {
     if command -v "$*" >/dev/null 2>&1; then
         return 0
@@ -53,6 +59,19 @@ function check_if_installed() {
         return 1
     fi
 }
+
+function update_repository() {
+    if [ "$OS" == 'LINUX' ]; then
+        sudo apt-get update
+    elif [ "$OS" == 'DARWIN' ]; then
+        brew update
+        echo 'TODO: macOS should go here'
+    elif [ "$OS" == 'WINDOWS' ]; then
+        echo 'TODO: windows should go here'
+    fi
+}
+
+update_repository
 
 # Iterate over all programs to see if they are installed
 # Installs them if necessary
@@ -75,8 +94,6 @@ do
         install_software "$program"
     fi
 done
-
-sudo apt-get install libpython2.7-dev
 
 # Install SDK itself.
 sudo pip install hologram-python

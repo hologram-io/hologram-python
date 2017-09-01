@@ -35,8 +35,7 @@ def parse_hologram_receive_args(parser):
                         help='The modem type. Choose between nova, ms2131 and e303.')
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
-                        help='The number of seconds before the socket is closed. \
-                              Default is to block indefinitely.')
+                        help='The number of seconds before the socket is closed. Default is to block indefinitely.')
     parse_data_args(parser)
     parse_sms_args(parser)
 

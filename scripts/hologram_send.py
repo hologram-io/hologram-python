@@ -33,8 +33,8 @@ def parse_hologram_send_args(parser):
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
     parser.add_argument('-p', '--port', required=False, help=argparse.SUPPRESS)
-    parser.add_argument('--iccid', nargs='?', help='Hologram device id')
-    parser.add_argument('--imsi', nargs='?', help='Hologram private key')
+    parser.add_argument('--iccid', nargs='?', help=argparse.SUPPRESS)
+    parser.add_argument('--imsi', nargs='?', help=argparse.SUPPRESS)
     parser.add_argument('--authtype', default='totp', nargs='?',
                         help='The authentication type used if HologramCloud is in use')
 
@@ -51,13 +51,11 @@ def parse_cloud_args(parser):
     parser.add_argument('--cloud', action='store_true', help='Message that will be sent to the cloud')
 
     parser.add_argument('--duration', type=int, nargs='?', default=-1,
-                        help='The number of seconds before periodic message ends. \
-                              Default is to block indefinitely.')
+                        help='The number of seconds before periodic message ends. Default is to block indefinitely.')
     parser.add_argument('--repeat', type=int, default=0, nargs='?',
                         help='Time period for each message send')
     parser.add_argument('--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
-                        help='The period in seconds before the socket closes \
-                              if it doesn\'t receive a response')
+                        help='The period in seconds before the socket closes if it doesn\'t receive a response')
     parser.add_argument('-t', '--topic', nargs = '*',
                         help='Topics for the message (optional)')
 
