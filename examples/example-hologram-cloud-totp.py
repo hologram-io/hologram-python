@@ -21,25 +21,12 @@ if __name__ == '__main__':
     print ''
     print 'Testing Hologram Cloud class...'
     print ''
-    print '* Note: You can obtain device keys from the Devices page'
-    print '* at https://dashboard.hologram.io'
-    print ''
 
-    device_id = raw_input('What is your device id? ')
-    private_key = raw_input('What is your private key? ')
+    hologram = HologramCloud(dict(), enable_inbound=False, network='cellular', authentication_type='totp')
 
-    credentials = {'device_id': device_id, 'private_key': private_key}
-
-    hologram = HologramCloud(credentials, enable_inbound=False, authentication_type='totp')
-
-    print 'Hologram SDK version:'
-    print hologram.version
-
-    print ''
-    print 'Cloud type: ' + str(hologram)
-    print ''
-    print 'Network type: ' + hologram.network_type
-    print ''
+    result = hologram.network.connect()
+    if result == False:
+        print 'Failed to connect to cell network'
 
     recv = hologram.sendMessage('YESYESYES!',
                                 topics = ['YES'],
@@ -51,3 +38,5 @@ if __name__ == '__main__':
     print ''
     print 'Testing complete.'
     print ''
+
+    hologram.network.disconnect()

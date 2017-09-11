@@ -104,6 +104,9 @@ class HologramCloud(CustomCloud):
                                                                    nonce=nonce)
             modem_response = self.network.get_sim_otp_response(command)
             self.authentication.generate_sim_otp_token(modem_response)
+        elif self.authenticationType == 'totp':
+            self.authentication.credentials['device_id'] = self.network.iccid
+            self.authentication.credentials['private_key'] = self.network.imsi
 
         output = self.authentication.buildPayloadString(message,
                                                         topics=topics,

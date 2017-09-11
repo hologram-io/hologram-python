@@ -33,8 +33,6 @@ def parse_hologram_send_args(parser):
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
     parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
     parser.add_argument('-p', '--port', required=False, help=argparse.SUPPRESS)
-    parser.add_argument('--iccid', nargs='?', help=argparse.SUPPRESS)
-    parser.add_argument('--imsi', nargs='?', help=argparse.SUPPRESS)
     parser.add_argument('--authtype', default='totp', nargs='?',
                         help='The authentication type used if HologramCloud is in use')
 
@@ -72,25 +70,9 @@ def parse_sms_args(parser):
 # EFFECTS: Parses and sends the Hologram message using TOTP Authentication
 def sendTOTP(args, data, is_sms=False):
 
-    if not args['iccid'] and ('device_id' in data):
-        args['iccid'] = data['device_id']
-
-    if not args['imsi'] and ('private_key' in data):
-        args['imsi'] = data['private_key']
-
-    credentials = {'device_id': args['iccid'], 'private_key': args['imsi']}
-    hologram = HologramCloud(credentials, enable_inbound=False,
+    hologram = HologramCloud(dict(), enable_inbound=False,
                              authentication_type='totp',
                              network='cellular')
-
-    modem = ''
-    # Load the ICCID and IMSI values if modem is physically attached to machine
-    if hologram.network.isModemAttached():
-        hologram.credentials = {'device_id': hologram.network.iccid,
-                                'private_key': hologram.network.imsi}
-
-    if (hologram.credentials['device_id'] is None) or (hologram.credentials['private_key'] is None):
-        raise HologramError('Device id or private key not specified or cannot be pulled from modem. Please specify them or rerun the program with a provided device key')
 
     result = hologram.network.connect()
     if result == False:
