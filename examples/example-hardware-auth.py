@@ -26,28 +26,19 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    credentials = dict()
-
     logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 
-    hologram = HologramCloud(credentials, authentication_type='sim-otp',
-                             enable_inbound=False, network='cellular')
+    hologram = HologramCloud(dict(), authentication_type='sim-otp',
+                             network='cellular')
 
     result = hologram.network.connect()
     if result == False:
         print 'Failed to connect to cell network'
-
-    print 'Cloud type: ' + str(hologram)
-
-    print 'Network type: ' + str(hologram.network_type)
 
     recv = hologram.sendMessage("one two three!",
                                 topics = ["TOPIC1","TOPIC2"],
                                 timeout = 3)
 
     print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
-
-    print 'LOCAL IP ADDRESS: ' + str(hologram.network.localIPAddress)
-    print 'REMOTE IP ADDRESS: ' + str(hologram.network.remoteIPAddress)
 
     hologram.network.disconnect()

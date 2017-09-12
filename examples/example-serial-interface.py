@@ -18,7 +18,7 @@ from Hologram.HologramCloud import HologramCloud
 
 if __name__ == '__main__':
 
-    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
+    hologram = HologramCloud(None, network='cellular')
 
     print 'Signal strength: ' + str(hologram.network.signal_strength)
     print 'Modem id: ' + str(hologram.network.modem_id)

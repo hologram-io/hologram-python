@@ -57,8 +57,8 @@ class HologramCloud(CustomCloud):
         ERR_UNKNOWN: 'Unknown error'
     }
 
-    def __init__(self, credentials, enable_inbound = True, network = '',
-                 authentication_type = 'csrpsk'):
+    def __init__(self, credentials, enable_inbound=False, network='',
+                 authentication_type='csrpsk'):
         super(HologramCloud, self).__init__(credentials,
                                             send_host=HOLOGRAM_HOST_SEND,
                                             send_port=HOLOGRAM_PORT_SEND,

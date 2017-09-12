@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound=False, network='cellular')
+    hologram = HologramCloud(credentials, network='cellular')
 
     result = hologram.network.connect()
     if result == False:

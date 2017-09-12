@@ -1,3 +1,8 @@
+2017-09-12 Hologram <support@hologram.io>
+    * Deprecated enable_inbound flag in HologramCloud constructor.
+    * Suppress stack traces when user sends a SIGTERM while it's establishing
+      a connection.
+
 2017-09-01 Hologram <support@hologram.io>
     * Fixed topic parsing in hologram_send that can cause message body to be
       empty.

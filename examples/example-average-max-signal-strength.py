@@ -26,7 +26,7 @@ if __name__ == "__main__":
     print "* at https://dashboard.hologram.io"
     print ""
 
-    hologram = HologramCloud(None, enable_inbound=False, network='cellular')
+    hologram = HologramCloud(None, network='cellular')
 
     sum_RSSI = 0.0
     sum_quality = 0.0

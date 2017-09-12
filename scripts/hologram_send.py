@@ -70,9 +70,7 @@ def parse_sms_args(parser):
 # EFFECTS: Parses and sends the Hologram message using TOTP Authentication
 def sendTOTP(args, data, is_sms=False):
 
-    hologram = HologramCloud(dict(), enable_inbound=False,
-                             authentication_type='totp',
-                             network='cellular')
+    hologram = HologramCloud(dict(), authentication_type='totp', network='cellular')
 
     result = hologram.network.connect()
     if result == False:

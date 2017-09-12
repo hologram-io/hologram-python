@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound=False)
+    hologram = HologramCloud(credentials)
     print ''
 
     hologram.event.broadcast('network.disconnected')

@@ -29,16 +29,7 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, enable_inbound = False)
-
-    print 'Hologram SDK version:'
-    print hologram.version
-
-    print ''
-    print 'Cloud type: ' + str(hologram)
-    print ''
-    print 'Network type: ' + hologram.network_type
-    print ''
+    hologram = HologramCloud(credentials)
 
     recv = hologram.sendMessage("one two three!",
                                 topics = ["TWO MORE TIMES","TOPIC TOPIC"],

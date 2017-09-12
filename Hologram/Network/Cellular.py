@@ -47,7 +47,13 @@ class Cellular(Network):
     def connect(self, timeout = DEFAULT_CELLULAR_TIMEOUT):
         self.logger.info('Connecting to cell network with timeout of ' + str(timeout) + ' seconds')
         self._enforce_modem_attached()
-        success = self.modem.connect(timeout = timeout)
+
+        success = False
+        try:
+            success = self.modem.connect(timeout = timeout)
+        except KeyboardInterrupt as e:
+            pass
+
         if success:
             self.logger.info('Successfully connected to cell network')
             self._connectionStatus = CLOUD_CONNECTED

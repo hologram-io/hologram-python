@@ -22,14 +22,14 @@ if __name__ == '__main__':
     print 'Testing Hologram Cloud class...'
     print ''
 
-    hologram = HologramCloud(dict(), enable_inbound=False, network='cellular', authentication_type='totp')
+    hologram = HologramCloud(dict(), network='cellular', authentication_type='totp')
 
     result = hologram.network.connect()
     if result == False:
         print 'Failed to connect to cell network'
 
-    recv = hologram.sendMessage('YESYESYES!',
-                                topics = ['YES'],
+    recv = hologram.sendMessage('This is a TOTP message!',
+                                topics = ['TOTP'],
                                 timeout = 6)
 
     print 'RESPONSE CODE RECEIVED: ' + str(recv)
