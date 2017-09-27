@@ -68,7 +68,7 @@ def run_hologram_receive_data(args):
         print 'Failed to connect to cell network'
 
     print 'Listening to port ' + str(hologram.receive_port)
-    hologram.initializeReceiveSocket()
+    hologram.openReceiveSocket()
 
     handle_timeout(args['timeout'])
 

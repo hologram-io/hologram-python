@@ -19,6 +19,8 @@ MODEM_OK = 0
 
 class IModem(object):
 
+    usb_ids = []
+
     _error_code_description = {
 
         MODEM_NO_MATCH: 'Modem response doesn\'t match expected return value',
@@ -34,6 +36,7 @@ class IModem(object):
 
         self.event = event
         self.device_name = device_name
+        self.baud_rate = baud_rate
 
     def __repr__(self):
         return type(self).__name__

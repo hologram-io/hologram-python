@@ -56,14 +56,10 @@ class ISerial(ModemMode):
             0x2F: u'\\',
         }
 
-        if self.openSerialPort(device_name=self.device_name, baud_rate=self.baud_rate, timeout=timeout):
-            self._init_modem()
-
     def write(self, msg, expected_response=None):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    def openSerialPort(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                       baud_rate=DEFAULT_SERIAL_BAUD_RATE, timeout=DEFAULT_SERIAL_TIMEOUT):
+    def openSerialPort(self):
         raise NotImplementedError('Must instantiate a Serial type')
 
     def closeSerialPort(self):
@@ -75,7 +71,7 @@ class ISerial(ModemMode):
     def readline(self, timeout=None, hide=False):
         raise NotImplementedError('Must instantiate a Serial type')
 
-    def _init_modem(self):
+    def init_modem(self):
         self.command("E0") #echo off
         self.command("+CMEE", "2") #set verbose error codes
         self.command("+CPIN?")

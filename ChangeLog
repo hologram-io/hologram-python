@@ -1,3 +1,18 @@
+2017-09-22 Hologram <support@hologram.io>
+    * Added program install verification steps to install script.
+
+2017-09-20 Hologram <support@hologram.io>
+    * Added hologram activate CLI subcommand. This allows developers to
+      activate their SIM via the CLI instead of doing it on the dashboard.
+
+2017-09-18 Hologram <support@hologram.io>
+    * Added autodetection of USB modems and serial ports associated with those
+      modems
+    * Fix issue where scripts might hang when trying to use a serial port with
+      ppp attached
+    * Remove some redundant checks and unneeded initializations that were slowing
+      things down
+
 2017-09-12 Hologram <support@hologram.io>
     * Deprecated enable_inbound flag in HologramCloud constructor.
     * Suppress stack traces when user sends a SIGTERM while it's establishing

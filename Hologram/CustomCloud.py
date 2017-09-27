@@ -207,6 +207,9 @@ class CustomCloud(Cloud):
         self.logger.info('Periodic job stopped')
 
     def initializeReceiveSocket(self):
+        return self.openReceiveSocket()
+
+    def openReceiveSocket(self):
 
         try:
             self.__enforce_receive_host_and_port()
@@ -220,12 +223,12 @@ class CustomCloud(Cloud):
         self.logger.info('Socket created')
         self._receive_cv.release()
 
-        self.openReceiveSocket()
+        self.open_receive_socket_helper()
 
         return True
 
     # EFFECTS: Opens and binds an inbound socket connection.
-    def openReceiveSocket(self):
+    def open_receive_socket_helper(self):
 
         self._receive_cv.acquire()
 

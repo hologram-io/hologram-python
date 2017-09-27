@@ -26,6 +26,8 @@ from scripts.hologram_heartbeat import parse_hologram_heartbeat_args
 from scripts.hologram_heartbeat import run_hologram_heartbeat
 from scripts.hologram_modem import parse_hologram_modem_args
 from scripts.hologram_modem import run_hologram_modem
+from scripts.hologram_activate import parse_hologram_activate_args
+from scripts.hologram_activate import run_hologram_activate
 
 cloud = CustomCloud(None)
 
@@ -57,6 +59,9 @@ supported modem. Type hologram modem --help for more information.\n
 '''
 
 help_version = '''This subcommand prints the Hologram SDK version\n
+'''
+
+help_activate = '''This subcommand allows you to activate a SIM via the Hologram SDK.\n
 '''
 
 _command_handlers = {
@@ -106,17 +111,22 @@ def parse_operations():
                                            formatter_class=RawTextHelpFormatter)
     parse_version(parser_version)
 
+    # parse hologram activate
+    parser_activate = subparsers.add_parser('activate', help=help_activate,
+                                           formatter_class=RawTextHelpFormatter)
+    parse_hologram_activate_args(parser_activate)
+
     return vars(parser.parse_args())
+
 
 def parse_version(parser):
     parser.set_defaults(command_selected='version')
     parser.add_argument('-v', '--verbose', action='store_true', required=False)
 
 def run_version(args):
-    if args['command_selected'] == 'version':
-        cloud = CustomCloud(None)
-        print cloud.version
-        sys.exit(0)
+    cloud = CustomCloud(None)
+    print cloud.version
+    sys.exit(0)
 
 # EFFECTS: Sets the log level for all SDK interfaces
 def set_log_level(is_verbose):
@@ -130,20 +140,23 @@ def main():
 
     args = parse_operations()
 
-    run_version(args)
-
     set_log_level(args['verbose'])
 
     logger = logging.getLogger('')
 
-    command_selected_prefix = args['command_selected'].split('_', 1)[0]
-    if command_selected_prefix not in _command_handlers:
-        logger.error('Internal script error: Invalid network type: %s',
-                args['command_selected'])
+    if args['command_selected'] == 'version':
+        run_version(args)
+    elif args['command_selected'] == 'activate':
+        run_hologram_activate(args)
     else:
-        try:
-            _command_handlers[command_selected_prefix](args)
-        except HologramError as e:
-            logger.error(str(e))
+        command_selected_prefix = args['command_selected'].split('_', 1)[0]
+        if command_selected_prefix not in _command_handlers:
+            logger.error('Internal script error: Invalid network type: %s',
+                    args['command_selected'])
+        else:
+            try:
+                _command_handlers[command_selected_prefix](args)
+            except HologramError as e:
+                logger.error(str(e))
 
 if __name__ == '__main__': main()

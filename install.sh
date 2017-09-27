@@ -71,6 +71,25 @@ function update_repository() {
     fi
 }
 
+# EFFECTS: Verifies that all required software is installed.
+function verify_installation() {
+    echo 'Verifying that all dependencies are installed correctly...'
+    # Verify pip packages
+    INSTALLED_PIP_PACKAGES="$(pip list)"
+
+    if ! [[ "$INSTALLED_PIP_PACKAGES" == *"python-sdk-auth"* ]]; then
+        echo 'Cannot find python-sdk-auth. Please rerun the install script.'
+        exit 1
+    fi
+
+    if ! [[ "$INSTALLED_PIP_PACKAGES" == *"hologram-python"* ]]; then
+        echo 'Cannot find hologram-python. Please rerun the install script.'
+        exit 1
+    fi
+
+    echo 'You are now ready to use the Hologram Python SDK!'
+}
+
 update_repository
 
 # Iterate over all programs to see if they are installed
@@ -97,3 +116,5 @@ done
 
 # Install SDK itself.
 sudo pip install hologram-python
+
+verify_installation

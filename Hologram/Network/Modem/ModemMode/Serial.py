@@ -11,6 +11,7 @@ import serial
 import time
 from ISerial import ISerial
 from ....Event import Event
+from UtilClasses import ModemResult
 
 DEFAULT_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
 DEFAULT_SERIAL_BAUD_RATE = 9600
@@ -26,14 +27,20 @@ class Serial(ISerial):
                                      timeout=timeout,
                                      event=event)
 
-    def openSerialPort(self, device_name=DEFAULT_SERIAL_DEVICE_NAME,
-                       baud_rate=DEFAULT_SERIAL_BAUD_RATE,
-                       timeout=ISerial.DEFAULT_SERIAL_TIMEOUT):
+
+    def __del__(self):
+        try:
+            self.closeSerialPort()
+        except Exception:
+            pass
+
+
+    def openSerialPort(self):
 
         try:
-            self.serial_port = serial.Serial(device_name, baudrate=baud_rate,
+            self.serial_port = serial.Serial(self.device_name, baudrate=self.baud_rate,
                                              bytesize=8, parity='N', stopbits=1,
-                                             timeout=timeout)
+                                             timeout=self.timeout, write_timeout=1)
         except Exception as e:
             self.logger.error('Failed to initialize serial port')
             return False
@@ -68,6 +75,18 @@ class Serial(ISerial):
         if timeout is not None:
             self.serial_port.timeout = timeout
         return r
+
+    def command(self, cmd='', value=None, expected=None, timeout=None,
+                retries=ISerial.DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
+                prompt=None, data=None, hide=False):
+        try:
+            return super(Serial, self).command(cmd, value, expected, timeout,
+                    retries, seteq, read, prompt, data, hide)
+        except serial.serialutil.SerialTimeoutException as e:
+            self.logger.debug('unable to write to port')
+            self.result = ModemResult.Error
+        return self._commandResult()
+
 
     def readline(self, timeout=None, hide=False):
         # Override set timeout with the given timeout if necessary

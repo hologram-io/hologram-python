@@ -7,6 +7,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
+import psutil
 import subprocess
 import sys
 import time
@@ -21,19 +22,13 @@ MAX_REROUTE_PACKET_RETRIES = 15
 
 class PPP(IPPP):
 
-    def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
-                 chatscript_file=None):
-
+    def __init__(self, device_name='/dev/ttyUSB0', all_attached_device_names=[],
+                 baud_rate='9600', chatscript_file=None):
 
         super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                   chatscript_file=chatscript_file)
 
-        try:
-            self.__enforce_no_existing_ppp_session()
-        except PPPError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
-
+        self.all_attached_device_names = all_attached_device_names
         self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
                                   'usepeerdns', 'defaultroute', 'persist', 'noauth',
                                   connect=self.connect_script)
@@ -89,59 +84,39 @@ class PPP(IPPP):
     #          device interface.
     def __enforce_no_existing_ppp_session(self):
 
-        process = self.__check_for_existing_ppp_sessions()
+        pid_list = self.__check_for_existing_ppp_sessions()
 
-        if process is None:
-            return
-
-        pid = self.__split_PID_from_process(process)
-        if pid is not None:
-            raise PPPError('An existing PPP session established by pid %s is currently using the %s device interface. Please close/kill that process first'
-                             % (pid, self.device_name))
+        if len(pid_list) > 0:
+            raise PPPError('Existing PPP session(s) are established by pid(s) %s. Please close/kill these processes first'
+                             % pid_list)
 
     def __shut_down_existing_ppp_session(self):
-        process = self.__check_for_existing_ppp_sessions()
-
-        if process is None:
-            return
-
-        pid = self.__split_PID_from_process(process)
+        pid_list = self.__check_for_existing_ppp_sessions()
 
         # Process this only if it is a valid PID integer.
-        if pid is not None:
-            kill_command = 'kill ' + str(pid)
+        for pid in pid_list:
             self.logger.info('Killing pid %s that currently have an active PPP session',
                              pid)
-            subprocess.call(kill_command, shell=True)
+            psutil.Process(pid).terminate()
 
     def __check_for_existing_ppp_sessions(self):
+
+        existing_ppp_pids = []
         self.logger.info('Checking for existing PPP sessions')
-        out_list = subprocess.check_output(['ps', '--no-headers', '-axo',
-                                            'pid,user,tty,args']).split('\n')
 
-        # Get the end device name, ie. /dev/ttyUSB0 becomes ttyUSB0
-        temp_device_name = self.device_name.split('/')[-1]
+        for proc in psutil.process_iter():
 
-        # Iterate over all processes and find pppd with the specific device name we're using.
-        for process in out_list:
-            if 'pppd' in process and temp_device_name in process:
-                self.logger.info('Found existing PPP session on %s', temp_device_name)
-                return process
+            try:
+                pinfo = proc.as_dict(attrs=['pid', 'name'])
+            except:
+                raise PPPError('Failed to check for existing PPP sessions')
 
-        return None
+            if 'pppd' in pinfo['name']:
+                self.logger.info('Found existing PPP session on pid: %s', pinfo['pid'])
+                existing_ppp_pids.append(pinfo['pid'])
 
-    # REQUIRES: A string process
-    # EFFECTS: Returns the pid in integer form, None otherwise.
-    def __split_PID_from_process(self, process):
-        processList = process.split(' ')
+        return existing_ppp_pids
 
-        # iterate through the list and return the pid. PID should always come out
-        # in front.
-        for x in processList:
-            if x.isdigit():
-                return int(x)
-
-        return None
 
     def __reroute_packets(self):
         self.logger.info('Rerouting packets to %s interface', DEFAULT_PPP_INTERFACE)

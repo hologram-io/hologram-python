@@ -55,7 +55,7 @@ class NetworkManager(object):
         return self._network
 
     @network.setter
-    def network(self, network):
+    def network(self, network, modem=None):
         try:
             if not network: # non-network mode
                 self.networkConnected()
@@ -64,12 +64,12 @@ class NetworkManager(object):
                 raise NetworkError('Invalid network type: %s' % network)
             else:
                 self.__enforce_network_privileges()
-
-                # trim away the 2nd word (e303 in cellular-e303) and pass it into the Cellular constructor
-                if network.startswith('cellular'):
-                    self._network = self._networkHandlers[network](network[9:], self.event)
+                self._network = self._networkHandlers[network](self.event)
+            if network == 'cellular':
+                if modem is not None:
+                    self._network.modem = modem
                 else:
-                    self._network = self._networkHandlers[network](self.event)
+                    self._network.autodetect_modem()
         except NetworkError as e:
             self.logger.error(repr(e))
             sys.exit(1)

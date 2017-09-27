@@ -3,6 +3,9 @@ class HologramError(Exception):
     def __repr__(self):
         return '%s: %s' % (type(self).__name__, str(self))
 
+class ApiError(HologramError):
+    pass
+
 class AuthenticationError(HologramError):
     pass
 

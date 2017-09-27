@@ -127,6 +127,7 @@ class HologramCloud(CustomCloud):
     def sendSMS(self, destination_number, message):
 
         try:
+            self.__enforce_valid_destination_number(destination_number)
             self.__enforce_max_sms_length(message)
         except HologramError as e:
             self.logger.error(repr(e))
@@ -210,6 +211,10 @@ class HologramCloud(CustomCloud):
     def __enforce_max_sms_length(self, message):
         if len(message) > MAX_SMS_LENGTH:
             raise HologramError('SMS cannot be more than %d characters long' % MAX_SMS_LENGTH)
+
+    def __enforce_valid_destination_number(self, destination_number):
+        if not destination_number.startswith('+'):
+            raise HologramError('SMS destination number must start with a \'+\' sign')
 
     # REQUIRES: A result code (int).
     # EFFECTS: Returns a translated string based on the given hologram result code.

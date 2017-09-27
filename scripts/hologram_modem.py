@@ -9,8 +9,10 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 from Hologram.CustomCloud import CustomCloud
+from Exceptions.HologramError import HologramError
 from hologram_util import handle_timeout
 import json
+import psutil
 import subprocess
 import time
 
@@ -41,26 +43,17 @@ def run_modem_connect(args):
 
 def run_modem_disconnect(args):
     print 'Checking for existing PPP sessions'
-    out_list = subprocess.check_output(['ps', '--no-headers', '-axo',
-                                        'pid,user,tty,args']).split('\n')
+    for proc in psutil.process_iter():
 
-    # Iterate over all processes and find pppd with the specific device name we're using.
-    for process in out_list:
-        if 'pppd' in process:
-            print 'Found existing PPP session'
-            pid = split_PID_from_process(process)
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+        except:
+            raise HologramError('Failed to check for existing PPP sessions')
 
-            if pid is not None:
-                kill_command = 'kill ' + str(pid)
-                print 'Killing pid %s that currently have an active PPP session' % pid
-                subprocess.call(kill_command, shell=True)
-
-def split_PID_from_process(process):
-    processList = process.split(' ')
-    for x in processList:
-        if x.isdigit():
-            return int(x)
-    return None
+        if 'pppd' in pinfo['name']:
+            print 'Found existing PPP session on pid: %s' % pinfo['pid']
+            print 'Kiiing pid %s now' % pinfo['pid']
+            psutil.Process(pinfo['pid']).terminate()
 
 def run_modem_signal(args):
     cloud = CustomCloud(None, enable_inbound=False, network='cellular')

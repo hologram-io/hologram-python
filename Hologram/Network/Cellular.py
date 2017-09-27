@@ -17,6 +17,7 @@ from Modem import MS2131
 from Network import Network
 import subprocess
 import sys
+import usb.core
 
 # Cellular return codes.
 CLOUD_DISCONNECTED = 0
@@ -36,18 +37,25 @@ class Cellular(Network):
         '': Modem
     }
 
-    def __init__(self, modem='', event=Event()):
+    def __init__(self, event=Event()):
         super(Cellular, self).__init__(event=event)
         self._connectionStatus = CLOUD_DISCONNECTED
-        self.modem = modem
+        self._modem = None
+
+
+    def autodetect_modem(self):
+        # scan for a modem and set it if found
+        dev_devices = self._scan_for_modems()
+        if dev_devices is None:
+            raise NetworkError('Modem not detected')
+        self.modem = dev_devices[0]
+
 
     def getConnectionStatus(self):
         return self._connectionStatus
 
     def connect(self, timeout = DEFAULT_CELLULAR_TIMEOUT):
-        self.logger.info('Connecting to cell network with timeout of ' + str(timeout) + ' seconds')
-        self._enforce_modem_attached()
-
+        self.logger.info('Connecting to cell network with timeout of %s seconds', timeout)
         success = False
         try:
             success = self.modem.connect(timeout = timeout)
@@ -66,7 +74,6 @@ class Cellular(Network):
 
     def disconnect(self):
         self.logger.info('Disconnecting from cell network')
-        self._enforce_modem_attached()
         success = self.modem.disconnect()
         if success:
             self.logger.info('Successfully disconnected from cell network')
@@ -101,33 +108,32 @@ class Cellular(Network):
     def get_sim_otp_response(self, command):
         return self.modem.get_sim_otp_response(command)
 
-    # EFFECTS: Returns a list of devices that are physically attached and recognized
-    #          by the machine.
-    def _get_attached_devices(self):
-        return subprocess.check_output('ls /dev/tty*', stderr=subprocess.STDOUT,
-                                       shell=True)
-    def _get_active_device_name(self):
 
-        self._enforce_modem_attached()
+    def _scan_for_modems(self):
+        res = None
+        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+            if self._scan_for_modem(modemHandler):
+                res = (modemName, modemHandler)
+                break
+        return res
 
-        dev_devices = self._get_attached_devices()
-        if '/dev/ttyACM0' in dev_devices:
-            self.logger.info('/dev/ttyACM0 found to be active modem interface')
-            return 'nova'
-        elif '/dev/ttyUSB0' in dev_devices:
-            self.logger.info('/dev/ttyUSB0 found to be active modem interface')
-            return 'ms2131'
-        else:
-            raise NetworkError('Modem device name not found')
 
-    def _enforce_modem_attached(self):
-        if self.isModemAttached() == False:
-            raise NetworkError('Modem is not physically connected')
+    def _scan_for_modem(self, modemHandler):
+        usb_ids = modemHandler.usb_ids
+        for vid_pid in usb_ids:
+            if not vid_pid:
+                continue
+            self.logger.debug('checking for vid_pid: %s', str(vid_pid))
+            vid = int(vid_pid[0], 16)
+            pid = int(vid_pid[1], 16)
+            dev = usb.core.find(idVendor=vid, idProduct=pid)
+            if dev:
+                self.logger.info('Detected modem %s', modemHandler.__name__)
+                return True
+        return False
 
-    # EFFECTS: Returns True if a supported modem is physically attached to the machine.
-    def isModemAttached(self):
-        dev_devices = self._get_attached_devices()
-        return ('/dev/ttyACM0' in dev_devices) or ('/dev/ttyUSB0' in dev_devices)
+
+
 
     @property
     def modem(self):
@@ -136,11 +142,11 @@ class Cellular(Network):
     @modem.setter
     def modem(self, modem):
         try:
-            modem = self._get_active_device_name()
             if modem not in self._modemHandlers:
                 raise NetworkError('Invalid modem type: %s' % modem)
             else:
                 self._modem = self._modemHandlers[modem](event=self.event)
+            # not sure about the exception handling in here. seems like we should let it bubble up
         except NetworkError as e:
             self.logger.error(repr(e))
             sys.exit(1)

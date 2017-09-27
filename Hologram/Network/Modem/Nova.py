@@ -12,13 +12,12 @@ from ModemMode import Serial
 from Modem import Modem
 from ...Event import Event
 
-NOVA_PPP_DEVICE_NAME = '/dev/ttyACM0'
-NOVA_SERIAL_DEVICE_NAME = '/dev/ttyACM1'
 DEFAULT_NOVA_TIMEOUT = 200
 
 class Nova(Modem):
+    usb_ids = [('1546','1102'),('1546','1104')]
 
-    def __init__(self, device_name=NOVA_PPP_DEVICE_NAME, baud_rate='9600',
+    def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
         super(Nova, self).__init__(device_name=device_name, baud_rate=baud_rate,
@@ -26,16 +25,22 @@ class Nova(Modem):
         # We need to enforce multi serial port support. We then reinstantiate
         # the serial interface with the correct device name.
         self.enforce_nova_modem_mode()
-        self._serial_mode = Serial(device_name=NOVA_SERIAL_DEVICE_NAME, event=self.event)
 
-    def isConnected(self):
-        return self._mode.connected()
 
     def connect(self, timeout = DEFAULT_NOVA_TIMEOUT):
-        return self._mode.connect(timeout = timeout)
 
-    def disconnect(self):
-        return self._mode.disconnect()
+        success = super(Nova, self).connect(timeout)
+
+        # put serial mode on other port
+        if success is True:
+            # detect another open serial port to use for PPP
+            devices = self.detect_usable_serial_port()
+            if not devices:
+                raise SerialError('Not enough serial ports detected for Nova')
+            self.device_name = devices[0]
+            super(Nova, self).initialize_serial_interface()
+
+        return success
 
     # EFFECTS: Enforces that the Nova modem be in the correct mode to support multiple
     #          serial ports
@@ -47,3 +52,6 @@ class Nova(Modem):
         # Set the modem mode to 0 if necessary.
         if modem_mode == 2:
             self._serial_mode.modem_mode = 0
+            devices = self.detect_usable_serial_port()
+            self.device_name = devices[0]
+            super(Nova, self).initialize_serial_interface()

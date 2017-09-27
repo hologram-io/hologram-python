@@ -9,12 +9,13 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 
-import time
+
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
 from Exceptions.HologramError import HologramError
-import argparse
 from hologram_util import handle_timeout
+
+import argparse
 
 DEFAULT_TIMEOUT = 5
 
@@ -63,7 +64,7 @@ def parse_sms_args(parser):
 
     parser.set_defaults(command_selected='send_sms')
     parser.add_argument('--destination', nargs='?', required=False,
-                        help='The destination number in which the SMS will be sent')
+                        help='The destination number in which the SMS will be sent. Destination number needs to be well formatted and start with a \'+\' sign')
     parser.add_argument('--sms', action='store_true',
                         help='Message that will be sent to the cloud')
 
