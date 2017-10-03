@@ -28,6 +28,7 @@ from scripts.hologram_modem import parse_hologram_modem_args
 from scripts.hologram_modem import run_hologram_modem
 from scripts.hologram_activate import parse_hologram_activate_args
 from scripts.hologram_activate import run_hologram_activate
+from scripts.hologram_util import VAction
 
 cloud = CustomCloud(None)
 
@@ -121,7 +122,7 @@ def parse_operations():
 
 def parse_version(parser):
     parser.set_defaults(command_selected='version')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
 def run_version(args):
     cloud = CustomCloud(None)
@@ -130,11 +131,15 @@ def run_version(args):
 
 # EFFECTS: Sets the log level for all SDK interfaces
 def set_log_level(is_verbose):
-    loglevel = logging.INFO
-    if is_verbose:
-        loglevel = logging.DEBUG
 
-    logging.basicConfig(level=loglevel, format="%(levelname)s: %(message)s")
+    args = {'format': "%(levelname)s: %(message)s", 'level': logging.ERROR}
+
+    if is_verbose == 1:
+        args['level'] = logging.INFO
+    elif is_verbose == 2:
+        args['level'] = logging.DEBUG
+
+    logging.basicConfig(**args)
 
 def main():
 

@@ -11,6 +11,7 @@
 from Hologram.HologramCloud import HologramCloud
 from hologram_util import handle_timeout
 from hologram_util import handle_polling
+from hologram_util import VAction
 
 help_data = '''This subcommand allows you to listen on a given host and port for incoming cloud messages.\n
 '''
@@ -33,7 +34,7 @@ def popReceivedSMS():
 def parse_hologram_receive_args(parser):
     parser.add_argument('-m', '--modem', nargs='?', default='nova',
                         help='The modem type. Choose between nova, ms2131 and e303.')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
                         help='The number of seconds before the socket is closed. Default is to block indefinitely.')
     parse_data_args(parser)
@@ -67,8 +68,8 @@ def run_hologram_receive_data(args):
     if result == False:
         print 'Failed to connect to cell network'
 
-    print 'Listening to port ' + str(hologram.receive_port)
     hologram.openReceiveSocket()
+    print ('Ready to receive data on port %s' % hologram.receive_port)
 
     handle_timeout(args['timeout'])
 
@@ -81,4 +82,5 @@ def run_hologram_receive_data(args):
 def run_hologram_receive_sms(args):
     global hologram
     hologram = HologramCloud(None, network='cellular')
+    print ('Ready to receive sms')
     handle_polling(args['timeout'], popReceivedSMS, 1)

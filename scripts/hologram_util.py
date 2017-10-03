@@ -1,3 +1,4 @@
+import argparse
 import time
 import sys
 
@@ -29,3 +30,14 @@ def handle_polling(timeout, fx, delay_interval=DEFAULT_DELAY_INTERVAL):
                 time.sleep(delay_interval)
     except KeyboardInterrupt as e:
         sys.exit(e)
+
+class VAction(argparse.Action):
+    def __call__(self, parser, args, values, option_string=None):
+        # print 'values: {v!r}'.format(v=values)
+        if values==None:
+            values='1'
+        try:
+            values=int(values)
+        except ValueError:
+            values=values.count('v')+1
+        setattr(args, self.dest, values)

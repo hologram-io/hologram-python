@@ -9,7 +9,6 @@
 #
 import psutil
 import subprocess
-import sys
 import time
 from pppd import PPPConnection
 from IPPP import IPPP
@@ -40,11 +39,7 @@ class PPP(IPPP):
     #          reroute packets to ppp0 interface.
     def connect(self, timeout=DEFAULT_PPP_TIMEOUT):
 
-        try:
-            self.__enforce_no_existing_ppp_session()
-        except PPPError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.__enforce_no_existing_ppp_session()
 
         result = self._ppp.connect(timeout=timeout)
 

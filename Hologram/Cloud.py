@@ -9,12 +9,11 @@
 
 import logging
 from logging import NullHandler
-import sys
 import Event
 from Network import NetworkManager
 from Authentication import *
 
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 
 class Cloud(object):
 
@@ -113,8 +112,7 @@ class Cloud(object):
         try:
             self._send_port = int(send_port)
         except ValueError as e:
-            self.logger.error('Invalid port parameter. Unable to convert port to a valid integer')
-            sys.exit(1)
+            raise ValueError('Invalid port parameter. Unable to convert port to a valid integer')
 
     @property
     def receive_host(self):

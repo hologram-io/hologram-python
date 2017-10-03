@@ -34,14 +34,9 @@ class CustomCloud(Cloud):
                                           receive_port=receive_port,
                                           network=network)
 
-        try:
-            # Enforce that the send and receive configs are set before using the class.
-            if enable_inbound and (receive_host == '' or receive_port == 0):
-                raise HologramError('Must set receive host and port for inbound connection')
-
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        # Enforce that the send and receive configs are set before using the class.
+        if enable_inbound and (receive_host == '' or receive_port == 0):
+            raise HologramError('Must set receive host and port for inbound connection')
 
         self._periodic_msg_lock = threading.Lock()
         self._periodic_msg = None
@@ -81,14 +76,15 @@ class CustomCloud(Cloud):
 
             self.event.broadcast('message.sent')
             return resultbuf
-
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
         except (IOError):
+            self.__enforce_network_disconnected()
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
             return ''
+        except Exception as e:
+            self.__enforce_network_disconnected()
+            raise
+
 
     def open_send_socket(self, timeout=SEND_TIMEOUT):
 
@@ -104,10 +100,6 @@ class CustomCloud(Cloud):
             self.sock.settimeout(timeout)
             self.sock.connect((self.send_host, self.send_port))
             self._is_send_socket_open = True
-
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
         except (IOError):
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
@@ -123,10 +115,6 @@ class CustomCloud(Cloud):
             self.sock.close()
             self._is_send_socket_open = False
             self.logger.info('Socket closed.')
-
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
         except (IOError):
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
@@ -152,22 +140,19 @@ class CustomCloud(Cloud):
 
         try:
             self._enforce_minimum_periodic_interval(interval)
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
 
-        self._periodic_msg_lock.acquire()
+            self._periodic_msg_lock.acquire()
 
-        try:
             if self._periodic_msg_enabled == True:
                 raise HologramError('Cannot have more than 1 periodic message job at once')
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
 
-        self._periodic_msg_enabled = True
+            self._periodic_msg_enabled = True
 
-        self._periodic_msg_lock.release()
+            self._periodic_msg_lock.release()
+
+        except Exception as e:
+            self.__enforce_network_disconnected()
+            raise
 
         self._periodic_msg = threading.Thread(target=self._periodic_job_thread,
                                               args=[interval, self.sendMessage,
@@ -211,11 +196,7 @@ class CustomCloud(Cloud):
 
     def openReceiveSocket(self):
 
-        try:
-            self.__enforce_receive_host_and_port()
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.__enforce_receive_host_and_port()
 
         self._receive_cv.acquire()
         self._receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -258,7 +239,7 @@ class CustomCloud(Cloud):
         self._receive_cv.release()
 
         # Spin a new thread for accepting incoming operations
-        self._accept_thread = threading.Thread(target = self.acceptIncomingConnection)
+        self._accept_thread = threading.Thread(target=self.acceptIncomingConnection)
         self._accept_thread.daemon = True
         self._accept_thread.start()
 
@@ -297,7 +278,7 @@ class CustomCloud(Cloud):
             try:
                 self._receive_socket.setblocking(0)
                 (clientsocket, address) = self._receive_socket.accept()
-                self.logger.info('Connected to ' + str(address))
+                self.logger.info('Connected to %s', address)
                 # Spin a new thread to handle the current incoming operation.
                 threading.Thread(target = self.__incoming_connection_thread,
                                  args = [clientsocket]).start()
@@ -324,13 +305,13 @@ class CustomCloud(Cloud):
                 break
             recv += result
 
-        self.logger.info('Received message: ' + str(recv))
+        self.logger.info('Received message: %s', recv)
 
         self._receive_buffer_lock.acquire()
 
         # Append received message into receive buffer
         self._receive_buffer.append(recv)
-        self.logger.debug('Receive buffer: ' + str(self._receive_buffer))
+        self.logger.debug('Receive buffer: %s', self._receive_buffer)
 
         self._receive_buffer_lock.release()
 
@@ -364,3 +345,7 @@ class CustomCloud(Cloud):
     def _enforce_minimum_periodic_interval(self, interval):
         if interval < MIN_PERIODIC_INTERVAL:
             raise HologramError('Interval cannot be less than %d seconds.' % MIN_PERIODIC_INTERVAL)
+
+    def __enforce_network_disconnected(self):
+        if self.network_type == 'Cellular':
+            self.network.disconnect()

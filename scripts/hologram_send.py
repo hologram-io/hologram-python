@@ -14,6 +14,7 @@ from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
 from Exceptions.HologramError import HologramError
 from hologram_util import handle_timeout
+from hologram_util import VAction
 
 import argparse
 
@@ -31,7 +32,7 @@ def parse_hologram_send_args(parser):
     # Create a subparser
     parser.add_argument('--devicekey', nargs='?', help='Hologram device key (8 characters long)')
     parser.add_argument('message', nargs='?', help='Message that will be sent to the cloud')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
     parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
     parser.add_argument('-p', '--port', required=False, help=argparse.SUPPRESS)
     parser.add_argument('--authtype', default='totp', nargs='?',

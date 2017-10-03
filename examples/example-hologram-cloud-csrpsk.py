@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials)
+    hologram = HologramCloud(credentials, authentication_type='csrpsk')
 
     recv = hologram.sendMessage("one two three!",
                                 topics = ["TWO MORE TIMES","TOPIC TOPIC"],

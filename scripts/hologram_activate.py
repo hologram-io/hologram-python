@@ -17,6 +17,7 @@ import time
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Api import Api
 from Exceptions.HologramError import HologramError
+from hologram_util import VAction
 
 CHECK_LIVE_SIM_STATE_MAX_TIMEOUT = 120 # 2 mins for max timeout
 CHECK_LIVE_SIM_STATE_INTERVAL = 5
@@ -24,7 +25,7 @@ CHECK_LIVE_SIM_STATE_INTERVAL = 5
 # EFFECTS: Parses hologram activate CLI options.
 def parse_hologram_activate_args(parser):
     parser.set_defaults(command_selected='activate')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
     parser.add_argument('--apikey', nargs='?', help='Hologram organization API key')
 
 # EFFECTS: Handles all hologram_send operations.

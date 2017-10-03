@@ -58,7 +58,7 @@ class HologramCloud(CustomCloud):
     }
 
     def __init__(self, credentials, enable_inbound=False, network='',
-                 authentication_type='csrpsk'):
+                 authentication_type='totp'):
         super(HologramCloud, self).__init__(credentials,
                                             send_host=HOLOGRAM_HOST_SEND,
                                             send_port=HOLOGRAM_PORT_SEND,
@@ -72,16 +72,12 @@ class HologramCloud(CustomCloud):
     # EFFECTS: Authentication Configuration
     def setAuthenticationType(self, credentials, authentication_type='csrpsk'):
 
-        try:
-            if authentication_type not in HologramCloud._authentication_handlers:
-                raise HologramError('Invalid authentication type: %s' % authentication_type)
+        if authentication_type not in HologramCloud._authentication_handlers:
+            raise HologramError('Invalid authentication type: %s' % authentication_type)
 
-            self.authenticationType = authentication_type
+        self.authenticationType = authentication_type
 
-            self.authentication = HologramCloud._authentication_handlers[self.authenticationType](credentials)
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.authentication = HologramCloud._authentication_handlers[self.authenticationType](credentials)
 
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, topics = None, timeout = 5):
@@ -126,12 +122,8 @@ class HologramCloud(CustomCloud):
 
     def sendSMS(self, destination_number, message):
 
-        try:
-            self.__enforce_valid_destination_number(destination_number)
-            self.__enforce_max_sms_length(message)
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.__enforce_valid_destination_number(destination_number)
+        self.__enforce_max_sms_length(message)
 
         output = self.authentication.buildSMSPayloadString(destination_number,
                                                            message)
@@ -148,26 +140,21 @@ class HologramCloud(CustomCloud):
     # EFFECTS: Request for nonce.
     def request_nonce(self):
 
-        try:
-            self.open_send_socket()
+        self.open_send_socket()
 
-            # build nonce request payload string
-            request = self.authentication.buildNonceRequestPayloadString()
+        # build nonce request payload string
+        request = self.authentication.buildNonceRequestPayloadString()
 
-            self.logger.debug("Sending nonce request with body of length %d", len(request))
-            self.logger.debug('Send: %s', request)
+        self.logger.debug("Sending nonce request with body of length %d", len(request))
+        self.logger.debug('Send: %s', request)
 
-            self.sock.send(request)
-            self.logger.debug('Nonce request sent.')
+        self.sock.send(request)
+        self.logger.debug('Nonce request sent.')
 
-            resultbuf = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
+        resultbuf = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
 
-            if resultbuf is None:
-                raise HologramError('Internal nonce error')
-
-        except HologramError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        if resultbuf is None:
+            raise HologramError('Internal nonce error')
 
         return resultbuf
 
@@ -205,6 +192,9 @@ class HologramCloud(CustomCloud):
             except ValueError:
                 self.logger.error('Server replied with invalid JSON [%s]', result)
                 resultList = [ERR_UNKNOWN]
+
+        if len(resultList) == 0:
+            resultList = [ERR_UNKNOWN]
 
         return resultList
 

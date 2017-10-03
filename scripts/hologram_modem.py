@@ -11,6 +11,7 @@
 from Hologram.CustomCloud import CustomCloud
 from Exceptions.HologramError import HologramError
 from hologram_util import handle_timeout
+from hologram_util import VAction
 import json
 import psutil
 import subprocess
@@ -103,39 +104,39 @@ def parse_hologram_modem_args(parser):
     # Connect
     parser_connect = subparsers.add_parser('connect', help=help_connect)
     parser_connect.set_defaults(command_selected='modem_connect')
-    parser_connect.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_connect.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # Disconnect
     parser_disconnect = subparsers.add_parser('disconnect', help=help_disconnect)
     parser_disconnect.set_defaults(command_selected='modem_disconnect')
-    parser_disconnect.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_disconnect.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # Signal
     parser_signal = subparsers.add_parser('signal', help=help_signal)
     parser_signal.set_defaults(command_selected='modem_signal')
     parser_signal.add_argument('--repeat', type=int, default=0, nargs='?',
                                help='Time period for each signal read')
-    parser_signal.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_signal.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # Operator
     parser_operator = subparsers.add_parser('operator', help=help_operator)
     parser_operator.set_defaults(command_selected='modem_operator')
-    parser_operator.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_operator.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # SIM
     parser_sim = subparsers.add_parser('sim', help=help_sim)
     parser_sim.set_defaults(command_selected='modem_sim')
-    parser_sim.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_sim.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # Type
     parser_type = subparsers.add_parser('type', help=help_type)
     parser_type.set_defaults(command_selected='modem_type')
-    parser_type.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_type.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # Location
     parser_location = subparsers.add_parser('location', help=help_location)
     parser_location.set_defaults(command_selected='modem_location')
-    parser_location.add_argument('-v', '--verbose', action='store_true', required=False)
+    parser_location.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
 # EFFECTS: Runs the hologram modem interfaces.
 def run_hologram_modem(args):

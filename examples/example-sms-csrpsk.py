@@ -29,7 +29,7 @@ if __name__ == "__main__":
     destination_number = raw_input("What is your destination number? ")
 
     credentials = {'devicekey': device_key}
-    hologram = HologramCloud(credentials)
+    hologram = HologramCloud(credentials, authentication_type='csrpsk')
 
     print ''
     recv = hologram.sendSMS(destination_number, "Hello, Python!") # Send SMS to destination number

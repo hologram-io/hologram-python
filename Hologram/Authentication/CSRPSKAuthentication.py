@@ -9,7 +9,6 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import json
-import sys
 from Exceptions.HologramError import AuthenticationError
 from HologramAuthentication import HologramAuthentication
 
@@ -24,11 +23,7 @@ class CSRPSKAuthentication(HologramAuthentication):
     def buildPayloadString(self, messages, topics=None, modem_type=None,
                            modem_id=None, version=None):
 
-        try:
-            self.enforceValidDeviceKey()
-        except AuthenticationError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.enforceValidDeviceKey()
 
         super(CSRPSKAuthentication, self).buildPayloadString(messages,
                                                              topics=topics,
@@ -40,11 +35,7 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def buildSMSPayloadString(self, destination_number, message):
 
-        try:
-            self.enforceValidDeviceKey()
-        except AuthenticationError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        self.enforceValidDeviceKey()
 
         send_data = 'S' + self.credentials['devicekey']
         send_data += destination_number + ' ' + message

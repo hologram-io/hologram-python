@@ -16,7 +16,6 @@ from Modem import Nova
 from Modem import MS2131
 from Network import Network
 import subprocess
-import sys
 import usb.core
 
 # Cellular return codes.
@@ -141,15 +140,10 @@ class Cellular(Network):
 
     @modem.setter
     def modem(self, modem):
-        try:
-            if modem not in self._modemHandlers:
-                raise NetworkError('Invalid modem type: %s' % modem)
-            else:
-                self._modem = self._modemHandlers[modem](event=self.event)
-            # not sure about the exception handling in here. seems like we should let it bubble up
-        except NetworkError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+        if modem not in self._modemHandlers:
+            raise NetworkError('Invalid modem type: %s' % modem)
+        else:
+            self._modem = self._modemHandlers[modem](event=self.event)
 
     @property
     def localIPAddress(self):

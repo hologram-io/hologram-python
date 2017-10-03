@@ -17,7 +17,6 @@ from Exceptions.HologramError import NetworkError
 import logging
 from logging import NullHandler
 import os
-import sys
 
 DEFAULT_NETWORK_TIMEOUT = 200
 
@@ -56,23 +55,19 @@ class NetworkManager(object):
 
     @network.setter
     def network(self, network, modem=None):
-        try:
-            if not network: # non-network mode
-                self.networkConnected()
-                self._network = None
-            elif network not in self._networkHandlers:
-                raise NetworkError('Invalid network type: %s' % network)
+        if not network: # non-network mode
+            self.networkConnected()
+            self._network = None
+        elif network not in self._networkHandlers:
+            raise NetworkError('Invalid network type: %s' % network)
+        else:
+            self.__enforce_network_privileges()
+            self._network = self._networkHandlers[network](self.event)
+        if network == 'cellular':
+            if modem is not None:
+                self._network.modem = modem
             else:
-                self.__enforce_network_privileges()
-                self._network = self._networkHandlers[network](self.event)
-            if network == 'cellular':
-                if modem is not None:
-                    self._network.modem = modem
-                else:
-                    self._network.autodetect_modem()
-        except NetworkError as e:
-            self.logger.error(repr(e))
-            sys.exit(1)
+                self._network.autodetect_modem()
 
     def __repr__(self):
         if not self.network:
@@ -82,10 +77,5 @@ class NetworkManager(object):
 
     def __enforce_network_privileges(self):
 
-        try:
-            if os.geteuid() != 0:
-                raise RuntimeError
-        except RuntimeError as e:
-            sys.exit('You need to have root privileges to use this interface.' \
-                   + '\nPlease try again, this time using sudo.')
-
+        if os.geteuid() != 0:
+            raise RuntimeError('You need to have root privileges to use this interface. Please try again, this time using sudo.')

@@ -23,7 +23,7 @@ class TestHologramCloud(object):
         hologram = HologramCloud(credentials, enable_inbound = False)
 
         temp = '111111111234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
-        with pytest.raises(SystemExit, message = 'SMS cannot be more than 160 characters long!'):
+        with pytest.raises(Exception, message = 'SMS cannot be more than 160 characters long!'):
             hologram.sendSMS('+1234567890', temp)
 
     def test_get_result_string(self):

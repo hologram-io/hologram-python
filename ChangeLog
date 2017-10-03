@@ -1,3 +1,10 @@
+2017-09-29 Hologram <support@hologram.io>
+    * Fixed bug where empty result list might cause an index error
+
+2017-09-28 Hologram <support@hologram.io>
+    * Logging is now turned off by default for CLI subcommands.
+    * Added -v and -vv options for INFO and DEBUG log levels respectively.
+
 2017-09-22 Hologram <support@hologram.io>
     * Added program install verification steps to install script.
 

@@ -13,7 +13,6 @@ from logging import NullHandler
 import os
 import re
 import signal
-import sys
 import time
 import threading
 from subprocess import Popen, PIPE, STDOUT
@@ -106,14 +105,10 @@ class PPPConnection(object):
                 result[0] = True
                 return
 
-            try:
-                if 'Modem hangup' in self.output:
-                    raise PPPError('Modem hangup - possibly due to an unregistered SIM')
-                elif self.proc.poll():
-                    raise PPPConnectionError(self.proc.returncode, self.output)
-            except (PPPError, PPPConnectionError) as e:
-                self.logger.error(repr(e))
-                sys.exit(1)
+            if 'Modem hangup' in self.output:
+                raise PPPError('Modem hangup - possibly due to an unregistered SIM')
+            elif self.proc.poll():
+                raise PPPConnectionError(self.proc.returncode, self.output)
 
     # EFFECTS: Disconnects from the network.
     #          Returns true if successful, false otherwise.

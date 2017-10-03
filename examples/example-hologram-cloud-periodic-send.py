@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials)
+    hologram = HologramCloud(credentials, authentication_type='csrpsk')
 
     print 'Sending a periodic message every 30 seconds...'
     recv = hologram.sendPeriodicMessage(30, 'This is a periodic message',
