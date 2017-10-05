@@ -5,14 +5,13 @@
 [![Build Status](https://travis-ci.org/hologram-io/hologram-python.svg?branch=master)](https://travis-ci.org/hologram-io/hologram-python)
 
 ## Introduction
-This is a Python SDK that allows you to send messages to either your or our cloud.
+The Hologram Python Device SDK provides a simple way for devices to connect 
+and communicate with the Hologram or other IoT platforms.  You can activate, provision, 
+send messages, receive inbound access connections, send/receive SMS, and 
+setup secure tunnels.
 
-You can also send SMS via our cloud services to a given destination number of your choice!
-
-We understand that you may run this library in smaller, more power constraint devices.
-In the spirit of bringing connectivity to your devices, we also provided you with
-many popular networking interfaces such as WiFi and Cellular services, which you can
-choose within this SDK.
+The SDK also supports networking interfaces for WiFi in addition to Cellular 
+in the spirit of bringing connectivity to your devices.
 
 ## Installation
 
