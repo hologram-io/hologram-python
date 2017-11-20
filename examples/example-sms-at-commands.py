@@ -1,5 +1,6 @@
 #
-# example-cloud-csrpsk.py - Example of using CSRPRSK Authentication in the Hologram Python SDK
+# example-sms-at_commands.py - Example of using AT command socket interfaces to send
+#                              SMS.
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -26,18 +27,13 @@ if __name__ == "__main__":
     print ""
 
     device_key = raw_input("What is your device key? ")
+    destination_number = raw_input("What is your destination number? ")
 
     credentials = {'devicekey': device_key}
 
-    hologram = HologramCloud(credentials, authentication_type='csrpsk')
+    hologram = HologramCloud(credentials, network='cellular', authentication_type='csrpsk')
 
-    recv = hologram.sendMessage("one two three!",
-                                topics = ["TWO MORE TIMES","TOPIC TOPIC"],
-                                timeout = 6)
 
-    print 'RESPONSE CODE RECEIVED: ' + str(recv)
+    recv = hologram.sendSMS(destination_number, 'Hi, SMS!')
+
     print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
-
-    print ''
-    print 'Testing complete.'
-    print ''

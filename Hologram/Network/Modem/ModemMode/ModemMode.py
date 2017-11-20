@@ -9,7 +9,7 @@
 #
 import logging
 from logging import NullHandler
-from ....Event import Event
+from Hologram.Event import Event
 
 class ModemMode(object):
 

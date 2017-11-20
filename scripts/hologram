@@ -26,6 +26,8 @@ from scripts.hologram_heartbeat import parse_hologram_heartbeat_args
 from scripts.hologram_heartbeat import run_hologram_heartbeat
 from scripts.hologram_modem import parse_hologram_modem_args
 from scripts.hologram_modem import run_hologram_modem
+from scripts.hologram_network import parse_hologram_network_args
+from scripts.hologram_network import run_hologram_network
 from scripts.hologram_activate import parse_hologram_activate_args
 from scripts.hologram_activate import run_hologram_activate
 from scripts.hologram_util import VAction
@@ -59,6 +61,10 @@ help_modem = '''This subcommand allows you to use the SDK to interact with a
 supported modem. Type hologram modem --help for more information.\n
 '''
 
+help_network = '''This subcommand allows you to use the SDK to interact with a
+network connection. Type hologram network --help for more information.\n
+'''
+
 help_version = '''This subcommand prints the Hologram SDK version\n
 '''
 
@@ -71,7 +77,8 @@ _command_handlers = {
     'receive': run_hologram_receive,
     'spacebridge': run_hologram_spacebridge,
     'heartbeat': run_hologram_heartbeat,
-    'modem': run_hologram_modem
+    'modem': run_hologram_modem,
+    'network': run_hologram_network
 }
 
 def parse_operations():
@@ -106,6 +113,11 @@ def parse_operations():
     parser_modem = subparsers.add_parser('modem', help=help_modem,
                                          formatter_class=RawTextHelpFormatter)
     parse_hologram_modem_args(parser_modem)
+
+    # parse hologram network subcommands
+    parser_network = subparsers.add_parser('network', help=help_network,
+                                         formatter_class=RawTextHelpFormatter)
+    parse_hologram_network_args(parser_network)
 
     # parse hologram version
     parser_version = subparsers.add_parser('version', help=help_version,

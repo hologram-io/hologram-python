@@ -26,3 +26,22 @@ class MS2131(Modem):
     def connect(self, timeout = DEFAULT_MS2131_TIMEOUT):
         return super(MS2131, self).connect(timeout)
 
+    def init_serial_commands(self):
+        self.command("E0") #echo off
+        self.command("+CMEE", "2") #set verbose error codes
+        self.command("+CPIN?")
+        self.command("+CTZU", "1") #time/zone sync
+        self.command("+CTZR", "1") #time/zone URC
+        #self.command("+CPIN", "") #set SIM PIN
+        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.set_sms_configs()
+        self.command("+CREG", "2")
+        self.command("+CGREG", "2")
+
+    # AT sockets mode is always disabled for MS2131.
+    def disable_at_sockets_mode(self):
+        pass
+
+    @property
+    def iccid(self):
+        return self._basic_command('^ICCID?').lstrip('^ICCID: ')[:-1]

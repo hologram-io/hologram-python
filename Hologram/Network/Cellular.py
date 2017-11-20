@@ -12,10 +12,12 @@ from ..Event import Event
 from Exceptions.HologramError import NetworkError
 from Modem import Modem
 from Modem import E303
-from Modem import Nova
 from Modem import MS2131
+from Modem import Nova
+from Modem import NovaM_R404
 from Network import Network
 import subprocess
+import time
 import usb.core
 
 # Cellular return codes.
@@ -33,14 +35,14 @@ class Cellular(Network):
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
         'nova': Nova.Nova,
+        'r404': NovaM_R404.NovaM_R404,
         '': Modem
     }
 
     def __init__(self, event=Event()):
         super(Cellular, self).__init__(event=event)
-        self._connectionStatus = CLOUD_DISCONNECTED
+        self._connection_status = CLOUD_DISCONNECTED
         self._modem = None
-
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
@@ -51,7 +53,10 @@ class Cellular(Network):
 
 
     def getConnectionStatus(self):
-        return self._connectionStatus
+        return self._connection_status
+
+    def is_connected(self):
+        return self._connection_status == CLOUD_CONNECTED or self.modem.is_connected()
 
     def connect(self, timeout = DEFAULT_CELLULAR_TIMEOUT):
         self.logger.info('Connecting to cell network with timeout of %s seconds', timeout)
@@ -63,7 +68,7 @@ class Cellular(Network):
 
         if success:
             self.logger.info('Successfully connected to cell network')
-            self._connectionStatus = CLOUD_CONNECTED
+            self._connection_status = CLOUD_CONNECTED
             self.event.broadcast('cellular.connected')
             super(Cellular, self).connect()
         else:
@@ -76,7 +81,7 @@ class Cellular(Network):
         success = self.modem.disconnect()
         if success:
             self.logger.info('Successfully disconnected from cell network')
-            self._connectionStatus = CLOUD_DISCONNECTED
+            self._connection_status = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
             super(Cellular, self).connect()
         else:
@@ -93,6 +98,35 @@ class Cellular(Network):
             return False
 
         return self.connect()
+
+    def create_socket(self):
+        self.modem.create_socket()
+
+    def connect_socket(self, host, port):
+        self.modem.connect_socket(host, port)
+        # This delay is required as recommended in the uBlox spec sheet.
+        time.sleep(2)
+
+    def listen_socket(self, port):
+        self.modem.listen_socket(port)
+
+    def write_socket(self, data):
+        return self.modem.write_socket(data)
+
+    def close_socket(self):
+        return self.modem.close_socket()
+
+    def send_message(self, data):
+        return self.modem.send_message(data)
+
+    def open_receive_socket(self, receive_port):
+        return self.modem.open_receive_socket(receive_port)
+
+    def pop_received_message(self):
+        return self.modem.pop_received_message()
+
+    def disable_at_sockets_mode(self):
+        self.modem.disable_at_sockets_mode()
 
     def enableSMS(self):
         return self.modem.enableSMS()
@@ -179,5 +213,13 @@ class Cellular(Network):
         return repr(self.modem)
 
     @property
+    def description(self):
+        return self.modem.description
+
+    @property
     def location(self):
         return self.modem.location
+
+    @property
+    def at_sockets_available(self):
+        return self.modem.at_sockets_available

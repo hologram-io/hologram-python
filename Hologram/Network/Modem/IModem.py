@@ -9,7 +9,7 @@
 
 import logging
 from logging import NullHandler
-from ...Event import Event
+from Hologram.Event import Event
 
 # Modem error codes - this is similar to what we have in Dash system firmware.
 MODEM_NO_MATCH = -3
@@ -65,6 +65,10 @@ class IModem(object):
 
     def popReceivedSMS(self):
         raise NotImplementedError('Must instantiate a Modem type')
+
+    @property
+    def description(self):
+        return self.__repr__()
 
     @property
     def localIPAddress(self):

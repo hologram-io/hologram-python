@@ -1,3 +1,17 @@
+2017-10-24 Hologram <support@hologram.io>
+    * Added modem is_connected interface. Checks for when a message/SMS can be sent.
+    * Cleaned up example scripts.
+
+2017-10-23 Hologram <support@hologram.io>
+    * Added hologram network connect/disconnect CLI commands, deprecating
+      modem connect/disconnect soon.
+    * Writes/reads on AT command sockets are now done in hex mode.
+    * Fix regression where a receive SMS CLI keyboard interrupt will print a
+      stack trace.
+
+2017-10-20 Hologram <support@hologram.io>
+    * Sends/receives are done via AT sockets by default instead of a PPP session.
+
 2017-09-29 Hologram <support@hologram.io>
     * Fixed bug where empty result list might cause an index error
 

@@ -1,9 +1,10 @@
 hjson==2.0.2
+pyroute2==0.4.21
 pytest==3.0.5
 python-wifi==0.6.1
 pyserial==3.3
 python-pppd==1.0.3
-python-sdk-auth==0.1.8
+python-sdk-auth==0.2.0
 pyudev==0.21.0
 pyusb==1.0.0
 psutil==5.3.1

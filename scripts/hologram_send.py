@@ -36,7 +36,7 @@ def parse_hologram_send_args(parser):
     parser.add_argument('--host', required=False, help=argparse.SUPPRESS)
     parser.add_argument('-p', '--port', required=False, help=argparse.SUPPRESS)
     parser.add_argument('--authtype', default='totp', nargs='?',
-                        help='The authentication type used if HologramCloud is in use')
+                        help='The authentication type used if HologramCloud is in use. Choose between \'totp\' and \'csrpsk\'')
 
     # $ hologram send cloud ...
     parse_cloud_args(parser)
@@ -53,7 +53,7 @@ def parse_cloud_args(parser):
     parser.add_argument('--duration', type=int, nargs='?', default=-1,
                         help='The number of seconds before periodic message ends. Default is to block indefinitely.')
     parser.add_argument('--repeat', type=int, default=0, nargs='?',
-                        help='Time period for each message send')
+                        help='Time period in seconds for each message send')
     parser.add_argument('--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
                         help='The period in seconds before the socket closes if it doesn\'t receive a response')
     parser.add_argument('-t', '--topic', nargs = '?', action='append',
@@ -73,13 +73,7 @@ def parse_sms_args(parser):
 def sendTOTP(args, data, is_sms=False):
 
     hologram = HologramCloud(dict(), authentication_type='totp', network='cellular')
-
-    result = hologram.network.connect()
-    if result == False:
-        raise HologramError('Failed to connect to cell network')
-
     send_message_helper(hologram, args, is_sms=is_sms)
-    hologram.network.disconnect()
 
 # EFFECTS: Parses and sends the specified message using CSRPSK Authentication
 def sendPSK(args, data, is_sms=False):
@@ -102,11 +96,14 @@ def sendPSK(args, data, is_sms=False):
         print 'RESPONSE FROM CLOUD: ' + str(recv)
     else:
         # host and port are default so use Hologram
-        hologram = HologramCloud(credentials, authentication_type='csrpsk')
+        hologram = HologramCloud(credentials, authentication_type='csrpsk', network='cellular')
         send_message_helper(hologram, args, is_sms=is_sms)
 
 # EFFECTS: Wraps the send message interface based on the repeat parameter.
 def send_message_helper(cloud, args, is_sms=False):
+
+    if cloud.network is not None and not cloud.network.at_sockets_available:
+        cloud.network.connect()
 
     if is_sms == True:
         args['repeat'] = 0
@@ -126,6 +123,9 @@ def send_message_helper(cloud, args, is_sms=False):
                                   topics=args['topic'],
                                   timeout=args['timeout'])
         handle_timeout(args['duration'])
+
+    if cloud.network is not None and not cloud.network.at_sockets_available:
+        cloud.network.disconnect()
 
 # EFFECTS: Handles all hologram_send operations.
 #          This function will call the appropriate cloud/sms handler.
@@ -157,7 +157,5 @@ def run_hologram_send_sms(args):
         raise HologramError('--destination missing. A destination number must be provided in order to send SMS to it')
 
     data = dict()
-    if args['authtype'] == 'totp' and not args['devicekey']:
-        sendTOTP(args, data, is_sms=True)
-    else:
-        sendPSK(args, data, is_sms=True)
+    # SMS can only be sent with CSRPSK auth.
+    sendPSK(args, data, is_sms=True)

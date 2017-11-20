@@ -19,7 +19,7 @@ MAX_RECEIVE_BYTES = 1024
 MAX_QUEUED_CONNECTIONS = 5
 RECEIVE_TIMEOUT = 5
 SEND_TIMEOUT = 5
-MIN_PERIODIC_INTERVAL = 30
+MIN_PERIODIC_INTERVAL = 1
 
 class CustomCloud(Cloud):
 
@@ -54,11 +54,14 @@ class CustomCloud(Cloud):
         if enable_inbound == True:
             self.initializeReceiveSocket()
 
+    def is_ready_to_send(self):
+        return self.network is None or self.network.is_connected()
+
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, timeout=SEND_TIMEOUT):
 
         try:
-            if not self._networkManager.networkActive:
+            if not self.is_ready_to_send():
                 self.addPayloadToBuffer(message)
                 return ''
 
@@ -67,10 +70,14 @@ class CustomCloud(Cloud):
             self.logger.info("Sending message with body of length %d", len(message))
             self.logger.debug('Send: %s', message)
 
-            self.sock.send(message)
-            self.logger.info('Sent.')
+            resultbuf = ''
+            if self.__to_use_at_sockets():
+                resultbuf = self.network.send_message(message)
+            else:
+                self.sock.send(message)
+                resultbuf = self.receive_send_socket()
 
-            resultbuf = self.receive_send_socket()
+            self.logger.info('Sent.')
 
             self.close_send_socket()
 
@@ -96,9 +103,16 @@ class CustomCloud(Cloud):
             self.logger.info("Connecting to: %s", self.send_host)
             self.logger.info("Port: %s", self.send_port)
 
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(timeout)
-            self.sock.connect((self.send_host, self.send_port))
+            # Check if we're going to use the AT command version of sockets or the
+            # native Python socket lib.
+            if self.__to_use_at_sockets():
+                self.network.create_socket()
+                self.network.connect_socket(self.send_host, self.send_port)
+            else:
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.settimeout(timeout)
+                self.sock.connect((self.send_host, self.send_port))
+
             self._is_send_socket_open = True
         except (IOError):
             self.logger.error('An error occurred while attempting to send the message to the cloud')
@@ -106,13 +120,18 @@ class CustomCloud(Cloud):
 
     def close_send_socket(self):
         try:
+            # Check if we're going to use the AT command version of sockets or the
+            # native Python socket lib.
+            if self.__to_use_at_sockets():
+                self.network.close_socket()
+            else:
+                try:
+                    self.sock.shutdown(socket.SHUT_RDWR)
+                except socket.error:
+                    pass
 
-            try:
-                self.sock.shutdown(socket.SHUT_RDWR)
-            except socket.error:
-                pass
+                self.sock.close()
 
-            self.sock.close()
             self._is_send_socket_open = False
             self.logger.info('Socket closed.')
         except (IOError):
@@ -163,6 +182,10 @@ class CustomCloud(Cloud):
     def sendSMS(self, destination_number, message):
         raise NotImplementedError('Cannot send SMS via custom cloud')
 
+
+    def __to_use_at_sockets(self):
+        return self.network is not None and self.network.at_sockets_available
+
     # EFFECTS: This threaded infinite loop shoud keep sending messages with the specified
     #          interval.
     def _periodic_job_thread(self, interval, function, *args):
@@ -197,6 +220,10 @@ class CustomCloud(Cloud):
     def openReceiveSocket(self):
 
         self.__enforce_receive_host_and_port()
+
+        if self.__to_use_at_sockets():
+            self.network.open_receive_socket(self.receive_port)
+            return True
 
         self._receive_cv.acquire()
         self._receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -246,9 +273,13 @@ class CustomCloud(Cloud):
     # EFFECTS: Closes the inbound socket connection.
     def closeReceiveSocket(self):
 
-        self._receive_cv.acquire()
-
         self.logger.info('Closing socket...')
+
+        if self.__to_use_at_sockets():
+            self.network.close_socket()
+            return
+
+        self._receive_cv.acquire()
 
         self.socketClose = True
         self._receive_cv.release()
@@ -260,11 +291,12 @@ class CustomCloud(Cloud):
             self._receive_socket.shutdown(socket.SHUT_RDWR)
         except socket.error:
             pass
-
         self._receive_socket.close()
-        self.logger.info('Socket closed.')
 
         self._receive_cv.release()
+
+        self.logger.info('Socket closed.')
+
 
     def acceptIncomingConnection(self):
         # This threaded infinite loop shoud keep listening on an incoming connection
@@ -320,6 +352,10 @@ class CustomCloud(Cloud):
 
     # EFFECTS: Returns the receive buffer and empties it.
     def popReceivedMessage(self):
+
+        if self.__to_use_at_sockets():
+            return self.network.pop_received_message()
+
         self._receive_buffer_lock.acquire()
 
         if len(self._receive_buffer) == 0:

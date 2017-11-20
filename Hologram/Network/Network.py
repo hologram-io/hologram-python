@@ -7,7 +7,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from ..Event import Event
+from Hologram.Event import Event
 import os
 import logging
 from logging import NullHandler
@@ -34,6 +34,9 @@ class Network(object):
 
     def getConnectionStatus(self):
         raise NotImplementedError('Must instantiate a defined Network type')
+
+    def is_connected(self):
+        return False
 
     @property
     def interfaceName(self):

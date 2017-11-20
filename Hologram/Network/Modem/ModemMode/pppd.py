@@ -134,7 +134,7 @@ class PPPConnection(object):
                 if e.errno != 11:
                     raise
             if self.proc.returncode not in [0, 5]:
-                raise PPPConnectionError(proc.returncode, self.output)
+                raise PPPConnectionError(self.proc.returncode, self.output)
             return False
         elif self.laddr != None and self.raddr != None:
             return True

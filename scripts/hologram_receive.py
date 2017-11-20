@@ -12,6 +12,7 @@ from Hologram.HologramCloud import HologramCloud
 from hologram_util import handle_timeout
 from hologram_util import handle_polling
 from hologram_util import VAction
+import sys
 
 help_data = '''This subcommand allows you to listen on a given host and port for incoming cloud messages.\n
 '''
@@ -61,26 +62,36 @@ def run_hologram_receive(args):
 def run_hologram_receive_data(args):
 
     global hologram
-    hologram = HologramCloud(None, network='cellular')
+    hologram = HologramCloud(dict(), network='cellular')
 
     hologram.event.subscribe('message.received', popReceivedMessage)
-    result = hologram.network.connect()
-    if result == False:
-        print 'Failed to connect to cell network'
+
+    if not hologram.network.at_sockets_available:
+        hologram.network.connect()
 
     hologram.openReceiveSocket()
     print ('Ready to receive data on port %s' % hologram.receive_port)
 
-    handle_timeout(args['timeout'])
+    try:
+        handle_polling(args['timeout'], popReceivedMessage, 1)
+    except KeyboardInterrupt as e:
+        print 'Closing socket...'
+        hologram.closeReceiveSocket()
 
-    hologram.closeReceiveSocket()
+        if not hologram.network.at_sockets_available:
+            hologram.network.disconnect()
 
-    hologram.network.disconnect()
+        sys.exit(e)
 
+    if not hologram.network.at_sockets_available:
+        hologram.network.disconnect()
 
 # EFFECTS: Receives SMS from the Hologram Cloud.
 def run_hologram_receive_sms(args):
     global hologram
-    hologram = HologramCloud(None, network='cellular')
+    hologram = HologramCloud(dict(), network='cellular')
     print ('Ready to receive sms')
-    handle_polling(args['timeout'], popReceivedSMS, 1)
+    try:
+        handle_polling(args['timeout'], popReceivedSMS, 1)
+    except KeyboardInterrupt as e:
+        sys.exit(e)

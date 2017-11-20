@@ -1,6 +1,6 @@
 #
-# example-sms-csrpsk.py - Example of sending SMS via CSRPSK Authentication in the Hologram Python SDK
-#
+# example-hologram-cloud-periodic-send.py - Example for sending periodic messages
+#                                           to the Hologram cloud.
 # Author: Hologram <support@hologram.io>
 #
 # Copyright 2016 - Hologram (Konekt, Inc.)
@@ -9,6 +9,7 @@
 #
 
 import sys
+import time
 
 sys.path.append(".")
 sys.path.append("..")
@@ -26,14 +27,21 @@ if __name__ == "__main__":
     print ""
 
     device_key = raw_input("What is your device key? ")
-    destination_number = raw_input("What is your destination number? ")
 
     credentials = {'devicekey': device_key}
+
     hologram = HologramCloud(credentials, authentication_type='csrpsk')
 
-    print ''
-    recv = hologram.sendSMS(destination_number, "Hello, Python!") # Send SMS to destination number
-    print "RESPONSE CODE RECEIVED: " + str(recv)
+    print 'Sending a periodic message every 30 seconds...'
+    recv = hologram.sendPeriodicMessage(30, 'This is a periodic message',
+                                        topics=['PERIODICMESSAGES'],
+                                        timeout=6)
+
+    print 'sleeping for 40 seconds...'
+    time.sleep(40)
+    print 'waking up!'
+
+    hologram.stopPeriodicMessage()
 
     print ''
     print 'Testing complete.'

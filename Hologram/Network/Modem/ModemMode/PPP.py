@@ -8,16 +8,16 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import psutil
-import subprocess
-import time
 from pppd import PPPConnection
 from IPPP import IPPP
+from Hologram.Network.Route import Route
 from Exceptions.HologramError import PPPError
 
 DEFAULT_PPP_TIMEOUT = 200
 DEFAULT_PPP_INTERFACE = 'ppp0'
 MAX_PPP_INTERFACE_UP_RETRIES = 10
 MAX_REROUTE_PACKET_RETRIES = 15
+
 
 class PPP(IPPP):
 
@@ -27,6 +27,7 @@ class PPP(IPPP):
         super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                   chatscript_file=chatscript_file)
 
+        self.route = Route()
         self.all_attached_device_names = all_attached_device_names
         self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
                                   'usepeerdns', 'defaultroute', 'persist', 'noauth',
@@ -43,7 +44,8 @@ class PPP(IPPP):
 
         result = self._ppp.connect(timeout=timeout)
 
-        if result == True and self.__is_ppp_interface_up():
+        if result == True and self.route.wait_for_interface(DEFAULT_PPP_INTERFACE,
+                                                            MAX_PPP_INTERFACE_UP_RETRIES):
             self.__reroute_packets()
             return True
         else:
@@ -52,28 +54,6 @@ class PPP(IPPP):
     def disconnect(self):
         self.__shut_down_existing_ppp_session()
         return self._ppp.disconnect()
-
-    # EFFECTS: Blocks to make sure ppp interface is up.
-    def __is_ppp_interface_up(self):
-        count = 0
-        while count <= MAX_PPP_INTERFACE_UP_RETRIES:
-            try:
-                out_list = subprocess.check_output(['ip', 'address', 'show', 'dev',
-                                                    DEFAULT_PPP_INTERFACE],
-                                                   stderr=subprocess.STDOUT)
-
-                # Check if ready to break out of loop when ppp0 is found.
-                if 'does not exist' in out_list:
-                    time.sleep(1)
-                    count += 1
-                else:
-                    break
-            except subprocess.CalledProcessError as e:
-                pass
-
-        if count <= MAX_PPP_INTERFACE_UP_RETRIES:
-            return True
-        return False
 
     # EFFECTS: Makes sure that there are no existing PPP instances on the same
     #          device interface.
@@ -112,33 +92,15 @@ class PPP(IPPP):
 
         return existing_ppp_pids
 
-
     def __reroute_packets(self):
         self.logger.info('Rerouting packets to %s interface', DEFAULT_PPP_INTERFACE)
-
-        count = 0
         # Make sure that we still have ppp interface before adding the routes.
-        while count <= MAX_REROUTE_PACKET_RETRIES:
-            try:
-                out_list = subprocess.check_output(['ip', 'route', 'add',
-                                                    '10.176.0.0/16', 'dev',
-                                                    DEFAULT_PPP_INTERFACE],
-                                                   stderr=subprocess.STDOUT)
-
-                # Check if ready to break out of loop when ppp0 is found.
-                if 'Network is down' in out_list:
-                    time.sleep(1)
-                    count += 1
-                else:
-                    break
-            except Exception as e:
-                pass
-
-        if count > MAX_REROUTE_PACKET_RETRIES:
+        ppp_available = self.route.wait_for_interface(DEFAULT_PPP_INTERFACE, MAX_REROUTE_PACKET_RETRIES)
+        if not ppp_available:
             return
-
-        subprocess.call('ip route add 10.254.0.0/16 dev %s' % DEFAULT_PPP_INTERFACE, shell=True)
-        subprocess.call('ip route add default dev %s' % DEFAULT_PPP_INTERFACE, shell=True)
+        self.route.add('10.176.0.0/16', self.localIPAddress)
+        self.route.add('10.254.0.0/16', self.localIPAddress)
+        self.route.add_default(self.localIPAddress)
 
     @property
     def localIPAddress(self):

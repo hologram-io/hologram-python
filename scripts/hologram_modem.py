@@ -39,7 +39,8 @@ help_location = '''This subcommand prints the encoded location of the modem.\n
 '''
 
 def run_modem_connect(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
+    cloud = CustomCloud(None, network='cellular')
+    cloud.network.disable_at_sockets_mode()
     cloud.network.connect()
 
 def run_modem_disconnect(args):
@@ -53,11 +54,11 @@ def run_modem_disconnect(args):
 
         if 'pppd' in pinfo['name']:
             print 'Found existing PPP session on pid: %s' % pinfo['pid']
-            print 'Kiiing pid %s now' % pinfo['pid']
+            print 'Killing pid %s now' % pinfo['pid']
             psutil.Process(pinfo['pid']).terminate()
 
 def run_modem_signal(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
+    cloud = CustomCloud(None, network='cellular')
 
     if args['repeat'] != 0:
         while True:
@@ -67,19 +68,19 @@ def run_modem_signal(args):
         print 'Signal strength: ' + str(cloud.network.signal_strength)
 
 def run_modem_sim(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
+    cloud = CustomCloud(None, network='cellular')
     print 'ICCID: ' + str(cloud.network.iccid)
 
 def run_modem_operator(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
+    cloud = CustomCloud(None, network='cellular')
     print 'Operator: ' + str(cloud.network.operator)
 
 def run_modem_type(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
-    print 'Type: ' + str(cloud.network.active_modem_interface)
+    cloud = CustomCloud(None, network='cellular')
+    print 'Type: %s' % cloud.network.description
 
 def run_modem_location(args):
-    cloud = CustomCloud(None, enable_inbound=False, network='cellular')
+    cloud = CustomCloud(None, network='cellular')
     location_obj = cloud.network.location
     if location_obj is None:
         print 'Location: Not Available'

@@ -14,7 +14,6 @@ import sys
 from CustomCloud import CustomCloud
 from Authentication import *
 from Exceptions.HologramError import HologramError
-import Event
 
 from HologramAuth.TOTPAuthentication import TOTPAuthentication
 from HologramAuth.SIMOTPAuthentication import SIMOTPAuthentication
@@ -69,6 +68,9 @@ class HologramCloud(CustomCloud):
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
 
+        if self.authenticationType == 'totp':
+            self.__populate_totp_credentials()
+
     # EFFECTS: Authentication Configuration
     def setAuthenticationType(self, credentials, authentication_type='csrpsk'):
 
@@ -82,27 +84,19 @@ class HologramCloud(CustomCloud):
     # EFFECTS: Sends the message to the cloud.
     def sendMessage(self, message, topics = None, timeout = 5):
 
-        if not self._networkManager.networkActive:
+        if not self.is_ready_to_send():
             self.addPayloadToBuffer(message)
             return ''
+
+        # Set the appropriate credentials required for sim otp authentication.
+        if self.authenticationType == 'sim-otp':
+            self.__populate_sim_otp_credentials()
 
         modem_type = None
         modem_id = None
         if self.network is not None:
             modem_id = self.network.modem_id
             modem_type = str(self.network.modem)
-
-        # Set the approriate credentials required for sim otp authentication.
-        if self.authenticationType == 'sim-otp':
-            nonce = self.request_nonce()
-            command = self.authentication.generate_sim_otp_command(imsi=self.network.imsi,
-                                                                   iccid=self.network.iccid,
-                                                                   nonce=nonce)
-            modem_response = self.network.get_sim_otp_response(command)
-            self.authentication.generate_sim_otp_token(modem_response)
-        elif self.authenticationType == 'totp':
-            self.authentication.credentials['device_id'] = self.network.iccid
-            self.authentication.credentials['private_key'] = self.network.imsi
 
         output = self.authentication.buildPayloadString(message,
                                                         topics=topics,
@@ -111,7 +105,9 @@ class HologramCloud(CustomCloud):
                                                         version=self.version)
 
         result = super(HologramCloud, self).sendMessage(output, timeout)
+        return self.__parse_result(result)
 
+    def __parse_result(self, result):
         resultList = None
         if self.authenticationType == 'csrpsk':
             resultList = self.__parse_hologram_json_result(result)
@@ -120,8 +116,24 @@ class HologramCloud(CustomCloud):
 
         return resultList[0]
 
+    def __populate_totp_credentials(self):
+        try:
+            self.authentication.credentials['device_id'] = self.network.iccid
+            self.authentication.credentials['private_key'] = self.network.imsi
+        except Exception as e:
+            self.logger.error('Unable to fetch device id or private key')
+
+    def __populate_sim_otp_credentials(self):
+        nonce = self.request_nonce()
+        command = self.authentication.generate_sim_otp_command(imsi=self.network.imsi,
+                                                               iccid=self.network.iccid,
+                                                               nonce=nonce)
+        modem_response = self.network.get_sim_otp_response(command)
+        self.authentication.generate_sim_otp_token(modem_response)
+
     def sendSMS(self, destination_number, message):
 
+        self.__enforce_authentication_type_supported()
         self.__enforce_valid_destination_number(destination_number)
         self.__enforce_max_sms_length(message)
 
@@ -205,6 +217,10 @@ class HologramCloud(CustomCloud):
     def __enforce_valid_destination_number(self, destination_number):
         if not destination_number.startswith('+'):
             raise HologramError('SMS destination number must start with a \'+\' sign')
+
+    def __enforce_authentication_type_supported(self):
+        if self.authenticationType is not 'csrpsk':
+            raise HologramError('%s does not support SDK SMS features' % self.authenticationType)
 
     # REQUIRES: A result code (int).
     # EFFECTS: Returns a translated string based on the given hologram result code.
