@@ -30,3 +30,34 @@ class TestModem(object):
         assert modem.getResultString(-2) == 'Modem error'
         assert modem.getResultString(-3) == 'Modem response doesn\'t match expected return value'
         assert modem.getResultString(-99) == 'Unknown response code'
+
+
+# pylint: disable=W0212
+from Hologram.Network.Modem.Modem import Modem
+class TestModemProtectedMethods(object):
+    def test_check_registered_string(self):
+        result = '+CREG: 2,5,"5585","404C790",6'
+        registered = Modem._check_registered_helper('+CREG', result)
+        assert registered == True
+
+    def test_check_registered_short_list(self):
+        result = ['+CREG: 5,"5585","404C78A",6',
+                  '+CREG: 5,"5585","404C790",6',
+                  '+CREG: 2,5,"5585","404C790",6']
+        registered = Modem._check_registered_helper('+CREG', result)
+        assert registered == True
+
+    def test_check_registered_long_list(self):
+        result = ['+CREG: 5,"5585","404EF4D",6',
+                  '+CREG: 5,"5585","404C816",6',
+                  '+CREG: 5,"5585","404C790",6',
+                  '+CREG: 5,"5585","404C816",6',
+                  '+CREG: 5,"5585","404EF4D",6',
+                  '+CREG: 5,"5585","404C78A",6',
+                  '+CREG: 5,"5585","404C790",6',
+                  '+CREG: 5,"5585","404C816",6',
+                  '+CREG: 2',
+                  '+CREG: 5,"5585","404C790",6',
+                  '+CREG: 2,5,"5585","404C790",6']
+        registered = Modem._check_registered_helper('+CREG', result)
+        assert registered == True

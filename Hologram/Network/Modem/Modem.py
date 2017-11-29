@@ -319,7 +319,7 @@ class Modem(IModem):
 
         ok, r = self.set('+USOCL', "%s" % socket_identifier)
         if ok != ModemResult.OK:
-            self.logger.error('Failed to close socket')
+            self.logger.info('Failed to close socket')
 
     def debugwrite(self, x, hide=False):
         if not hide:
@@ -381,6 +381,8 @@ class Modem(IModem):
             self._handle_listen_urc(urc)
             self.last_read_payload_length = 0
             next_urc_state = Modem.SOCKET_RECEIVE_READ
+        else:
+            self.logger.debug("URC was not handled. \'%s\'",  urc)
 
         self.urc_state = next_urc_state
 
@@ -565,15 +567,28 @@ class Modem(IModem):
     def is_connected(self):
         return self.is_registered()
 
-    #EXPECTS: '+CREG' or '+CGREG'
+    @staticmethod
+    def _check_registered_helper(cmd, result):
+        r = None
+        if isinstance(result, list) and len(result) > 0:
+            # If more than one response is provided, assume that only
+            # the last response is of interest and that the
+            # rest are uncaught URCs that we should disregard.
+            r = result[-1]
+        else:
+            r = result
+
+        regstatus = int(r.lstrip(cmd).lstrip(': ').split(',')[1])
+        # 1: registered home network
+        # 5: registered roaming
+        return regstatus == 1 or regstatus == 5
+
+    #EXPECTS: '+CREG', '+CGREG', or '+CEREG'
     def check_registered(self, cmd):
         ok, r = self.read(cmd)
         if ok == ModemResult.OK:
             try:
-                regstatus = int(r.lstrip(cmd).lstrip(': ').split(',')[1])
-                # 1: registered home network
-                # 5: registered roaming
-                return regstatus == 1 or regstatus == 5
+                return Modem._check_registered_helper(cmd, r)
             except (IndexError, ValueError) as e:
                 self.logger.error(repr(e))
         return False
