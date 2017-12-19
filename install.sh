@@ -1,4 +1,13 @@
 #!/bin/bash
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# install.sh - This file helps install this Python SDK and all required dependencies
+#              on a machine.
+
 set -euo pipefail
 
 # This script will install the Hologram SDK and the necessary software dependencies

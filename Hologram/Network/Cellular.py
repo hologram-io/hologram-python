@@ -13,7 +13,7 @@ from Exceptions.HologramError import NetworkError
 from Modem import Modem
 from Modem import E303
 from Modem import MS2131
-from Modem import Nova
+from Modem import Nova_U201
 from Modem import NovaM_R404
 from Network import Network
 import subprocess
@@ -34,7 +34,7 @@ class Cellular(Network):
     _modemHandlers = {
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
-        'nova': Nova.Nova,
+        'nova': Nova_U201.Nova_U201,
         'r404': NovaM_R404.NovaM_R404,
         '': Modem
     }

@@ -1,3 +1,45 @@
+# What's New in Hologram Python SDK
+
+## v0.7.2
+
+2017-12-18 Hologram <support@hologram.io>
+    * Removed `testAll` from Makefile. All unit tests will now run even if uid isn't root.
+
+2017-11-30 Hologram <support@hologram.io>
+    * Refactored unit tests for Modem and MS2131 classes.
+
+2017-12-07 Hologram <support@hologram.io>
+    * Refactored Nova <-> Nova u201 interface.
+
+2017-12-05 Hologram <support@hologram.io>
+    * Added open source headers to SDK source files
+
+2017-12-01 Hologram <support@hologram.io>
+    * Added `ERR_TOPICINVALID` and `ERR_METADATAINVALID` error codes to HologramCloud
+
+2017-11-30 Hologram <support@hologram.io>
+    * converted ChangeLog into a markdown file and added release tags to it
+
+## v0.7.1
+
+2017-11-29 Hologram <support@hologram.io>
+    * Disregard extra responses in Modem::check_registed()
+    * Fixed Nova R404 `.connect()` / `.disconnect()` regressions.
+
+## v0.7.0
+
+2017-11-20 Hologram <support@hologram.io>
+    * Added modem is_connected interface. Checks for when a message/SMS can be sent.
+    * Cleaned up example scripts.
+    * Fixed misleading 'unable to receive device_id and private_key error'
+    * Fixed unkilled PPP sessin after specified timeout.
+    * Fixed misleading error log when users call `hologram activate`
+    * Updated requirements.txt to point to python-sdk-auth v0.2.0
+    * Removed TOTP Auth mode option for SMS sends
+    * Catch NetlinkErorr if setting default route fails
+    * Add overloaded close_socket interface for R404 listening feature
+    * Cleaned up redundant scripts within the `examples/` folder
+
 2017-10-24 Hologram <support@hologram.io>
     * Added modem is_connected interface. Checks for when a message/SMS can be sent.
     * Cleaned up example scripts.
@@ -12,12 +54,16 @@
 2017-10-20 Hologram <support@hologram.io>
     * Sends/receives are done via AT sockets by default instead of a PPP session.
 
+## v0.6.1
+
 2017-09-29 Hologram <support@hologram.io>
     * Fixed bug where empty result list might cause an index error
 
 2017-09-28 Hologram <support@hologram.io>
     * Logging is now turned off by default for CLI subcommands.
     * Added -v and -vv options for INFO and DEBUG log levels respectively.
+
+## v0.6.0
 
 2017-09-22 Hologram <support@hologram.io>
     * Added program install verification steps to install script.
@@ -34,18 +80,26 @@
     * Remove some redundant checks and unneeded initializations that were slowing
       things down
 
+## v0.5.28
+
 2017-09-12 Hologram <support@hologram.io>
     * Deprecated enable_inbound flag in HologramCloud constructor.
     * Suppress stack traces when user sends a SIGTERM while it's establishing
       a connection.
 
+## v0.5.26
+
 2017-09-01 Hologram <support@hologram.io>
     * Fixed topic parsing in hologram_send that can cause message body to be
       empty.
 
+## v0.5.25
+
 2017-08-31 Hologram <support@hologram.io>
     * Updated install script to include libpython2.7-dev as a require dependency.
     * added better error messages for unsupported operating systems/platforms.
+
+## v0.5.23
 
 2017-08-08 Hologram <support@hologram.io>
     * Fixed SMS timestamp issue. (wrong offset value)

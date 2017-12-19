@@ -1,4 +1,4 @@
-# Authentication.py - Hologram Python SDK Authentication interface
+# HologramAuthentication.py - Hologram Python SDK HologramAuthentication interface
 #
 # Author: Hologram <support@hologram.io>
 #

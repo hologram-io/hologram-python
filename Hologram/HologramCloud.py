@@ -18,6 +18,7 @@ from Exceptions.HologramError import HologramError
 from HologramAuth.TOTPAuthentication import TOTPAuthentication
 from HologramAuth.SIMOTPAuthentication import SIMOTPAuthentication
 
+DEFAULT_SEND_MESSAGE_TIMEOUT = 5
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
 HOLOGRAM_PORT_SEND = 9999
 HOLOGRAM_HOST_RECEIVE= '0.0.0.0'
@@ -27,14 +28,15 @@ MAX_SMS_LENGTH = 160
 
 # Hologram error codes
 ERR_OK = 0
-ERR_CONNCLOSED = 1
-ERR_MSGINVALID = 2
-ERR_AUTHINVALID = 3
-ERR_PAYLOADINVALID = 4
-ERR_PROTINVALID = 5
-ERR_INTERNAL = 6
-ERR_UNKNOWN = -1
-
+ERR_CONNCLOSED = 1 # Connection was closed so we couldn't read enough
+ERR_MSGINVALID = 2 # Couldn't parse the message
+ERR_AUTHINVALID = 3 # Auth section of message was invalid
+ERR_PAYLOADINVALID = 4 # Payload type was invalid
+ERR_PROTINVALID = 5 # Protocol type was invalid
+ERR_INTERNAL = 6 # An internal error occurred
+ERR_METADATA = 7 # Metadata was formatted incorrectly
+ERR_TOPICINVALID = 8 # Topic was formatted incorrectly
+ERR_UNKNOWN = -1 # Unknown error
 
 class HologramCloud(CustomCloud):
 
@@ -53,6 +55,8 @@ class HologramCloud(CustomCloud):
         ERR_PAYLOADINVALID: 'Payload type was invalid',
         ERR_PROTINVALID: 'Protocol type was invalid',
         ERR_INTERNAL: 'Internal error in Hologram Cloud',
+        ERR_METADATA: 'Metadata was formatted incorrectly',
+        ERR_TOPICINVALID: 'Topic was formatted incorrectly',
         ERR_UNKNOWN: 'Unknown error'
     }
 
@@ -82,7 +86,7 @@ class HologramCloud(CustomCloud):
         self.authentication = HologramCloud._authentication_handlers[self.authenticationType](credentials)
 
     # EFFECTS: Sends the message to the cloud.
-    def sendMessage(self, message, topics = None, timeout = 5):
+    def sendMessage(self, message, topics=None, timeout=DEFAULT_SEND_MESSAGE_TIMEOUT):
 
         if not self.is_ready_to_send():
             self.addPayloadToBuffer(message)
@@ -124,7 +128,7 @@ class HologramCloud(CustomCloud):
             self.logger.error('Unable to fetch device id or private key')
 
     def __populate_sim_otp_credentials(self):
-        nonce = self.request_nonce()
+        nonce = self.request_hex_nonce()
         command = self.authentication.generate_sim_otp_command(imsi=self.network.imsi,
                                                                iccid=self.network.iccid,
                                                                nonce=nonce)
@@ -133,7 +137,7 @@ class HologramCloud(CustomCloud):
 
     def sendSMS(self, destination_number, message):
 
-        self.__enforce_authentication_type_supported()
+        self.__enforce_authentication_type_supported_for_sms()
         self.__enforce_valid_destination_number(destination_number)
         self.__enforce_max_sms_length(message)
 
@@ -149,26 +153,26 @@ class HologramCloud(CustomCloud):
         return resultList[0]
 
     # REQUIRES: Called only when sim otp authentication is required.
-    # EFFECTS: Request for nonce.
-    def request_nonce(self):
+    # EFFECTS: Request for a hex nonce.
+    def request_hex_nonce(self):
 
         self.open_send_socket()
 
         # build nonce request payload string
-        request = self.authentication.buildNonceRequestPayloadString()
+        nonce_request = self.authentication.buildNonceRequestPayloadString()
 
-        self.logger.debug("Sending nonce request with body of length %d", len(request))
-        self.logger.debug('Send: %s', request)
+        self.logger.debug("Sending nonce request with body of length %d", len(nonce_request))
+        self.logger.debug('Send: %s', nonce_request)
 
-        self.sock.send(request)
+        self.sock.send(nonce_request)
         self.logger.debug('Nonce request sent.')
 
-        resultbuf = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
+        resultbuf_hex = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
 
-        if resultbuf is None:
+        if resultbuf_hex is None:
             raise HologramError('Internal nonce error')
 
-        return resultbuf
+        return resultbuf_hex
 
     def enableSMS(self):
         return self.network.enableSMS()
@@ -190,7 +194,6 @@ class HologramCloud(CustomCloud):
         return resultList
 
 
-    # EFFECTS: Parses a hologram sms response.
     def __parse_hologram_compact_result(self, result):
 
         # convert the returned response to formatted list.
@@ -218,7 +221,7 @@ class HologramCloud(CustomCloud):
         if not destination_number.startswith('+'):
             raise HologramError('SMS destination number must start with a \'+\' sign')
 
-    def __enforce_authentication_type_supported(self):
+    def __enforce_authentication_type_supported_for_sms(self):
         if self.authenticationType is not 'csrpsk':
             raise HologramError('%s does not support SDK SMS features' % self.authenticationType)
 

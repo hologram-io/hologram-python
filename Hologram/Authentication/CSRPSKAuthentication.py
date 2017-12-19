@@ -1,4 +1,4 @@
-# CSRPSKAuthentication.py - Hologram Python SDK CSRPSK interface
+# CSRPSKAuthentication.py - Hologram Python SDK CSRPSKAuthentication interface
 #
 # Author: Hologram <support@hologram.io>
 #

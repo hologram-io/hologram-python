@@ -3,6 +3,7 @@
         "hologram-sdk": {
             "type": "pylint",
             "include": "(\\.py$)",
+            "exclude": "(^tests/)",
             "severity.rules": {
                 "(^C)": "disabled",
                 "(^R)": "disabled"
@@ -20,6 +21,31 @@
                 "W0403": "disabled",
                 "W0612": "disabled",
                 "W0613": "disabled",
+                "W0703": "disabled"
+            }
+        },
+        "hologram-sdk-unit-tests": {
+            "type": "pylint",
+            "include": "(^tests/.*\\.py$)",
+            "severity.rules": {
+                "(^C)": "disabled",
+                "(^R)": "disabled"
+            },
+            "severity": {
+                "E0401": "disabled",
+                "E0602": "disabled",
+                "E0603": "disabled",
+                "E1101": "disabled",
+                "W0201": "disabled",
+                "W0212": "disabled",
+                "W0221": "disabled",
+                "W0223": "disabled",
+                "W0232": "disabled",
+                "W0401": "disabled",
+                "W0403": "disabled",
+                "W0612": "disabled",
+                "W0613": "disabled",
+                "W0621": "disabled",
                 "W0703": "disabled"
             }
         }

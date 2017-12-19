@@ -1,3 +1,11 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# test_Cloud.py - This file implements unit tests for the Cloud class.
+
 import pytest
 import sys
 sys.path.append(".")
@@ -40,4 +48,4 @@ class TestCloud(object):
     def test_sdk_version(self):
         cloud = Cloud(None, send_host = '127.0.0.1', send_port = 9999)
 
-        assert cloud.version == '0.7.1'
+        assert cloud.version == '0.7.2'

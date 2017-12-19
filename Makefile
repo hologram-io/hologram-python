@@ -1,12 +1,9 @@
-.PHONY: install test testAll clean
+.PHONY: install test clean
 
 install:
 	python setup.py install
 
 test:
-	pytest tests/Authentication tests/Event tests/MessageMode
-
-testAll:
 	pytest tests/
 
 clean:

@@ -1,4 +1,5 @@
 hjson==2.0.2
+mock==2.0.0
 pyroute2==0.4.21
 pytest==3.0.5
 python-wifi==0.6.1

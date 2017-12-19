@@ -105,3 +105,6 @@ credentials.json
 Session.vim
 .netrwhist
 *~
+
+# Sublime SFTP plugin config file
+sftp-config.json

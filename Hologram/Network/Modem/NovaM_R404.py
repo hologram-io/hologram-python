@@ -8,13 +8,13 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Modem import Modem
+from Nova import Nova
 from Hologram.Event import Event
 from UtilClasses import ModemResult
 
 DEFAULT_R404_TIMEOUT = 200
 
-class NovaM_R404(Modem):
+class NovaM_R404(Nova):
 
     usb_ids = [('05c6', '90b2')]
 
@@ -40,9 +40,6 @@ class NovaM_R404(Modem):
 
     def is_registered(self):
         return self.check_registered('+CEREG')
-
-    def disable_at_sockets_mode(self):
-        self._at_sockets_available = False
 
     def close_socket(self, socket_identifier=None):
 

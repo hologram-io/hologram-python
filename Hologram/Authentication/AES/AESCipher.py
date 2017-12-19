@@ -1,3 +1,13 @@
+# AESCipher.py - Hologram Python SDK AESCipher interface
+#
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend

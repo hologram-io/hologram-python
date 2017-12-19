@@ -1,3 +1,11 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# test_CustomCloud.py - This file implements unit tests for the CustomCloud class.
+
 import pytest
 import sys
 sys.path.append(".")

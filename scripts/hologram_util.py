@@ -1,3 +1,12 @@
+# hologram_util.py - Hologram Python SDK command line interface (CLI) util
+#                    helper methods
+#
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+
 import argparse
 import time
 import sys

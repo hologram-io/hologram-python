@@ -1,3 +1,11 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# test_NetworkManager.py - This file implements unit tests for the NetworkManager class.
+
 import sys
 import pytest
 
@@ -15,11 +23,11 @@ class TestNetworkManager(object):
 
     def test_invalid_create(self):
         with pytest.raises(Exception, message = 'Invalid network type: invalid'):
-            networkManager = NetworkManager.NetworkManager('invalid')
+            networkManager = NetworkManager.NetworkManager(None, 'invalid')
 
     def test_invalid_ppp_create(self):
         with pytest.raises(Exception, message = 'Invalid mode type: invalid-ppp'):
-            networkManager = NetworkManager.NetworkManager('invalid-ppp')
+            networkManager = NetworkManager.NetworkManager(None, 'invalid-ppp')
 
     def test_network_connected(self):
         networkManager = NetworkManager.NetworkManager(None, '')

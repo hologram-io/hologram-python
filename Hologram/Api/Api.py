@@ -1,3 +1,11 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# Api.py - This file contains the Hologram REST API class implementation.
+
 from Exceptions.HologramError import ApiError
 
 import logging

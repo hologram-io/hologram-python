@@ -7,9 +7,9 @@
 #
 #
 # LICENSE: Distributed under the terms of the MIT License
+
 from IModem import IModem
 from ModemMode import *
-from UtilClasses import Location
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
@@ -39,53 +39,40 @@ class Modem(IModem):
     SOCKET_RECEIVE_READ = 2
     SOCKET_SEND_READ = 3
 
+    GSM = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+    EXT = {
+        0x40: u'|',
+        0x14: u'^',
+        0x65: u'€',
+        0x28: u'{',
+        0x29: u'}',
+        0x3C: u'[',
+        0x3D: u'~',
+        0x3E: u']',
+        0x2F: u'\\',
+    }
+
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
         super(Modem, self).__init__(device_name=device_name, baud_rate=baud_rate,
                                     event=event)
 
-        self.carrier = None
         self.serial_port = None
         self.timeout = Modem.DEFAULT_SERIAL_TIMEOUT
         self.response = []
         self._at_sockets_available = False
         self.urc_state = Modem.SOCKET_INIT
-        self.last_location = None
-        self.last_send_response = None
         self._socket_receive_buffer = deque()
         self.socket_identifier = 0
         self.last_read_payload_length = 0
-        self.last_sim_otp_command_response = None
         self.result = ModemResult.OK
         self.debug_out = ''
-        self.gsm = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
         self.in_ext = False
-        self.ext = {
-            0x40: u'|',
-            0x14: u'^',
-            0x65: u'€',
-            0x28: u'{',
-            0x29: u'}',
-            0x3C: u'[',
-            0x3D: u'~',
-            0x3E: u']',
-            0x2F: u'\\',
-        }
 
-        if device_name is None:
-            devices = self.detect_usable_serial_port()
-            if not devices:
-                raise SerialError('Unable to detect a usable serial port')
-            self.device_name = devices[0]
+        self._initialize_device_name(device_name)
 
-        if chatscript_file is None:
-            # Get the absolute path of the chatscript file.
-            self.chatscript_file = os.path.dirname(__file__) + DEFAULT_CHATSCRIPT_PATH
-        else:
-            self.chatscript_file = chatscript_file
-
-        self.logger.info('chatscript file: %s', self.chatscript_file)
+        self._initialize_chatscript_file(chatscript_file)
 
         # This serial mode device name/port will always be equivalent to whatever the
         # default port is for the specific modem.
@@ -111,6 +98,22 @@ class Modem(IModem):
         if self._mode is not None:
             return self._mode.disconnect()
         return None
+
+    def _initialize_device_name(self, device_name):
+        if device_name is None:
+            devices = self.detect_usable_serial_port()
+            if not devices:
+                raise SerialError('Unable to detect a usable serial port')
+            self.device_name = devices[0]
+
+    def _initialize_chatscript_file(self, chatscript_file):
+        if chatscript_file is None:
+            # Get the absolute path of the chatscript file.
+            self.chatscript_file = os.path.dirname(__file__) + DEFAULT_CHATSCRIPT_PATH
+        else:
+            self.chatscript_file = chatscript_file
+
+        self.logger.info('chatscript file: %s', self.chatscript_file)
 
     def openSerialPort(self, device_name=None):
 
@@ -170,11 +173,6 @@ class Modem(IModem):
         if oldest_index is not None:
             self.set("+CMGD", str(oldest_index))
         return oldest
-
-    def populate_location_obj(self, response):
-        response_list = response.split(',')
-        self.last_location = Location(*response_list)
-        return self.last_location
 
     def __detect_all_serial_ports(self, stop_on_first=False, include_all_ports=True):
         # figures out the serial ports associated with the modem and returns them
@@ -324,7 +322,7 @@ class Modem(IModem):
     def debugwrite(self, x, hide=False):
         if not hide:
             self.debug_out += x
-        self.write(x)
+        self._write_to_serial_port_and_flush(x)
 
     def modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
                     end=False, hide=False):
@@ -340,12 +338,13 @@ class Modem(IModem):
             self.debugwrite('?', hide=hide)
         if end:
             if not hide:
-                self.logger.debug(self.debug_out + ']')
-            self.write('\r\n')
+                self.debug_out += ']'
+                self.logger.debug(self.debug_out)
+            self._write_to_serial_port_and_flush('\r\n')
 
     def checkURC(self, hide=False):
         while(True):
-            response = self.readline(0, hide=hide)
+            response = self._readline_from_serial_port(0, hide=hide)
             if len(response) > 0 and response.startswith('+'):
                 urc = response.rstrip('\r\n')
                 self.handleURC(urc)
@@ -386,12 +385,15 @@ class Modem(IModem):
 
         self.urc_state = next_urc_state
 
+
+    # URC handlers
+
+
     def _handle_sms_receive_urc(self, urc):
         self.event.broadcast('sms.received')
 
     def _handle_location_urc(self, urc):
-        self.populate_location_obj(urc.lstrip('+UULOC: '))
-        self.event.broadcast('location.received')
+        raise NotImplementedError('Must instantiate the right modem type')
 
     def _handle_listen_urc(self, urc):
         self.event.broadcast('message.received')
@@ -399,7 +401,7 @@ class Modem(IModem):
     def process_response(self, cmd, timeout=None, hide=False):
         self.response = []
         while(True):
-            response = self.readline(timeout, hide=hide)
+            response = self._readline_from_serial_port(timeout, hide=hide)
             if len(response) == 0:
                 return ModemResult.Timeout
 
@@ -431,12 +433,11 @@ class Modem(IModem):
         return ModemResult.Timeout
 
 
-    def __command_result(self):
-        if self.result == ModemResult.OK:
-            if len(self.response) == 1:
-                return ModemResult.OK, self.response[0]
-            else:
-                return ModemResult.OK, self.response
+    # EFFECTS: Checks for the ModemResult and returns a tuple of (ModemResult, response).
+    #          The response can be a string or a list.
+    def _command_result(self):
+        if self.result == ModemResult.OK and len(self.response) == 1:
+            return self.result, self.response[0]
         else:
             return self.result, self.response
 
@@ -461,18 +462,18 @@ class Modem(IModem):
                                  seteq=seteq, hide=hide)
             elif read:
                 self.result = ModemResult.Invalid
-                return self.__command_result()
+                return self._command_result()
             else:
                 self.modemwrite(cmd, start=True, at=True, seteq=True, hide=hide)
                 self.modemwrite(value, end=True, hide=hide)
 
-            if prompt is not None and data is not None:
+            if not (prompt is None or data is None):
 
-                p = self._read(timeout, len(prompt) + 3)
+                p = self._read_from_serial_port(timeout, len(prompt) + 3)
 
                 if prompt in p:
                     time.sleep(1)
-                    self.write(data)
+                    self._write_to_serial_port_and_flush(data)
 
             self.result = self.process_response(cmd, timeout, hide=hide)
             if self.result == ModemResult.OK:
@@ -483,19 +484,100 @@ class Modem(IModem):
                             self.result = ModemResult.OK
                             break
                 break
-        return self.__command_result()
+        return self._command_result()
 
-    def _gsm7tochr(self, c):
-        if self.in_ext:
-            self.in_ext = False
-            if c in self.ext.keys():
-                return self.ext[c]
-        elif c == 0x1B:
-            self.in_ext = True
-            return u''
-        elif c < len(self.gsm):
-            return self.gsm[c]
-        return u' '
+
+    # ['+CMGL: 2,1,,26', '0791447779071413040C9144977304250500007160421062944008D4F29C0E8AC966'])
+    def _parsePDU(self, header, pdu):
+        try:
+            if not header.startswith("+CMGL: "):
+                return None, None
+
+            index, stat, alpha, length = header[7:].split(',')
+
+            # parse PDU
+            smsc_len = int(pdu[0:2], 16)
+
+            # smsc_number_type = int(pdu[2:4],16)
+            # if smsc_number_type != 0x81 and smsc_number_type != 0x91: return (-2, hex(smsc_number_type))
+            offset = smsc_len*2 + 3
+
+            sender, offset = self._parse_sender(pdu, offset)
+
+            if pdu[offset:offset+4] != '0000':
+                return None, None
+
+            offset += 4
+
+            timestamp, offset = self._parse_timestamp(pdu, offset)
+            message, offset = self._parse_message(pdu, offset)
+
+            return SMS(sender, timestamp, message), index
+
+        except ValueError as e:
+            self.logger.error(repr(e))
+
+        return None, None
+
+
+    # EFFECTS: Parses the rest of the sms pdu (sender).
+    def _parse_sender(self, pdu, offset):
+
+        sms_deliver = int(pdu[offset],16)
+        if sms_deliver & 0x03 != 0: return None
+        offset += 1
+        sender_len = int(pdu[offset:offset+2],16)
+        offset += 2
+        sender_number_type = int(pdu[offset:offset+2],16)
+        offset += 2
+        sender_read = sender_len
+        if sender_read & 1 != 0: sender_read += 1
+        sender_raw = pdu[offset:offset+sender_read]
+
+        sender = None
+        if sender_number_type & 0x50 == 0x50:
+            #GSM-7
+            sender = self._convert7to8bit(sender_raw, sender_len*4/7)
+        else:
+            sender = ''.join([ sender_raw[x:x+2][::-1] for x in range(0, len(sender_raw), 2) ])
+            if sender_read & 1 != 0: sender = sender[:-1]
+        offset += sender_read
+
+        return sender, offset
+
+
+    # EFFECTS: Parses the rest of of the sms pdu (timestamp).
+    def _parse_timestamp(self, pdu, offset):
+        timestamp_raw = pdu[offset:offset+14]
+        timestamp = ''.join([ timestamp_raw[x:x+2][::-1] for x in range(0, len(timestamp_raw), 2) ])
+
+        formatted_dt_str = self._format_datetime(timestamp[:-2])
+
+        tz_byte = int(timestamp[-2:], 16)
+        tz_bcd = ((tz_byte & 0x70) >> 4) * 10 + (tz_byte & 0x0F)
+
+        delta = datetime.timedelta(minutes=15 * tz_bcd)
+
+        # adjust to UTC from Service Center timestamp
+        if (tz_byte & 0x80) == 0x80:
+            formatted_dt_str += delta
+        else:
+            formatted_dt_str -= delta
+
+        return formatted_dt_str, offset
+
+    # EFFECTS: Parses the rest of of the sms pdu (message).
+    def _parse_message(self, pdu, offset):
+
+        offset += 14
+        msg_len = int(pdu[offset:offset + 2], 16)
+        offset += 2
+        return self._convert7to8bit(pdu[offset:], msg_len), offset
+
+
+    # EFFECTS: Takes in a datetime string, formats and returns it as specified below.
+    def _format_datetime(self, date_str):
+        return datetime.datetime.strptime(date_str, '%y%m%d%H%M%S')
 
     def _convert7to8bit(self, pdu, msg_len):
         last = 0
@@ -512,73 +594,41 @@ class Modem(IModem):
             msg += self._gsm7tochr(c & 0x7F)
         return msg
 
-    # ['+CMGL: 2,1,,26', '0791447779071413040C9144977304250500007160421062944008D4F29C0E8AC966'])
-    def _parsePDU(self, header, pdu):
-        try:
-            if not header.startswith("+CMGL: "): return None, None
-            index, stat, alpha, length = header[7:].split(',')
-            #parse PDU
-            smsc_len = int(pdu[0:2],16)
-            # smsc_number_type = int(pdu[2:4],16)
-            # if smsc_number_type != 0x81 and smsc_number_type != 0x91: return (-2, hex(smsc_number_type))
-            offset = smsc_len*2 + 3
-            sms_deliver = int(pdu[offset],16)
-            if sms_deliver & 0x03 != 0: return None
-            offset += 1
-            sender_len = int(pdu[offset:offset+2],16)
-            offset += 2
-            sender_number_type = int(pdu[offset:offset+2],16)
-            offset += 2
-            sender_read = sender_len
-            if sender_read & 1 != 0: sender_read += 1
-            sender_raw = pdu[offset:offset+sender_read]
-            if sender_number_type & 0x50 == 0x50:
-                #GSM-7
-                sender = self._convert7to8bit(sender_raw, sender_len*4/7)
-            else:
-                sender = ''.join([ sender_raw[x:x+2][::-1] for x in range(0, len(sender_raw), 2) ])
-                if sender_read & 1 != 0: sender = sender[:-1]
-            offset += sender_read
-            if pdu[offset:offset+4] != '0000': return -4
-            offset += 4
-            ts_raw = pdu[offset:offset+14]
-            ts = ''.join([ ts_raw[x:x+2][::-1] for x in range(0, len(ts_raw), 2) ])
-            dt = datetime.datetime.strptime(ts[:-2], '%y%m%d%H%M%S')
-            tz_byte = int(ts[-2:],16)
-            tz_bcd = ((tz_byte & 0x70) >> 4)*10 + (tz_byte & 0x0F)
-            delta = datetime.timedelta(minutes=15*tz_bcd)
-            #adjust to UTC from Service Center timestamp
-            if (tz_byte & 0x80) == 0x80:
-                dt += delta
-            else:
-                dt -= delta
-            offset += 14
-            msg_len = int(pdu[offset:offset+2],16)
-            offset += 2
-            message = self._convert7to8bit(pdu[offset:], msg_len)
-
-            return SMS(sender, dt, message), index
-
-        except ValueError as e:
-            self.logger.error(repr(e))
-
-        return None, None
+    def _gsm7tochr(self, c):
+        if self.in_ext:
+            self.in_ext = False
+            if c in Modem.EXT.keys():
+                return Modem.EXT[c]
+        elif c == 0x1B:
+            self.in_ext = True
+            return u''
+        elif c < len(Modem.GSM):
+            return Modem.GSM[c]
+        return u' '
 
     def is_connected(self):
         return self.is_registered()
 
     @staticmethod
     def _check_registered_helper(cmd, result):
-        r = None
-        if isinstance(result, list) and len(result) > 0:
+        r = ''
+        if isinstance(result, list):
             # If more than one response is provided, assume that only
             # the last response is of interest and that the
             # rest are uncaught URCs that we should disregard.
-            r = result[-1]
+            if len(result) > 0:
+                r = result[-1]
+            else:
+                raise SerialError('Internal error: input cannot be an empty list')
         else:
             r = result
 
-        regstatus = int(r.lstrip(cmd).lstrip(': ').split(',')[1])
+        response_list = r.lstrip(cmd).lstrip(': ').split(',')
+
+        if len(response_list) < 2:
+            raise SerialError('Unable to parse registration URC response')
+
+        regstatus = int(response_list[1])
         # 1: registered home network
         # 5: registered roaming
         return regstatus == 1 or regstatus == 5
@@ -622,12 +672,8 @@ class Modem(IModem):
             self.logger.info('PDP context active')
         return ok == ModemResult.OK
 
-    # EFFECTS: Parses and populates the last sim otp response.
-    def parse_and_populate_last_sim_otp_response(self, response):
-        self.last_sim_otp_command_response = response.split(',')[-1].strip('"')
-
     def __enforce_serial_port_open(self):
-        if (not self.serial_port) or (not self.serial_port.isOpen()):
+        if not (self.serial_port and self.serial_port.isOpen()):
             raise Exception('Serial port not open')
 
     def read(self, cmd, expected=None, timeout=None, retries=DEFAULT_SERIAL_RETRIES):
@@ -639,18 +685,6 @@ class Modem(IModem):
 
     def test(self, cmd, expected=None, timeout=None, retries=DEFAULT_SERIAL_RETRIES):
         return self.command(cmd, None, expected, timeout, retries, True, True)
-
-    def write(self, message):
-        self.serial_port.write(message.encode())
-        self.serial_port.flush()
-
-    def _read(self, timeout=None, size=DEFAULT_SERIAL_READ_SIZE):
-        if timeout is not None:
-            self.serial_port.timeout = timeout
-        r = self.serial_port.read(size)
-        if timeout is not None:
-            self.serial_port.timeout = timeout
-        return r
 
     #returns the raw result of a command, with the 'CMD: ' prefix stripped
     def _basic_command(self, cmd, prefix=True):
@@ -690,16 +724,35 @@ class Modem(IModem):
         except serial.serialutil.SerialTimeoutException as e:
             self.logger.debug('unable to write to port')
             self.result = ModemResult.Error
-        return self.__command_result()
+        return self._command_result()
 
 
-    def readline(self, timeout=None, hide=False):
+    ## THESE 3 SERIAL PORT INTERFACES ACTUALLY UTILIZE THE SERIAL PORT INSTANCE.
+
+    # EFFECTS: This actually reads bytes from the serial port instance.
+    def _readline_from_serial_port(self, timeout=None, hide=False):
         # Override set timeout with the given timeout if necessary
         if timeout is not None:
             self.serial_port.timeout = timeout
         r = self.serial_port.readline()
         if len(r) > 0 and not hide:
             self.logger.debug('{' + r.rstrip('\r\n') + '}')
+        # Revert back to original default timeout
+        if timeout is not None:
+            self.serial_port.timeout = self.timeout
+        return r
+
+    # REQUIRES: a message string.
+    # EFFECTS: Writes it to the actual serial port instance and flushes the buffer.
+    def _write_to_serial_port_and_flush(self, message):
+        self.serial_port.write(message.encode())
+        self.serial_port.flush()
+
+    # EFFECTS: This actually reads bytes from the serial port instance.
+    def _read_from_serial_port(self, timeout=None, size=DEFAULT_SERIAL_READ_SIZE):
+        if timeout is not None:
+            self.serial_port.timeout = timeout
+        r = self.serial_port.read(size)
         # Revert back to original default timeout
         if timeout is not None:
             self.serial_port.timeout = self.timeout
@@ -786,14 +839,6 @@ class Modem(IModem):
         self.logger.info('Modem restarted')
         self.closeSerialPort()
         time.sleep(Modem.DEFAULT_MODEM_RESTART_TIME)
-
-    @property
-    def carrier(self):
-        return self._carrier
-
-    @carrier.setter
-    def carrier(self, carrier):
-        self._carrier = carrier
 
     @property
     def localIPAddress(self):

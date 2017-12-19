@@ -1,3 +1,12 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# test_CSRPSKAuthentication.py - This file implements unit tests for the
+#                                CSRPSKAuthentication class.
+
 import sys
 import pytest
 

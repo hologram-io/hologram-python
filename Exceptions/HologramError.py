@@ -1,3 +1,10 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# HologramError.py - This file contains a list of custom Exception implementations.
 
 class HologramError(Exception):
     def __repr__(self):

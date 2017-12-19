@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-# Copyright 2016 Hologram (Konekt, Inc.)
-#
 # Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
 #
 
 longdesc = '''

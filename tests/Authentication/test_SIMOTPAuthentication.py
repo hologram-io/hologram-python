@@ -1,3 +1,12 @@
+# Author: Hologram <support@hologram.io>
+#
+# Copyright 2016 - Hologram (Konekt, Inc.)
+#
+# LICENSE: Distributed under the terms of the MIT License
+#
+# test_SIMOTPAuthentication.py - This file implements unit tests for the
+#                                SIMOTPAuthentication class.
+
 import sys
 
 sys.path.append(".")
