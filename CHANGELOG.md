@@ -1,5 +1,10 @@
 # What's New in Hologram Python SDK
 
+## v0.7.3
+
+2018-01-04 Hologram <support@hologram.io>
+    * Just a bunch of internal tool changes. Happy New Year! :)
+
 ## v0.7.2
 
 2017-12-18 Hologram <support@hologram.io>

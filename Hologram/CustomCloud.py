@@ -58,7 +58,7 @@ class CustomCloud(Cloud):
         return self.network is None or self.network.is_connected()
 
     # EFFECTS: Sends the message to the cloud.
-    def sendMessage(self, message, timeout=SEND_TIMEOUT):
+    def sendMessage(self, message, timeout=SEND_TIMEOUT, close_socket=True):
 
         try:
             if not self.is_ready_to_send():
@@ -79,7 +79,8 @@ class CustomCloud(Cloud):
 
             self.logger.info('Sent.')
 
-            self.close_send_socket()
+            if close_socket:
+                self.close_send_socket()
 
             self.event.broadcast('message.sent')
             return resultbuf

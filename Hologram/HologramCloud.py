@@ -164,10 +164,11 @@ class HologramCloud(CustomCloud):
         self.logger.debug("Sending nonce request with body of length %d", len(nonce_request))
         self.logger.debug('Send: %s', nonce_request)
 
-        self.sock.send(nonce_request)
+        nonce = super(HologramCloud, self).sendMessage(message=nonce_request,
+                timeout=10, close_socket=False)
         self.logger.debug('Nonce request sent.')
 
-        resultbuf_hex = binascii.b2a_hex(self.receive_send_socket(max_receive_bytes=32))
+        resultbuf_hex = binascii.b2a_hex(nonce)
 
         if resultbuf_hex is None:
             raise HologramError('Internal nonce error')

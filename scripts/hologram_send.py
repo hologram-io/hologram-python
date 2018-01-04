@@ -75,6 +75,12 @@ def sendTOTP(args, data, is_sms=False):
     hologram = HologramCloud(dict(), authentication_type='totp', network='cellular')
     send_message_helper(hologram, args, is_sms=is_sms)
 
+
+def sendSIMOTP(args, data, is_sms=False):
+
+    hologram = HologramCloud(dict(), authentication_type='sim-otp', network='cellular')
+    send_message_helper(hologram, args, is_sms=is_sms)
+
 # EFFECTS: Parses and sends the specified message using CSRPSK Authentication
 def sendPSK(args, data, is_sms=False):
 
@@ -145,6 +151,8 @@ def run_hologram_send_cloud(args):
     data = dict()
     if args['authtype'] == 'totp' and not args['devicekey']:
         sendTOTP(args, data)
+    elif args['authtype'] == 'sim-otp':
+        sendSIMOTP(args, data)
     else:
         sendPSK(args, data)
 
