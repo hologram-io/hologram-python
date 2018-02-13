@@ -9,7 +9,6 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 from Hologram.HologramCloud import HologramCloud
-from hologram_util import handle_timeout
 from hologram_util import handle_polling
 from hologram_util import VAction
 import sys
@@ -32,12 +31,17 @@ def popReceivedSMS():
     if recv is not None:
         print 'Received SMS:', recv
 
-def parse_hologram_receive_args(parser):
+
+def parse_common_receive_args(parser):
     parser.add_argument('-m', '--modem', nargs='?', default='nova',
                         help='The modem type. Choose between nova, ms2131 and e303.')
     parser.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
     parser.add_argument('-t', '--timeout', type=int, nargs='?', default=-1,
                         help='The number of seconds before the socket is closed. Default is to block indefinitely.')
+
+
+def parse_hologram_receive_args(parser):
+    parse_common_receive_args(parser)
     parse_data_args(parser)
     parse_sms_args(parser)
 

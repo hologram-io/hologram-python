@@ -46,7 +46,6 @@ class PPP(IPPP):
 
         if result == True and self.route.wait_for_interface(DEFAULT_PPP_INTERFACE,
                                                             MAX_PPP_INTERFACE_UP_RETRIES):
-            self.__reroute_packets()
             return True
         else:
             return False
@@ -91,16 +90,6 @@ class PPP(IPPP):
                 existing_ppp_pids.append(pinfo['pid'])
 
         return existing_ppp_pids
-
-    def __reroute_packets(self):
-        self.logger.info('Rerouting packets to %s interface', DEFAULT_PPP_INTERFACE)
-        # Make sure that we still have ppp interface before adding the routes.
-        ppp_available = self.route.wait_for_interface(DEFAULT_PPP_INTERFACE, MAX_REROUTE_PACKET_RETRIES)
-        if not ppp_available:
-            return
-        self.route.add('10.176.0.0/16', self.localIPAddress)
-        self.route.add('10.254.0.0/16', self.localIPAddress)
-        self.route.add_default(self.localIPAddress)
 
     @property
     def localIPAddress(self):

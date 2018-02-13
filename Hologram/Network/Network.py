@@ -9,9 +9,15 @@
 #
 
 from Hologram.Event import Event
-import os
 import logging
 from logging import NullHandler
+from enum import Enum
+
+
+class NetworkScope(Enum):
+    SYSTEM = 1
+    HOLOGRAM = 2
+
 
 class Network(object):
 
@@ -23,6 +29,7 @@ class Network(object):
         # Logging setup.
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(NullHandler())
+        self.scope = NetworkScope.SYSTEM
 
     def connect(self):
         self.event.broadcast('network.connected')

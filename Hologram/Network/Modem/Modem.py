@@ -24,6 +24,7 @@ import os
 import pyudev
 import serial
 import time
+from serial.serialutil import Timeout
 
 DEFAULT_CHATSCRIPT_PATH = '/chatscripts/default-script'
 
@@ -33,6 +34,9 @@ class Modem(IModem):
     DEFAULT_SERIAL_READ_SIZE = 256
     DEFAULT_SERIAL_TIMEOUT = 1
     DEFAULT_SERIAL_RETRIES = 0
+    DEFAULT_SEND_TIMEOUT = 10
+
+    _RETRY_DELAY = 0.05  # 50 millisecond delay to avoid spinning loops
 
     SOCKET_INIT = 0
     SOCKET_WRITE_STATE = 1
@@ -232,14 +236,19 @@ class Modem(IModem):
     def reset(self):
         self.set('+CFUN', '16') # restart the modem
 
-    def send_message(self, data):
+    def send_message(self, data, timeout=DEFAULT_SEND_TIMEOUT):
 
         self.urc_state = Modem.SOCKET_INIT
 
         self.write_socket(data)
 
+        loop_timeout = Timeout(timeout)
         while self.urc_state != Modem.SOCKET_SEND_READ:
             self.checkURC()
+            if self.urc_state != Modem.SOCKET_SEND_READ:
+                if loop_timeout.expired():
+                    raise SerialError('Timeout occurred waiting for message status')
+                time.sleep(self._RETRY_DELAY)
 
         return self.read_socket()
 
@@ -269,7 +278,7 @@ class Modem(IModem):
     # EFFECTS: Issues an AT command to connect to the specified socket identifier.
     def connect_socket(self, host, port):
         at_command_val = "%d,\"%s\",%s" % (self.socket_identifier, host, port)
-        ok, _ = self.set('+USOCO', at_command_val, timeout=5)
+        ok, _ = self.set('+USOCO', at_command_val, timeout=20)
         if ok != ModemResult.OK:
             self.logger.error('Failed to connect socket')
         else:
@@ -287,7 +296,7 @@ class Modem(IModem):
 
         self.enable_hex_mode()
         value = '%d,%s,\"%s\"' % (self.socket_identifier, len(data), binascii.hexlify(data))
-        ok, _ = self.set('+USOWR', value)
+        ok, _ = self.set('+USOWR', value, timeout=10)
         if ok != ModemResult.OK:
             self.logger.error('Failed to write to socket')
         self.disable_hex_mode()

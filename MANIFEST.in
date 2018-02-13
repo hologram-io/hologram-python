@@ -1,6 +1,4 @@
-include AUTHORS
 include LICENSE
-include ChangeLog
 include MANIFEST.in
 include Makefile
 include requirements.txt

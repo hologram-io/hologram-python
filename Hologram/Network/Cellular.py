@@ -10,13 +10,13 @@
 
 from ..Event import Event
 from Exceptions.HologramError import NetworkError
+from Hologram.Network.Route import Route
 from Modem import Modem
 from Modem import E303
 from Modem import MS2131
 from Modem import Nova_U201
 from Modem import NovaM_R404
-from Network import Network
-import subprocess
+from Network import Network, NetworkScope
 import time
 import usb.core
 
@@ -43,6 +43,7 @@ class Cellular(Network):
         super(Cellular, self).__init__(event=event)
         self._connection_status = CLOUD_DISCONNECTED
         self._modem = None
+        self._route = Route()
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
@@ -66,11 +67,13 @@ class Cellular(Network):
         except KeyboardInterrupt as e:
             pass
 
+
         if success:
             self.logger.info('Successfully connected to cell network')
             # Disable at sockets mode since we're already establishing PPP.
             # This call is needed in certain modems that have limited interfaces to work with.
             self.disable_at_sockets_mode()
+            self.__configure_routing()
             self._connection_status = CLOUD_CONNECTED
             self.event.broadcast('cellular.connected')
             super(Cellular, self).connect()
@@ -144,6 +147,13 @@ class Cellular(Network):
     def get_sim_otp_response(self, command):
         return self.modem.get_sim_otp_response(command)
 
+    def __configure_routing(self):
+        self.logger.info('Adding routes to Hologram cloud')
+        self._route.add('10.176.0.0/16', self.localIPAddress)
+        self._route.add('10.254.0.0/16', self.localIPAddress)
+        if self.scope == NetworkScope.SYSTEM:
+            self.logger.info('Adding system-wide default route to cellular interface')
+            self._route.add_default(self.localIPAddress)
 
     def _scan_for_modems(self):
         res = None

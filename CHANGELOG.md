@@ -1,5 +1,23 @@
 # What's New in Hologram Python SDK
 
+## v0.7.5
+
+2018-02-13 Hologram <support@hologram.io>
+    * Force persistent connection for hologram spacebridge
+    * hologram spacebridge no longer sets default route
+    * Remove redundant manifest includes
+
+2018-02-06 Hologram <support@hologram.io>
+    * Increase socket connect and write timeouts
+
+2018-02-05 Hologram <support@hologram.io>
+    * Fix infinite loop in `send_message`
+
+## v0.7.4
+
+2018-01-08 Hologram <support@hologram.io>
+    * Just a bunch of internal tool changes. Happy New Year! :)
+
 ## v0.7.3
 
 2018-01-04 Hologram <support@hologram.io>
