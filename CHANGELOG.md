@@ -1,5 +1,11 @@
 # What's New in Hologram Python SDK
 
+## v0.7.6
+
+2018-04-04 Hologram <support@hologram.io>
+    * hologram receive reconnects after forced disconnect
+    * Replace usb dependency with cross platform library
+
 ## v0.7.5
 
 2018-02-13 Hologram <support@hologram.io>

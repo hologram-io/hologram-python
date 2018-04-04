@@ -18,7 +18,7 @@ from Modem import Nova_U201
 from Modem import NovaM_R404
 from Network import Network, NetworkScope
 import time
-import usb.core
+from serial.tools import list_ports
 
 # Cellular return codes.
 CLOUD_DISCONNECTED = 0
@@ -44,6 +44,7 @@ class Cellular(Network):
         self._connection_status = CLOUD_DISCONNECTED
         self._modem = None
         self._route = Route()
+        self.__receive_port = None
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
@@ -126,6 +127,8 @@ class Cellular(Network):
         return self.modem.send_message(data)
 
     def open_receive_socket(self, receive_port):
+        self.__receive_port = receive_port
+        self.event.subscribe('cellular.forced_disconnect', self.__reconnect_after_forced_disconnect)
         return self.modem.open_receive_socket(receive_port)
 
     def pop_received_message(self):
@@ -146,6 +149,21 @@ class Cellular(Network):
     # EFFECTS: Returns the sim otp response from the sim.
     def get_sim_otp_response(self, command):
         return self.modem.get_sim_otp_response(command)
+
+    def __reconnect_and_receive(self):
+        if not self.at_sockets_available:
+            self.connect()
+        self.open_receive_socket(self.__receive_port)
+
+    def __reconnect_after_forced_disconnect(self):
+        self.logger.info('Reconnecting after forced disconnect...')
+        time.sleep(5)  # uBlox takes some time to update internal state after disconnect
+        self.__reconnect_and_receive()
+        while not self.is_connected():
+            self.logger.info('Reconnect failed. Retrying in 5 seconds...')
+            time.sleep(5)
+            self.__reconnect_and_receive()
+        self.logger.info('Ready to receive data on port %s', self.__receive_port)
 
     def __configure_routing(self):
         self.logger.info('Adding routes to Hologram cloud')
@@ -170,10 +188,7 @@ class Cellular(Network):
             if not vid_pid:
                 continue
             self.logger.debug('checking for vid_pid: %s', str(vid_pid))
-            vid = int(vid_pid[0], 16)
-            pid = int(vid_pid[1], 16)
-            dev = usb.core.find(idVendor=vid, idProduct=pid)
-            if dev:
+            for dev in list_ports.grep("{0}:{1}".format(vid_pid[0], vid_pid[1])):
                 self.logger.info('Detected modem %s', modemHandler.__name__)
                 return True
         return False

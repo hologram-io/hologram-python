@@ -21,8 +21,8 @@ import binascii
 import datetime
 import logging
 import os
-import pyudev
 import serial
+from serial.tools import list_ports
 import time
 from serial.serialutil import Timeout
 
@@ -42,6 +42,7 @@ class Modem(IModem):
     SOCKET_WRITE_STATE = 1
     SOCKET_RECEIVE_READ = 2
     SOCKET_SEND_READ = 3
+    SOCKET_CLOSED = 4
 
     GSM = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
     EXT = {
@@ -180,31 +181,28 @@ class Modem(IModem):
 
     def __detect_all_serial_ports(self, stop_on_first=False, include_all_ports=True):
         # figures out the serial ports associated with the modem and returns them
-        context = pyudev.Context()
         device_names = []
         for usb_id in self.usb_ids:
             vid = usb_id[0]
             pid = usb_id[1]
-            for udevice in context.list_devices(subsystem='tty', ID_BUS='usb',
-                                                ID_VENDOR_ID=vid):
-                # pyudev has some weird logic where you can't AND two different
-                # properties together so we have to check it later
-                if udevice['ID_MODEL_ID'] != pid:
-                    continue
-                devname = udevice['DEVNAME']
 
+            # The list_ports function returns devices in descending order, so reverse
+            # the order here to iterate in ascending order (e.g. from /dev/xx0 to /dev/xx6)
+            # since our usable serial devices usually start at 0.
+            udevices = [x for x in list_ports.grep("{0}:{1}".format(vid, pid))]
+            for udevice in reversed(udevices):
                 if include_all_ports == False:
-                    self.logger.debug('checking port %s', devname)
-                    port_opened = self.openSerialPort(devname)
+                    self.logger.debug('checking port %s', udevice.name)
+                    port_opened = self.openSerialPort(udevice.device)
                     if not port_opened:
                         continue
 
                     res = self.command('', timeout=1)
                     if res[0] != ModemResult.OK:
                         continue
-                    self.logger.info('found working port at %s', devname)
+                    self.logger.info('found working port at %s', udevice.name)
 
-                device_names.append(devname)
+                device_names.append(udevice.device)
                 if stop_on_first:
                     break
             if stop_on_first and device_names:
@@ -249,6 +247,8 @@ class Modem(IModem):
                 if loop_timeout.expired():
                     raise SerialError('Timeout occurred waiting for message status')
                 time.sleep(self._RETRY_DELAY)
+            elif self.urc_state == Modem.SOCKET_CLOSED:
+                return '[1,0]' #this is connection closed for hologram cloud response
 
         return self.read_socket()
 
@@ -389,6 +389,10 @@ class Modem(IModem):
             self._handle_listen_urc(urc)
             self.last_read_payload_length = 0
             next_urc_state = Modem.SOCKET_RECEIVE_READ
+        elif urc.startswith('+UUPSDD: '):
+            self.event.broadcast('cellular.forced_disconnect')
+        elif urc.startswith('+UUSOCL: '):
+            next_urc_state = Modem.SOCKET_CLOSED
         else:
             self.logger.debug("URC was not handled. \'%s\'",  urc)
 

@@ -6,6 +6,7 @@
 #
 #
 # LICENSE: Distributed under the terms of the MIT License
+import logging
 
 class Event(object):
     _funcLookupTable = {}
@@ -17,7 +18,10 @@ class Event(object):
         if not self.__dict__.get(event):
             self.__dict__[event] = [callback]
         else:
-            self.__dict__[event].append(callback)
+            if callback not in self.__dict__[event]:
+                self.__dict__[event].append(callback)
+            else:
+                logging.debug("Callback already subscribed: event[%s] callback[%s]", event, str(callback))
 
     def unsubscribe(self, event, callback):
 
