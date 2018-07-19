@@ -20,6 +20,10 @@ MODEM_OK = 0
 class IModem(object):
 
     usb_ids = []
+    # module needed by modem
+    module = '' 
+    # system path to write usb IDs to to force use of a driver
+    syspath = ''
 
     _error_code_description = {
 

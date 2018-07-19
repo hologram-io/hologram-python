@@ -99,25 +99,22 @@ class CustomCloud(Cloud):
         if self._is_send_socket_open:
             return
 
-        try:
-            self.__enforce_send_host_and_port()
-            self.logger.info("Connecting to: %s", self.send_host)
-            self.logger.info("Port: %s", self.send_port)
+        self.__enforce_send_host_and_port()
+        self.logger.info("Connecting to: %s", self.send_host)
+        self.logger.info("Port: %s", self.send_port)
 
-            # Check if we're going to use the AT command version of sockets or the
-            # native Python socket lib.
-            if self.__to_use_at_sockets():
-                self.network.create_socket()
-                self.network.connect_socket(self.send_host, self.send_port)
-            else:
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.settimeout(timeout)
-                self.sock.connect((self.send_host, self.send_port))
+        # Check if we're going to use the AT command version of sockets or the
+        # native Python socket lib.
+        if self.__to_use_at_sockets():
+            self.network.create_socket()
+            self.network.connect_socket(self.send_host, self.send_port)
+        else:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(timeout)
+            self.sock.connect((self.send_host, self.send_port))
 
-            self._is_send_socket_open = True
-        except (IOError):
-            self.logger.error('An error occurred while attempting to send the message to the cloud')
-            self.logger.error('Please try again.')
+        self._is_send_socket_open = True
+
 
     def close_send_socket(self):
         try:
@@ -177,7 +174,6 @@ class CustomCloud(Cloud):
         self._periodic_msg = threading.Thread(target=self._periodic_job_thread,
                                               args=[interval, self.sendMessage,
                                                     message, topics, timeout])
-        self._periodic_msg.daemon = True
         self._periodic_msg.start()
 
     def sendSMS(self, destination_number, message):
@@ -190,7 +186,6 @@ class CustomCloud(Cloud):
     # EFFECTS: This threaded infinite loop shoud keep sending messages with the specified
     #          interval.
     def _periodic_job_thread(self, interval, function, *args):
-
         while True:
             self._periodic_msg_lock.acquire()
 
@@ -199,8 +194,17 @@ class CustomCloud(Cloud):
                 break
 
             self.logger.info('Sending another periodic message...')
-            response = function(*args)
-            self.logger.info('DATA RECEIVED: %s', str(response))
+            try:
+                response = function(*args)
+            except Exception as e:
+                self.logger.info('Message function threw an exception: %s', str(e))
+                self._periodic_msg_lock.release()
+                break
+            else:
+                self.logger.info('RESPONSE MESSAGE: %s', self.getResultString(response))
+                if not self.resultWasSuccess(response):
+                    self._periodic_msg_lock.release()
+                    break
 
             self._periodic_msg_lock.release()
             time.sleep(interval)
@@ -214,6 +218,9 @@ class CustomCloud(Cloud):
 
         self._periodic_msg.join()
         self.logger.info('Periodic job stopped')
+
+    def periodicMessageRunning(self):
+        return self._periodic_msg and self._periodic_msg.isAlive()
 
     def initializeReceiveSocket(self):
         return self.openReceiveSocket()
@@ -386,3 +393,9 @@ class CustomCloud(Cloud):
     def __enforce_network_disconnected(self):
         if self.network_type == 'Cellular':
             self.network.disconnect()
+
+    def getResultString(self, result_code):
+        return str(response)
+
+    def resultWasSuccess(self, result_code):
+        return True

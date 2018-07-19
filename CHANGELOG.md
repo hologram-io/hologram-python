@@ -1,5 +1,14 @@
 # What's New in Hologram Python SDK
 
+## v0.8.0
+
+2018-07-19 Hologram <support@hologram.io>
+    * Add support for Nova R410 Cat-M modem
+    * Drivers for R410 and R404 are loaded automatically
+    * Revamp error handling on AT command connect so we don't keep
+        moving the process forward if we've already failed
+    * Fixes to the repeated message send feature
+
 ## v0.7.6
 
 2018-04-04 Hologram <support@hologram.io>

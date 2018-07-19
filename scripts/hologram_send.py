@@ -13,10 +13,10 @@
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
 from Exceptions.HologramError import HologramError
-from hologram_util import handle_timeout
 from hologram_util import VAction
 
 import argparse
+import time
 
 DEFAULT_TIMEOUT = 5
 
@@ -128,10 +128,24 @@ def send_message_helper(cloud, args, is_sms=False):
                                   args['message'],
                                   topics=args['topic'],
                                   timeout=args['timeout'])
-        handle_timeout(args['duration'])
+        hold_for_duration(cloud, args['duration'])
 
     if cloud.network is not None and not cloud.network.at_sockets_available:
         cloud.network.disconnect()
+
+
+def hold_for_duration(cloud, duration = -1):
+    start = time.time()
+    try:
+        while(cloud.periodicMessageRunning() and
+                (duration == -1 or
+                (time.time() - start < duration))):
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+        print("Interrupted")
+    finally:
+        cloud.stopPeriodicMessage()
+
 
 # EFFECTS: Handles all hologram_send operations.
 #          This function will call the appropriate cloud/sms handler.

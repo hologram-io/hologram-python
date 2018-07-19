@@ -15,6 +15,7 @@ from UtilClasses import SMS
 from Hologram.Event import Event
 from Exceptions.HologramError import SerialError
 from Exceptions.HologramError import HologramError
+from Exceptions.HologramError import NetworkError
 
 from collections import deque
 import binascii
@@ -281,6 +282,7 @@ class Modem(IModem):
         ok, _ = self.set('+USOCO', at_command_val, timeout=20)
         if ok != ModemResult.OK:
             self.logger.error('Failed to connect socket')
+            raise NetworkError('Failed to connect socket')
         else:
             self.logger.info('Connect socket is successful')
 
@@ -291,6 +293,7 @@ class Modem(IModem):
         ok, _ = self.set('+USOLI', at_command_val, timeout=5)
         if ok != ModemResult.OK:
             self.logger.error('Failed to listen socket')
+            raise NetworkError('Failed to listen socket')
 
     def write_socket(self, data):
 
@@ -299,6 +302,7 @@ class Modem(IModem):
         ok, _ = self.set('+USOWR', value, timeout=10)
         if ok != ModemResult.OK:
             self.logger.error('Failed to write to socket')
+            raise NetworkError('Failed to write socket')
         self.disable_hex_mode()
 
     def read_socket(self, socket_identifier=None, payload_length=None):
@@ -681,9 +685,10 @@ class Modem(IModem):
         ok, _ = self.set('+UPSDA', '0,3', timeout=30)
         if ok != ModemResult.OK:
             self.logger.error('PDP Context setup failed')
+            raise NetworkError('Failed PDP context setup')
         else:
             self.logger.info('PDP context active')
-        return ok == ModemResult.OK
+
 
     def __enforce_serial_port_open(self):
         if not (self.serial_port and self.serial_port.isOpen()):

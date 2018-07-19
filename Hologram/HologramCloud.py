@@ -28,7 +28,8 @@ MAX_SMS_LENGTH = 160
 
 # Hologram error codes
 ERR_OK = 0
-ERR_CONNCLOSED = 1 # Connection was closed so we couldn't read enough
+ERR_CONNCLOSED = 1 # Connection was closed before a terminating character
+                   # but message might be fine
 ERR_MSGINVALID = 2 # Couldn't parse the message
 ERR_AUTHINVALID = 3 # Auth section of message was invalid
 ERR_PAYLOADINVALID = 4 # Payload type was invalid
@@ -232,3 +233,6 @@ class HologramCloud(CustomCloud):
         if result_code not in self._errorCodeDescription:
             return 'Unknown response code'
         return self._errorCodeDescription[result_code]
+
+    def resultWasSuccess(self, result_code):
+        return result_code in (ERR_OK, ERR_CONNCLOSED)

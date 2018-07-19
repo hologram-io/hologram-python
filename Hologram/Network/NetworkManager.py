@@ -67,7 +67,13 @@ class NetworkManager(object):
             if modem is not None:
                 self._network.modem = modem
             else:
-                self._network.autodetect_modem()
+                try:
+                    self._network.autodetect_modem()
+                except NetworkError as e:
+                    self.logger.info("No modem found. Loading drivers and retrying")
+                    self._network.load_modem_drivers()
+                    self._network.autodetect_modem()
+
 
     def __repr__(self):
         if not self.network:

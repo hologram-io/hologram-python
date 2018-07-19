@@ -19,6 +19,9 @@ class AuthenticationError(HologramError):
 class NetworkError(HologramError):
     pass
 
+class ModemError(HologramError):
+    pass
+
 class PPPError(NetworkError):
     pass
 

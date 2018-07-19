@@ -15,7 +15,8 @@ from Modem import Modem
 from Modem import E303
 from Modem import MS2131
 from Modem import Nova_U201
-from Modem import NovaM_R404
+from Modem import NovaM
+from Modem import DriverLoader
 from Network import Network, NetworkScope
 import time
 from serial.tools import list_ports
@@ -35,7 +36,7 @@ class Cellular(Network):
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
         'nova': Nova_U201.Nova_U201,
-        'r404': NovaM_R404.NovaM_R404,
+        'novam': NovaM.NovaM,
         '': Modem
     }
 
@@ -46,12 +47,16 @@ class Cellular(Network):
         self._route = Route()
         self.__receive_port = None
 
+
     def autodetect_modem(self):
         # scan for a modem and set it if found
         dev_devices = self._scan_for_modems()
         if dev_devices is None:
             raise NetworkError('Modem not detected')
         self.modem = dev_devices[0]
+
+    def load_modem_drivers(self):
+        self._load_modem_drivers()
 
 
     def getConnectionStatus(self):
@@ -172,6 +177,22 @@ class Cellular(Network):
         if self.scope == NetworkScope.SYSTEM:
             self.logger.info('Adding system-wide default route to cellular interface')
             self._route.add_default(self.localIPAddress)
+
+    def _load_modem_drivers(self):
+        dl = DriverLoader.DriverLoader()
+        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+            module = modemHandler.module
+            if module:
+                if not dl.is_module_loaded(module):
+                    self.logger.info('Loading module %s for %s', module, modemName)
+                    dl.load_module(module)
+                    syspath = modemHandler.syspath
+                    if syspath:
+                        usb_ids = modemHandler.usb_ids
+                        for vid_pid in usb_ids:
+                            dl.force_driver_for_device(syspath, vid_pid[0], vid_pid[1])
+
+
 
     def _scan_for_modems(self):
         res = None

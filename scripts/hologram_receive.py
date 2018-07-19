@@ -73,19 +73,21 @@ def run_hologram_receive_data(args):
     if not hologram.network.at_sockets_available:
         hologram.network.connect()
 
-    hologram.openReceiveSocket()
+    try:
+        hologram.openReceiveSocket()
+    except Exception as e:
+        print("Failed to open socket to listen for data: %s"%str(e))
+        return
+
     print ('Ready to receive data on port %s' % hologram.receive_port)
 
     try:
         handle_polling(args['timeout'], popReceivedMessage, 1)
     except KeyboardInterrupt as e:
-        print 'Closing socket...'
-        hologram.closeReceiveSocket()
+        pass
 
-        if not hologram.network.at_sockets_available:
-            hologram.network.disconnect()
-
-        sys.exit(e)
+    print 'Closing socket...'
+    hologram.closeReceiveSocket()
 
     if not hologram.network.at_sockets_available:
         hologram.network.disconnect()
