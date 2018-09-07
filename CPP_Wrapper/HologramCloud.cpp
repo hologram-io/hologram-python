@@ -19,7 +19,7 @@
 namespace Hologram
 {
 
-	HologramCloud::HologramCloud(map<string, string>& credentials, bool enable_inbound, string network, AUTHENTICATION_HANDLERS authentication_type)
+	HologramCloud::HologramCloud(map<string, string> credentials, bool enable_inbound, string network, AUTHENTICATION_HANDLERS authentication_type)
 	{
 		// Initialize all the class variables to 0
 		memset(this, 0, sizeof(HologramCloud));
@@ -97,6 +97,11 @@ namespace Hologram
 
 	HologramCloud::~HologramCloud()
 	{
+		if (this->_socketOpen && this->_pyInstanceHologramCloud != NULL)
+			this->closeReceiveSocket();
+		if (this->_isConnected && this->_pyInstanceHologramCloud != NULL)
+			this->disconnect();
+
 		// Lets clean up...
 		PY_XDECREF(this->_pyInstanceHologramCloud);
 
@@ -132,7 +137,7 @@ namespace Hologram
 		result = PyObject_IsTrue(pyDisconnectResult);
 		PY_DECREF(pyDisconnectResult); //Dont need any more...
 
-		this->_isConnected = false;
+		this->_isConnected = this->_socketOpen = false;
 
 		return result;
 	}
@@ -145,6 +150,7 @@ namespace Hologram
 		PY_CHECK(pyOpenReceiveSocketResult, PyObject_CallMethod(this->_pyInstanceHologramCloud, (char*)"openReceiveSocket", NULL, NULL), "Could not get the openReceiveSocket method from the python class");
 		result = PyObject_IsTrue(pyOpenReceiveSocketResult);
 		PY_DECREF(pyOpenReceiveSocketResult); //Dont need any more...
+		this->_socketOpen = result;
 
 		return result;
 	}
@@ -154,6 +160,7 @@ namespace Hologram
 		// Call the closeReceiveSocket function
 		PY_CHECK(pyCloseReceiveSocket, PyObject_CallMethod(this->_pyInstanceHologramCloud, (char*)"closeReceiveSocket", NULL, NULL), "Could not get the closeReceiveSocket method from the python class");
 		PY_DECREF(pyCloseReceiveSocket);
+		this->_socketOpen = false;
 	}
 
 	string HologramCloud::getResultString(ERROR_CODES code)
@@ -386,8 +393,14 @@ namespace Hologram
 
 		return result;
 	}
+
 	bool HologramCloud::IsConnected(void)
 	{
 		return this->_isConnected;
+	}
+
+	bool HologramCloud::SocketIsOpen(void)
+	{
+		return this->_socketOpen;
 	}
 }

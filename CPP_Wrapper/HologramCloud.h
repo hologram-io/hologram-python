@@ -126,7 +126,7 @@ namespace Hologram
 		/// <param name="network">The network.</param>
 		/// <param name="authentication_type">Type of the authentication.</param>
 		/// <exception cref="HologramException">Exception thrown on error</exception>
-		HologramCloud(map<string, string>& credentials, bool enable_inbound = false, string network = "", AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::totp);
+		HologramCloud(map<string, string> credentials, bool enable_inbound = false, string network = "", AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::totp);
 		/// <summary>
 		/// Finalizes an instance of the <see cref="HologramCloud"/> class.
 		/// </summary>
@@ -233,10 +233,17 @@ namespace Hologram
 		/// </returns>
 		bool IsConnected(void);
 
+		/// <summary>
+		/// Gets the socket status
+		/// </summary>
+		/// <returns>True if the socket is open</returns>
+		bool SocketIsOpen(void);
+
 	private:
 		PPyObject _pyInstanceHologramCloud;
 
 		bool _isConnected;
+		bool _socketOpen;
 
 		const map<ERROR_CODES, const char*> _mErrorDesc =
 		{
