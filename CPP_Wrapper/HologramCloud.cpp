@@ -81,9 +81,9 @@ namespace Hologram
 
 			// The tuple set item function steals our reference, so it's their job to decrease it :)
 			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 0, pyCredentialsArg), "Could not set python tuple");
-			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 0, pyEnableInboundArg), "Could not set python tuple");
-			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 0, pyNetworkArg), "Could not set python tuple");
-			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 0, pyAuthType), "Could not set python tuple");
+			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 1, pyEnableInboundArg), "Could not set python tuple");
+			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 2, pyNetworkArg), "Could not set python tuple");
+			PY_CHECK_BOOL(PyTuple_SetItem(pyHologramCloudArgs, 3, pyAuthType), "Could not set python tuple");
 
 			// Ok... finally we are able to grab an instance of the HologramCloud class! About time!
 			PY_CHECK_NOOBJ(this->_pyInstanceHologramCloud, PyObject_CallObject(pyClassHologramCloud, pyHologramCloudArgs), "Could not instantiate HologramCloud class.");
