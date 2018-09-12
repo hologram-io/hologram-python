@@ -43,7 +43,7 @@ class Api(object):
 
         response = requests.post(endpoint, **args)
         if response.status_code != requests.codes.ok:
-            response.raise_for_status()
+            return (False, response.text)
 
         response = response.json()
         if response['success'] == False:

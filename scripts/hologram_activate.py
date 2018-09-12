@@ -11,6 +11,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 import copy
+import getpass
 import sys
 import time
 
@@ -95,7 +96,7 @@ def run_hologram_activate(args):
 
 
 def confirm_activation(sim, plan_name, selected_plan, selected_zone, total_cost):
-    response = raw_input("Activate SIM #%s on %s Zone %d for $%d (y/N)? " % (sim, plan_name, selected_zone, total_cost))
+    response = raw_input("Activate SIM #%s on %s Zone %s for $%.2f (y/N)? " % (sim, plan_name, str(selected_zone), total_cost))
     return response == 'y'
 
 # EFFECTS: Populate valid and available plans and returns a plan -> zones dictionary.
@@ -104,7 +105,7 @@ def populate_valid_plans(plans):
 
     for plan in plans:
         if is_available_developer_plan(plan) or is_pay_as_you_go_plan(plan):
-            planIdToZonesDict[plan['id']] = copy.deepcopy(plan['zones'])
+            planIdToZonesDict[plan['id']] = copy.deepcopy(plan['tiers']['BASE']['zones'])
     return planIdToZonesDict
 
 def prompt_for_plan(plans, planIdToZonesDict):
@@ -146,7 +147,7 @@ def prompt_for_zone(zones):
     zoneids = []
 
     for zoneid, zone_details in zones.iteritems():
-        zoneids.append(int(zoneid))
+        zoneids.append(zoneid)
         print_zone_description(zoneid, zone_details)
 
     # There's only one available zone, so we can just select that without asking
@@ -157,10 +158,6 @@ def prompt_for_zone(zones):
     while True:
         try:
             zone = raw_input('Choose the zone for this device: ')
-            if not zone.isdigit():
-                print('Error: Invalid zone')
-                continue
-            zone = int(zone)
             if zone not in zoneids:
                 print('Error: Invalid zone')
                 continue
@@ -200,7 +197,7 @@ def prompt_for_username_and_password():
 
     try:
         username = raw_input("Please enter your Hologram username: ")
-        password = raw_input("Please enter your Hologram password: ")
+        password = getpass.getpass("Please enter your Hologram password: ")
     except KeyboardInterrupt as e:
         sys.exit(1)
 

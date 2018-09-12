@@ -27,6 +27,7 @@ class NovaM(Nova):
                                          chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
         modem_id = self.modem_id
+        self.baud_rate = '115200'
         if("R404" in modem_id):
             self.is_r410 = False
         else:

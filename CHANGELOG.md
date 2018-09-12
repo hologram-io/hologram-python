@@ -1,5 +1,11 @@
 # What's New in Hologram Python SDK
 
+## v0.8.1
+2018-09-12 Hologram <support@hologram.io>
+    * Fix issues with PPP (`hologram network connect`) on Nova R410
+    * Fix bugs with activating SIM cards via `hologram activate`
+        command and stop echoing out passwords
+
 ## v0.8.0
 
 2018-07-19 Hologram <support@hologram.io>

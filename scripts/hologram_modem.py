@@ -42,6 +42,7 @@ def run_modem_connect(args):
     cloud = CustomCloud(None, network='cellular')
     cloud.network.disable_at_sockets_mode()
     cloud.network.connect()
+    print 'PPP session started'
 
 def run_modem_disconnect(args):
     print 'Checking for existing PPP sessions'
