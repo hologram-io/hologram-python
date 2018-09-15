@@ -16,10 +16,11 @@
 #define PY_DECREF(n) Py_DECREF(n); n = NULL
 #define PY_XDECREF(n) Py_XDECREF(n); n = NULL
 
+
 namespace Hologram
 {
 
-	HologramCloud::HologramCloud(map<string, string> credentials, bool enable_inbound, string network, AUTHENTICATION_HANDLERS authentication_type)
+	HologramCloud::HologramCloud(map<string, string> const& credentials, bool enable_inbound, string const& network, AUTHENTICATION_HANDLERS authentication_type)
 	{
 		// Initialize all the class variables to 0
 		memset(this, 0, sizeof(HologramCloud));
@@ -168,7 +169,7 @@ namespace Hologram
 		return _mErrorDesc.at(code);
 	}
 
-	void HologramCloud::setAuthenticationType(map<string, string>& credentials, AUTHENTICATION_HANDLERS authentication_type)
+	void HologramCloud::setAuthenticationType(map<string, string> credentials, AUTHENTICATION_HANDLERS authentication_type)
 	{
 		// Now we need to pythonize all the parameters... man do I hate python! Lack of strong typing kills me.
 
@@ -214,7 +215,7 @@ namespace Hologram
 		PY_DECREF(pysetAuthenticationTypeResult); //Dont need any more...
 	}
 
-	ERROR_CODES HologramCloud::sendMessage(string& message, vector<string> topics, int timeout)
+	ERROR_CODES HologramCloud::sendMessage(string message, vector<string> topics, int timeout)
 	{
 		ERROR_CODES result = ERROR_CODES::ERR_OK;
 		
@@ -242,7 +243,7 @@ namespace Hologram
 		return result;
 	}
 
-	string HologramCloud::sendSMS(string & destination_number, string & message)
+	string HologramCloud::sendSMS(string destination_number, string message)
 	{
 		string result = "";
 
@@ -346,7 +347,6 @@ namespace Hologram
 			result = "";
 		else
 			result = string(PyString_AsString(pyPopReceivedMessageResult));
-		Py_DECREF(Py_None);
 		PY_DECREF(pyPopReceivedMessageResult); //Dont need any more...
 
 		return result;
@@ -364,9 +364,14 @@ namespace Hologram
 
 		//Get the network object so that we can connect
 		PY_CHECK(pyNetworkProperty, PyObject_GetAttrString(this->_pyInstanceHologramCloud, "network"), "Could not get the network interface from the python class.");
-
+		
 		//Lets see if we can get the devices location...
 		PY_CHECK(pyLocation, PyObject_GetAttrString(pyNetworkProperty, "location"), "Could not get location attribute");
+		if (pyLocation == Py_None)
+		{
+			Py_DECREF(pyLocation);
+			return false;
+		}
 
 		PY_CHECK(pyLocationDate, PyObject_GetAttrString(pyLocation, "date"), "Could not get date attribute from location");
 		PY_CHECK(pyLocationTime, PyObject_GetAttrString(pyLocation, "time"), "Could not get time attribute from location");

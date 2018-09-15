@@ -126,7 +126,7 @@ namespace Hologram
 		/// <param name="network">The network.</param>
 		/// <param name="authentication_type">Type of the authentication.</param>
 		/// <exception cref="HologramException">Exception thrown on error</exception>
-		HologramCloud(map<string, string> credentials, bool enable_inbound = false, string network = "", AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::totp);
+		HologramCloud(map<string, string> const& credentials, bool enable_inbound = false, string const& network = string(""), AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::totp);
 		/// <summary>
 		/// Finalizes an instance of the <see cref="HologramCloud"/> class.
 		/// </summary>
@@ -168,7 +168,7 @@ namespace Hologram
 		/// </summary>
 		/// <param name="credentials">The credentials as map<string, string>.</param>
 		/// <param name="authentication_type">Type of the authentication.</param>
-		void setAuthenticationType(map<string, string>& credentials, AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::csrpsk);
+		void setAuthenticationType(map<string, string> credentials, AUTHENTICATION_HANDLERS authentication_type = AUTHENTICATION_HANDLERS::csrpsk);
 
 		/// <summary>
 		/// Sends a message to the cloud.
@@ -177,7 +177,7 @@ namespace Hologram
 		/// <param name="topics">The topics defined in the backend as a list of string.</param>
 		/// <param name="timeout">The timeout for sending the message in seconds.</param>
 		/// <returns></returns>
-		ERROR_CODES sendMessage(string& message, vector<string> topics = vector<string>(), int timeout = HOLOGRAM_DEFAULT_SEND_MESSAGE_TIMEOUT);
+		ERROR_CODES sendMessage(string message, vector<string> topics = vector<string>(), int timeout = HOLOGRAM_DEFAULT_SEND_MESSAGE_TIMEOUT);
 
 		/// <summary>
 		/// Sends an SMS.
@@ -185,7 +185,7 @@ namespace Hologram
 		/// <param name="destination_number">The destination number.</param>
 		/// <param name="message">The message.</param>
 		/// <returns>A string with a response description</returns>
-		string sendSMS(string& destination_number, string& message);
+		string sendSMS(string destination_number, string message);
 
 		/// <summary>
 		/// Requests the hexadecimal nonce.
