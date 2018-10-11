@@ -198,7 +198,12 @@ class Modem(IModem):
                     if not port_opened:
                         continue
 
-                    res = self.command('', timeout=1)
+                    try:
+                        res = self.command('', timeout=1)
+                    except serial.serialutil.SerialException as e:
+                        self.logger.debug('exception sending test command to %s: %s', udevice.name, e)
+                        continue
+
                     if res[0] != ModemResult.OK:
                         continue
                     self.logger.info('found working port at %s', udevice.name)
