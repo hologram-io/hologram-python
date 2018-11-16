@@ -22,8 +22,11 @@ help_disconnect = '''This subcommand brings down a cellular connection.\n
 def run_network_connect(args):
     cloud = CustomCloud(None, network='cellular')
     cloud.network.disable_at_sockets_mode()
-    cloud.network.connect()
-    print 'PPP session started'
+    res = cloud.network.connect()
+    if res:
+        print 'PPP session started'
+    else:
+        print 'Failed to start PPP'
 
 def run_network_disconnect(args):
     print 'Checking for existing PPP sessions'

@@ -1,6 +1,24 @@
 # What's New in Hologram Python SDK
 
+## v0.8.2
+
+2018-11-16 Hologram <support@hologram.io>
+    * Added new commands to control cellular radio: `hologram modem radio-off`
+        and `hologram modem radio-on`
+    * Added new command to restart the modem: `hologram modem reset`
+    * Deprecated `hologram modem connect` and `hologram modem disconnect` in
+        favor of the network versions of those commands. They'll be removed
+        in a future release
+    * Fix issue with auto periodic message sending taking a long time to stop
+        when killed
+    * Fix issue where `hologram network connect` would print that it worked
+        even when it didn't
+    * Fix issue where a zombie pppd process would hang around in the background
+        after a connection failure and tie up a serial port
+    * General code cleanup around the PPP path
+
 ## v0.8.1
+
 2018-09-12 Hologram <support@hologram.io>
     * Fix issues with PPP (`hologram network connect`) on Nova R410
     * Fix bugs with activating SIM cards via `hologram activate`

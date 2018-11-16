@@ -17,6 +17,7 @@ import time
 import threading
 from subprocess import Popen, PIPE, STDOUT
 from Exceptions.HologramError import PPPError, PPPConnectionError
+import errno
 
 __version__ = '1.0.3'
 DEFAULT_CONNECT_TIMEOUT = 200
@@ -29,20 +30,18 @@ class PPPConnection(object):
     def __init__(self, *args, **kwargs):
         # Logging setup.
         self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(NullHandler())
 
         self._laddr = None
         self._raddr = None
-        self._connectThread = None
-        self._outputRWLock = threading.Condition()
-        self._outputReadyToRead = True
         self.proc = None
 
         self.output = ''
 
         self._commands = []
 
-        if kwargs.pop('sudo', True):
+        # This makes it harder to kill pppd so we're defaulting to it off for now
+        # It's redudant anyway for the CLI
+        if kwargs.pop('sudo', False):
             sudo_path = kwargs.pop('sudo_path', '/usr/bin/sudo')
             if not os.path.isfile(sudo_path) or not os.access(sudo_path, os.X_OK):
                 raise IOError('%s not found' % sudo_path)
@@ -66,6 +65,7 @@ class PPPConnection(object):
     #          Returns true if successful, false otherwise.
     def connect(self, timeout = DEFAULT_CONNECT_TIMEOUT):
 
+        self.logger.info('Starting pppd')
         self.proc = Popen(self._commands, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
 
         # set stdout to non-blocking
@@ -73,66 +73,54 @@ class PPPConnection(object):
         fl = fcntl.fcntl(fd, fcntl.F_GETFL)
         fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        result = [False]
+        result = False
+        try:
+            result = self.waitForPPPSuccess(timeout)
+        except Exception as e:
+            self.logger.error(e)
 
-        self._connectThread = threading.Thread(target = self.connectThreadedFunc,
-                                               args = [result])
-        self._connectThread.daemon = True
-        self._connectThread.start()
-        self._connectThread.join(timeout)
-
-        # If thread is still alive, tear down pppd connection and kill the thread.
-        if self._connectThread.is_alive():
-            self._connectThread.join(1)
+        if not result and self.proc and (self.proc.poll() is None):
+            self.logger.debug('Killing pppd')
             self.proc.send_signal(signal.SIGTERM)
             time.sleep(1)
 
-        return result[0]
+        return result
 
-    # EFFECTS: Establish a cellular connection. Returns true if successful,
-    #          false otherwise.
-    def connectThreadedFunc(self, result):
 
-        while True:
-            try:
-                self.output += self.proc.stdout.read()
-            except IOError as e:
-                if e.errno != 11:
-                    raise
-                time.sleep(1)
+    def readFromPPP(self):
+        try:
+            self.output += self.proc.stdout.read()
+        except IOError as e:
+            if e.errno != errno.EAGAIN:
+                raise
+            time.sleep(1)
 
-            if self.laddr != None and self.raddr != None:
-                result[0] = True
-                return
+
+    def waitForPPPSuccess(self, timeout):
+        starttime = time.time()
+        while (time.time() - starttime) < timeout:
+            self.readFromPPP()
+
+            if self.laddr is not None and self.raddr is not None:
+                return True
 
             if 'Modem hangup' in self.output:
                 raise PPPError('Modem hangup - possibly due to an unregistered SIM')
             elif self.proc.poll():
                 raise PPPConnectionError(self.proc.returncode, self.output)
+        return False
 
     # EFFECTS: Disconnects from the network.
-    #          Returns true if successful, false otherwise.
     def disconnect(self):
+        if self.proc and self.proc.poll() is None:
+            self.proc.send_signal(signal.SIGTERM)
+            time.sleep(1)
 
-        try:
-            if not self.connected():
-                return False
-        except PPPConnectionError:
-            return False
-
-        self.proc.send_signal(signal.SIGTERM)
-        time.sleep(1)
-
-        return True
 
     # EFFECTS: Returns true if a cellular connection is established.
     def connected(self):
         if self.proc and self.proc.poll():
-            try:
-                self.output += self.proc.stdout.read()
-            except IOError as e:
-                if e.errno != 11:
-                    raise
+            self.readFromPPP()
             if self.proc.returncode not in [0, 5]:
                 raise PPPConnectionError(self.proc.returncode, self.output)
             return False
@@ -145,11 +133,7 @@ class PPPConnection(object):
     @property
     def laddr(self):
         if self.proc and not self._laddr:
-            try:
-                self.output += self.proc.stdout.read()
-            except IOError as e:
-                if e.errno != 11:
-                    raise
+            self.readFromPPP()
             result = re.search(r'local  IP address ([\d\.]+)', self.output)
             if result:
                 self._laddr = result.group(1)
@@ -160,33 +144,10 @@ class PPPConnection(object):
     @property
     def raddr(self):
         if self.proc and not self._raddr:
-            try:
-                self.output += self.proc.stdout.read()
-            except IOError as e:
-                if e.errno != 11:
-                    raise
+            self.readFromPPP()
             result = re.search(r'remote IP address ([\d\.]+)', self.output)
             if result:
                 self._raddr = result.group(1)
 
         return self._raddr
 
-    @property
-    def output(self):
-        self._outputRWLock.acquire()
-
-        while not self._outputReadyToRead:
-            self._outputRWLock.wait()
-
-        self._outputReadyToRead = True
-        self._outputRWLock.release()
-        return self._output
-
-    @output.setter
-    def output(self, output):
-        self._outputReadyToRead = False
-        self._outputRWLock.acquire()
-        self._output = output
-        self._outputReadyToRead = True
-        self._outputRWLock.notifyAll()
-        self._outputRWLock.release()

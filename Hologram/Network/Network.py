@@ -33,6 +33,7 @@ class Network(object):
 
     def connect(self):
         self.event.broadcast('network.connected')
+        return True
 
     def disconnect(self):
         self.event.broadcast('network.disconnected')

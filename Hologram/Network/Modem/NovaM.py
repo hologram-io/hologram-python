@@ -85,3 +85,6 @@ class NovaM(Nova):
             raise NetworkError('Failed to connect socket')
         else:
             self.logger.info('Connect socket is successful')
+
+    def reset(self):
+        self.set('+CFUN', '15') # restart the modem

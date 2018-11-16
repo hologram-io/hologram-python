@@ -61,6 +61,12 @@ class IModem(object):
     def disconnect(self):
         raise NotImplementedError('Must instantiate a Modem type')
 
+    def reset(self):
+        raise NotImplementedError('Must instantiate a Modem type')
+
+    def radio_power(self, power_mode):
+        raise NotImplementedError('Must instantiate a Modem type')
+
     def enableSMS(self):
         raise NotImplementedError('Must instantiate a Modem type')
 

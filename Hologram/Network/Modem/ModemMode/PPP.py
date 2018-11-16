@@ -30,7 +30,7 @@ class PPP(IPPP):
         self.route = Route()
         self.all_attached_device_names = all_attached_device_names
         self._ppp = PPPConnection(self.device_name, self.baud_rate, 'noipdefault',
-                                  'usepeerdns', 'defaultroute', 'persist', 'noauth',
+                                  'usepeerdns', 'persist', 'noauth',
                                   connect=self.connect_script)
 
     def isConnected(self):
@@ -44,15 +44,22 @@ class PPP(IPPP):
 
         result = self._ppp.connect(timeout=timeout)
 
-        if result == True and self.route.wait_for_interface(DEFAULT_PPP_INTERFACE,
-                                                            MAX_PPP_INTERFACE_UP_RETRIES):
+        if result == True:
+            if not self.route.wait_for_interface(DEFAULT_PPP_INTERFACE,
+                                   MAX_PPP_INTERFACE_UP_RETRIES):
+                self.logger.error('Unable to find interface %s. Disconnecting',
+                        DEFAULT_PPP_INTERFACE)
+                self._ppp.disconnect()
+                return False
             return True
         else:
             return False
 
+
     def disconnect(self):
+        self._ppp.disconnect()
         self.__shut_down_existing_ppp_session()
-        return self._ppp.disconnect()
+        return True
 
     # EFFECTS: Makes sure that there are no existing PPP instances on the same
     #          device interface.
@@ -79,7 +86,6 @@ class PPP(IPPP):
         self.logger.info('Checking for existing PPP sessions')
 
         for proc in psutil.process_iter():
-
             try:
                 pinfo = proc.as_dict(attrs=['pid', 'name'])
             except:

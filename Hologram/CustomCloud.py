@@ -38,9 +38,12 @@ class CustomCloud(Cloud):
         if enable_inbound and (receive_host == '' or receive_port == 0):
             raise HologramError('Must set receive host and port for inbound connection')
 
-        self._periodic_msg_lock = threading.Lock()
         self._periodic_msg = None
-        self._periodic_msg_enabled = False
+        # We start with the event set, clear it when running and then set when
+        # shutting down. This way, the thread can wait on it and stop immediately
+        # when the script is exiting
+        self._periodic_msg_disabled = threading.Event()
+        self._periodic_msg_disabled.set()
 
         self._receive_buffer_lock = threading.Lock()
         self._receive_cv = threading.Lock()
@@ -158,14 +161,9 @@ class CustomCloud(Cloud):
         try:
             self._enforce_minimum_periodic_interval(interval)
 
-            self._periodic_msg_lock.acquire()
-
-            if self._periodic_msg_enabled == True:
+            if not self._periodic_msg_disabled.is_set():
                 raise HologramError('Cannot have more than 1 periodic message job at once')
-
-            self._periodic_msg_enabled = True
-
-            self._periodic_msg_lock.release()
+            self._periodic_msg_disabled.clear()
 
         except Exception as e:
             self.__enforce_network_disconnected()
@@ -186,35 +184,27 @@ class CustomCloud(Cloud):
     # EFFECTS: This threaded infinite loop shoud keep sending messages with the specified
     #          interval.
     def _periodic_job_thread(self, interval, function, *args):
-        while True:
-            self._periodic_msg_lock.acquire()
-
-            if not self._periodic_msg_enabled:
-                self._periodic_msg_lock.release()
-                break
-
+        while not self._periodic_msg_disabled.is_set():
             self.logger.info('Sending another periodic message...')
             try:
                 response = function(*args)
             except Exception as e:
                 self.logger.info('Message function threw an exception: %s', str(e))
-                self._periodic_msg_lock.release()
                 break
             else:
                 self.logger.info('RESPONSE MESSAGE: %s', self.getResultString(response))
                 if not self.resultWasSuccess(response):
-                    self._periodic_msg_lock.release()
                     break
 
-            self._periodic_msg_lock.release()
-            time.sleep(interval)
+            self._periodic_msg_disabled.wait(interval)
+        self.logger.debug('Periodic job thread stopping')
+        # in case we exited with an exception
+        self._periodic_msg_disabled.set()
 
     def stopPeriodicMessage(self):
         self.logger.info('Stopping periodic job...')
 
-        self._periodic_msg_lock.acquire()
-        self._periodic_msg_enabled = False
-        self._periodic_msg_lock.release()
+        self._periodic_msg_disabled.set()
 
         self._periodic_msg.join()
         self.logger.info('Periodic job stopped')

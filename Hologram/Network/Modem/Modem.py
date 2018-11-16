@@ -147,7 +147,6 @@ class Modem(IModem):
         except Exception:
             self.logger.error('Failed to close serial port')
 
-
     # EFFECTS: backwards compatibility only
     def enableSMS(self):
         self.checkURC()
@@ -234,6 +233,11 @@ class Modem(IModem):
 
     def reset(self):
         self.set('+CFUN', '16') # restart the modem
+
+    def radio_power(self, power_mode):
+        cfun_val = '1' if power_mode else '0'
+        ok, r = self.command('+CFUN', cfun_val, timeout=5)
+        return ok == ModemResult.OK
 
     def send_message(self, data, timeout=DEFAULT_SEND_TIMEOUT):
 
