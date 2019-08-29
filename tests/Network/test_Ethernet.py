@@ -30,5 +30,5 @@ class TestEthernet(object):
 
     def test_get_invalid_signal_strength(self):
         ethernet = Ethernet.Ethernet()
-        with pytest.raises(Exception, message = 'Ethernet mode doesn\'t support this call'):
-            connectionStatus = network.getAvgSignalStrength()
+        with pytest.raises(Exception, match = 'Ethernet mode doesn\'t support this call'):
+            connectionStatus = ethernet.getAvgSignalStrength()

@@ -1,5 +1,13 @@
 # What's New in Hologram Python SDK
 
+## v0.8.3
+
+2019-08-27 Hologram <support@hologram.io>
+    * New command to view IMEI: `hologram modem imei`
+    * New command to get modem module firmware version: `hologram modem version`
+    * Make dependencies a little more flexible to prevent some problems on some systems
+    * Unit tests weren't properly checking some exceptions
+
 ## v0.8.2
 
 2018-11-16 Hologram <support@hologram.io>

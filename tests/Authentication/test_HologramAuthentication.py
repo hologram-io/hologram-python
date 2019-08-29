@@ -24,17 +24,17 @@ class TestHologramAuthentication(object):
 
     def test_invalid_auth_string(self):
         auth = HologramAuthentication(credentials)
-        with pytest.raises(Exception, message = 'Must instantiate a subclass of HologramAuthentication'):
+        with pytest.raises(Exception, match = 'Must instantiate a subclass of HologramAuthentication'):
             auth.buildPayloadString('test msg', 'test topic')
 
     def test_invalid_topic_string(self):
         auth = HologramAuthentication(credentials)
-        with pytest.raises(Exception, message = 'Must instantiate a subclass of HologramAuthentication'):
+        with pytest.raises(Exception, match = 'Must instantiate a subclass of HologramAuthentication'):
             auth.buildTopicString('test topic')
 
     def test_invalid_msg_string(self):
         auth = HologramAuthentication(credentials)
-        with pytest.raises(Exception, message = 'Must instantiate a subclass of HologramAuthentication'):
+        with pytest.raises(Exception, match = 'Must instantiate a subclass of HologramAuthentication'):
             auth.buildMessageString('test msg')
 
     def test_build_modem_type_id_str(self):

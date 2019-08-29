@@ -35,3 +35,6 @@ class Ethernet(Network):
 
     def getSignalStrength(self):
         raise Exception('Ethernet mode doesn\'t support this call')
+
+    def getAvgSignalStrength(self):
+        raise Exception('Ethernet mode doesn\'t support this call')

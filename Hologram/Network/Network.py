@@ -44,6 +44,12 @@ class Network(object):
     def getConnectionStatus(self):
         raise NotImplementedError('Must instantiate a defined Network type')
 
+    def getSignalStrength(self):
+        raise NotImplementedError('Must instantiate a defined Network type')
+
+    def getAvgSignalStrength(self):
+        raise NotImplementedError('Must instantiate a defined Network type')
+
     def is_connected(self):
         return False
 

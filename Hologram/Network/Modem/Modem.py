@@ -869,3 +869,13 @@ class Modem(IModem):
     @property
     def remoteIPAddress(self):
         return self._mode.remoteIPAddress
+
+
+    @property
+    def version(self):
+        raise NotImplementedError('This modem does not support this property')
+
+    @property
+    def imei(self):
+        return self._basic_command('+GSN')
+

@@ -36,19 +36,19 @@ class TestCustomCloud(object):
 
     def test_enable_inbound(self):
 
-        with pytest.raises(Exception, message='Must set receive host and port for inbound connection'):
+        with pytest.raises(Exception, match='Must set receive host and port for inbound connection'):
             customCloud = CustomCloud(None, send_host='receive.com',
                                       send_port=9999, enable_inbound=True)
 
     def test_invalid_send_host_and_port(self):
         customCloud = CustomCloud(None, receive_host='receive.com', receive_port=9999)
 
-        with pytest.raises(Exception, message = 'Send host and port must be set before making this operation'):
+        with pytest.raises(Exception, match = 'Send host and port must be set before making this operation'):
             customCloud.sendMessage("hello")
 
     def test_invalid_send_sms(self):
         customCloud = CustomCloud(None, 'test.com', 9999)
 
         temp = "hello"
-        with pytest.raises(NotImplementedError, message='Cannot send SMS via custom Cloud'):
+        with pytest.raises(NotImplementedError, match='Cannot send SMS via custom cloud'):
             customCloud.sendSMS('+1234567890', temp)

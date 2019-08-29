@@ -25,5 +25,5 @@ class TestPPP(object):
         assert ppp.connect_script == '/usr/sbin/chat -v -f test'
 
     def test_ppp_invalid_chatscript_create(self):
-        with pytest.raises(Exception, message='Must specify chatscript file'):
+        with pytest.raises(Exception, match='Must specify chatscript file'):
             ppp = MockPPP()

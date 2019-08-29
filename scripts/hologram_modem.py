@@ -26,28 +26,27 @@ help_disconnect = '''This subcommand brings down a cellular connection.\n
 help_sim = '''This subcommand prints the IMSI value of the attached SIM.\n
 '''
 
-help_type = '''This subcommand prints the modem name if it is supported and attached to the device.\n
+help_type = '''Prints the modem name if it is supported and attached to the device.\n
 '''
 
-help_operator = '''This subcommand prints the operator name.\n
+help_operator = '''Print the name of the operator the modem is attached to\n
 '''
 
-help_signal = '''This subcommand prints the RSSI signal strength values.\n
+help_imei = '''Print the IMEI of the modem\n
 '''
 
-help_location = '''This subcommand prints the encoded location of the modem.\n
+help_signal = '''Print the RSSI signal strength values.\n'''
+
+help_location = '''Print the location of the modem based on cell towers if supported\n
 '''
 
-help_reset = '''This subcommand causes the modem to restart itself.\n
-'''
+help_reset = '''Restart the modem\n'''
 
-help_radio_off = '''This subcommand causes the modem to turn off the cellular
-radio\n
-'''
+help_radio_off = '''Turn off the cellular radio on the modem\n'''
 
-help_radio_on = '''This subcommand causes the modem to turn on the cellular
-radio\n
-'''
+help_radio_on = '''Turn on the cellular radio\n'''
+
+help_version = '''Print the firmware version of the modem\n'''
 
 def run_modem_connect(args):
     print 'Note: "hologram modem connect" is deprecated '\
@@ -85,6 +84,16 @@ def run_modem_signal(args):
             handle_timeout(args['repeat'])
     else:
         print 'Signal strength: ' + str(cloud.network.signal_strength)
+
+def run_modem_version(args):
+    cloud = CustomCloud(None, network='cellular')
+    version = cloud.network.modem.version
+    print 'Modem version: ' + version
+
+def run_modem_imei(args):
+    cloud = CustomCloud(None, network='cellular')
+    imei = cloud.network.modem.imei
+    print 'IMEI: ' + imei
 
 def run_modem_reset(args):
     cloud = CustomCloud(None, network='cellular')
@@ -138,7 +147,9 @@ _run_handlers = {
     'modem_location': run_modem_location,
     'modem_reset': run_modem_reset,
     'modem_radio_on': run_modem_radio_on,
-    'modem_radio_off': run_modem_radio_off
+    'modem_radio_off': run_modem_radio_off,
+    'modem_version': run_modem_version,
+    'modem_imei': run_modem_imei
 }
 
 # EFFECTS: Parses the CLI arguments as options to the hologram modem subcommand.
@@ -189,15 +200,24 @@ def parse_hologram_modem_args(parser):
     parser_reset.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # radio-on
-    parser_radio_on = subparsers.add_parser('radio-on', help=help_reset)
+    parser_radio_on = subparsers.add_parser('radio-on', help=help_radio_on)
     parser_radio_on.set_defaults(command_selected='modem_radio_on')
     parser_radio_on.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # radio-off
-    parser_radio_off = subparsers.add_parser('radio-off', help=help_reset)
+    parser_radio_off = subparsers.add_parser('radio-off', help=help_radio_off)
     parser_radio_off.set_defaults(command_selected='modem_radio_off')
     parser_radio_off.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
+    # version
+    parser_version = subparsers.add_parser('version', help=help_version)
+    parser_version.set_defaults(command_selected='modem_version')
+    parser_version.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
+
+    # imei
+    parser_imei = subparsers.add_parser('imei', help=help_version)
+    parser_imei.set_defaults(command_selected='modem_imei')
+    parser_imei.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
 # EFFECTS: Runs the hologram modem interfaces.
 def run_hologram_modem(args):
