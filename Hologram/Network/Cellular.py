@@ -11,13 +11,13 @@
 from ..Event import Event
 from Exceptions.HologramError import NetworkError
 from Hologram.Network.Route import Route
-from Modem import Modem
-from Modem import E303
-from Modem import MS2131
-from Modem import Nova_U201
-from Modem import NovaM
-from Modem import DriverLoader
-from Network import Network, NetworkScope
+from .Modem import Modem
+from .Modem import E303
+from .Modem import MS2131
+from .Modem import Nova_U201
+from .Modem import NovaM
+from .Modem import DriverLoader
+from .Network import Network, NetworkScope
 import time
 from serial.tools import list_ports
 
@@ -180,7 +180,7 @@ class Cellular(Network):
 
     def _load_modem_drivers(self):
         dl = DriverLoader.DriverLoader()
-        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+        for (modemName, modemHandler) in self._modemHandlers.items():
             module = modemHandler.module
             if module:
                 if not dl.is_module_loaded(module):
@@ -196,7 +196,7 @@ class Cellular(Network):
 
     def _scan_for_modems(self):
         res = None
-        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+        for (modemName, modemHandler) in self._modemHandlers.items():
             if self._scan_for_modem(modemHandler):
                 res = (modemName, modemHandler)
                 break

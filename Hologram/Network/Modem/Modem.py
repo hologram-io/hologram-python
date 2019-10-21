@@ -8,8 +8,8 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 
-from IModem import IModem
-from ModemMode import *
+from .IModem import IModem
+from .ModemMode import *
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
@@ -45,17 +45,17 @@ class Modem(IModem):
     SOCKET_SEND_READ = 3
     SOCKET_CLOSED = 4
 
-    GSM = u"@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+    GSM = "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
     EXT = {
-        0x40: u'|',
-        0x14: u'^',
-        0x65: u'€',
-        0x28: u'{',
-        0x29: u'}',
-        0x3C: u'[',
-        0x3D: u'~',
-        0x3E: u']',
-        0x2F: u'\\',
+        0x40: '|',
+        0x14: '^',
+        0x65: '€',
+        0x28: '{',
+        0x29: '}',
+        0x3C: '[',
+        0x3D: '~',
+        0x3E: ']',
+        0x2F: '\\',
     }
 
     def __init__(self, device_name=None, baud_rate='9600',
@@ -604,7 +604,7 @@ class Modem(IModem):
         last = 0
         current = 0
         i = 0
-        msg = u''
+        msg = ''
         for count in range(msg_len):
             offset = count % 8
             last = current
@@ -618,14 +618,14 @@ class Modem(IModem):
     def _gsm7tochr(self, c):
         if self.in_ext:
             self.in_ext = False
-            if c in Modem.EXT.keys():
+            if c in list(Modem.EXT.keys()):
                 return Modem.EXT[c]
         elif c == 0x1B:
             self.in_ext = True
-            return u''
+            return ''
         elif c < len(Modem.GSM):
             return Modem.GSM[c]
-        return u' '
+        return ' '
 
     def is_connected(self):
         return self.is_registered()

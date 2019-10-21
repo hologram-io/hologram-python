@@ -12,7 +12,7 @@ import socket
 import sys
 import threading
 import time
-from Cloud import Cloud
+from .Cloud import Cloud
 from Exceptions.HologramError import HologramError
 
 MAX_RECEIVE_BYTES = 1024

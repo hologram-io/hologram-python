@@ -9,10 +9,10 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Wifi import Wifi
-from Ethernet import Ethernet
-from BLE import BLE
-from Cellular import Cellular
+from .Wifi import Wifi
+from .Ethernet import Ethernet
+from .BLE import BLE
+from .Cellular import Cellular
 from Exceptions.HologramError import NetworkError
 import logging
 from logging import NullHandler
@@ -47,7 +47,7 @@ class NetworkManager(object):
         self.networkActive = True
 
     def listAvailableInterfaces(self):
-        return self._networkHandlers.keys()
+        return list(self._networkHandlers.keys())
 
     @property
     def network(self):

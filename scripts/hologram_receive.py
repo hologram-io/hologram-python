@@ -9,8 +9,8 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 from Hologram.HologramCloud import HologramCloud
-from hologram_util import handle_polling
-from hologram_util import VAction
+from .hologram_util import handle_polling
+from .hologram_util import VAction
 import sys
 
 help_data = '''This subcommand allows you to listen on a given host and port for incoming cloud messages.\n
@@ -24,12 +24,12 @@ hologram = None
 def popReceivedMessage():
     recv = hologram.popReceivedMessage()
     if recv is not None:
-        print 'Received message: ' + str(recv)
+        print('Received message: ' + str(recv))
 
 def popReceivedSMS():
     recv = hologram.popReceivedSMS()
     if recv is not None:
-        print 'Received SMS:', recv
+        print('Received SMS:', recv)
 
 
 def parse_common_receive_args(parser):
@@ -76,17 +76,17 @@ def run_hologram_receive_data(args):
     try:
         hologram.openReceiveSocket()
     except Exception as e:
-        print("Failed to open socket to listen for data: %s"%str(e))
+        print(("Failed to open socket to listen for data: %s"%str(e)))
         return
 
-    print ('Ready to receive data on port %s' % hologram.receive_port)
+    print(('Ready to receive data on port %s' % hologram.receive_port))
 
     try:
         handle_polling(args['timeout'], popReceivedMessage, 1)
     except KeyboardInterrupt as e:
         pass
 
-    print 'Closing socket...'
+    print('Closing socket...')
     hologram.closeReceiveSocket()
 
     if not hologram.network.at_sockets_available:

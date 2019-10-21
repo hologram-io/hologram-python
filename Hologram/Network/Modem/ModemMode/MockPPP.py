@@ -7,7 +7,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from IPPP import IPPP
+from .IPPP import IPPP
 
 class MockPPP(IPPP):
 

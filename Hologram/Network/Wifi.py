@@ -1,4 +1,4 @@
-from Network import Network
+from .Network import Network
 from ..Event import Event
 from pythonwifi.iwlibs import Wireless
 from pythonwifi.iwlibs import WirelessInfo

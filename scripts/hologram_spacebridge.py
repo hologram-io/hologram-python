@@ -12,7 +12,7 @@
 
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Network import NetworkScope
-from hologram_util import handle_polling
+from .hologram_util import handle_polling
 from scripts.hologram_receive import parse_common_receive_args
 import sys
 
@@ -23,7 +23,7 @@ hologram = None
 def popReceivedMessage():
     recv = hologram.popReceivedMessage()
     if recv is not None:
-        print('Received message: ' + str(recv))
+        print(('Received message: ' + str(recv)))
 
 
 def parse_hologram_spacebridge_args(parser):
@@ -42,7 +42,7 @@ def run_hologram_spacebridge(args):
     hologram.network.connect()
 
     hologram.openReceiveSocket()
-    print ('Ready to receive data on port %s' % hologram.receive_port)
+    print(('Ready to receive data on port %s' % hologram.receive_port))
 
     try:
         handle_polling(args['timeout'], popReceivedMessage, 1)

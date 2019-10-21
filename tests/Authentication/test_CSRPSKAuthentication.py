@@ -19,7 +19,7 @@ class TestCSRPSKAuthentication(object):
 
     def test_create(self):
         credentials = {'devicekey': '12345678'}
-        auth = CSRPSKAuthentication(credentials)
+        CSRPSKAuthentication(credentials)
 
     def test_build_payload_string_without_topics(self):
         credentials = {'devicekey': '12345678'}

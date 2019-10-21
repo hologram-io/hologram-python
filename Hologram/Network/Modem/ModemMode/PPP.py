@@ -8,8 +8,8 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import psutil
-from pppd import PPPConnection
-from IPPP import IPPP
+from .pppd import PPPConnection
+from .IPPP import IPPP
 from Hologram.Network.Route import Route
 from Exceptions.HologramError import PPPError
 

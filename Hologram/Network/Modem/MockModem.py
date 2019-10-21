@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from IModem import IModem
+from .IModem import IModem
 
 E303_DEVICE_NAME = '/dev/ttyUSB0'
 DEFAULT_E303_TIMEOUT = 200

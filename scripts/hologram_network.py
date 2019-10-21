@@ -10,7 +10,7 @@
 
 from Hologram.CustomCloud import CustomCloud
 from Exceptions.HologramError import HologramError
-from hologram_util import VAction
+from .hologram_util import VAction
 import psutil
 
 help_connect = '''This subcommand establishes a cellular connection.\n
@@ -24,12 +24,12 @@ def run_network_connect(args):
     cloud.network.disable_at_sockets_mode()
     res = cloud.network.connect()
     if res:
-        print 'PPP session started'
+        print('PPP session started')
     else:
-        print 'Failed to start PPP'
+        print('Failed to start PPP')
 
 def run_network_disconnect(args):
-    print 'Checking for existing PPP sessions'
+    print('Checking for existing PPP sessions')
     for proc in psutil.process_iter():
 
         try:
@@ -38,8 +38,8 @@ def run_network_disconnect(args):
             raise HologramError('Failed to check for existing PPP sessions')
 
         if 'pppd' in pinfo['name']:
-            print 'Found existing PPP session on pid: %s' % pinfo['pid']
-            print 'Killing pid %s now' % pinfo['pid']
+            print('Found existing PPP session on pid: %s' % pinfo['pid'])
+            print('Killing pid %s now' % pinfo['pid'])
             psutil.Process(pinfo['pid']).terminate()
 
 _run_handlers = {

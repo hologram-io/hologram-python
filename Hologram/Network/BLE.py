@@ -1,5 +1,5 @@
 from ..Event import Event
-from Network import Network
+from .Network import Network
 
 class BLE(Network):
 

@@ -13,7 +13,7 @@
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
 from Exceptions.HologramError import HologramError
-from hologram_util import VAction
+from .hologram_util import VAction
 
 import argparse
 import time
@@ -99,7 +99,7 @@ def sendPSK(args, data, is_sms=False):
                                   send_host=args['host'],
                                   send_port=args['port'])
         recv = customCloud.sendMessage(args['message'], timeout=args['timeout'])
-        print 'RESPONSE FROM CLOUD: ' + str(recv)
+        print('RESPONSE FROM CLOUD: ' + str(recv))
     else:
         # host and port are default so use Hologram
         hologram = HologramCloud(credentials, authentication_type='csrpsk', network='cellular')
@@ -122,7 +122,7 @@ def send_message_helper(cloud, args, is_sms=False):
         else:
             recv = cloud.sendMessage(args['message'], topics=args['topic'],
                                      timeout=args['timeout'])
-        print 'RESPONSE MESSAGE: ' + cloud.getResultString(recv)
+        print('RESPONSE MESSAGE: ' + cloud.getResultString(recv))
     else:
         cloud.sendPeriodicMessage(args['repeat'],
                                   args['message'],

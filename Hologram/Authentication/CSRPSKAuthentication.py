@@ -10,7 +10,7 @@
 #
 import json
 from Exceptions.HologramError import AuthenticationError
-from HologramAuthentication import HologramAuthentication
+from .HologramAuthentication import HologramAuthentication
 
 DEVICE_KEY_LEN = 8
 
@@ -48,7 +48,7 @@ class CSRPSKAuthentication(HologramAuthentication):
 
     def buildMetadataString(self, modem_type, modem_id, version):
 
-        self._data['m'] = self.metadata_version \
+        self._data['m'] = self.metadata_version.decode() \
                           + self.build_modem_type_id_str(modem_type, modem_id) \
                           + '-' + str(version)
 

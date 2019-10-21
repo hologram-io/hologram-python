@@ -11,8 +11,8 @@
 import binascii
 import json
 import sys
-from CustomCloud import CustomCloud
-from Authentication import *
+from .CustomCloud import CustomCloud
+from .Authentication import *
 from Exceptions.HologramError import HologramError
 
 from HologramAuth.TOTPAuthentication import TOTPAuthentication

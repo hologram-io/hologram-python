@@ -47,5 +47,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
     ],
+    dependency_links = [
+        'https://github.com/llazzaro/python3-wifi/tarball/master#egg=python3-wifi',
+    ],
     **kw
 )

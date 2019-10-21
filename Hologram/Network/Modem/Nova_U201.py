@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Nova import Nova
+from .Nova import Nova
 from Exceptions.HologramError import SerialError
 from Hologram.Event import Event
 from UtilClasses import Location

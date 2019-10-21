@@ -77,7 +77,7 @@ def test_get_location(no_serial_port):
     modem = Modem()
     with pytest.raises(NotImplementedError) as e:
         assert(modem.location == 'test location')
-    assert('This modem does not support this property' in e.value)
+    assert('This modem does not support this property' in str(e))
 
 
 # DEBUGWRITE

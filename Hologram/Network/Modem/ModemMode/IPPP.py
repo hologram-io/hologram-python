@@ -7,7 +7,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from ModemMode import ModemMode
+from .ModemMode import ModemMode
 
 class IPPP(ModemMode):
 

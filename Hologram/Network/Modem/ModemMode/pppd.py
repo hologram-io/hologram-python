@@ -53,7 +53,7 @@ class PPPConnection(object):
 
         self._commands.append(pppd_path)
 
-        for k,v in kwargs.items():
+        for k,v in list(kwargs.items()):
             self._commands.append(k)
             self._commands.append(v)
         self._commands.extend(args)

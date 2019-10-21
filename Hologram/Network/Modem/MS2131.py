@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Modem import Modem
+from .Modem import Modem
 from ...Event import Event
 
 DEFAULT_MS2131_TIMEOUT = 200

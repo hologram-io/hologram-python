@@ -7,7 +7,7 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from Authentication import Authentication
+from .Authentication import Authentication
 
 class HologramAuthentication(Authentication):
 

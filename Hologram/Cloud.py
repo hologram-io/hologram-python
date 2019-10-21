@@ -9,9 +9,9 @@
 
 import logging
 from logging import NullHandler
-import Event
-from Network import NetworkManager
-from Authentication import *
+from .Event import Event
+from .Network import NetworkManager
+from .Authentication import *
 
 __version__ = '0.8.3'
 
@@ -43,7 +43,7 @@ class Cloud(object):
 
     def initializeNetwork(self, network):
 
-        self.event = Event.Event()
+        self.event = Event()
         self.__message_buffer = []
 
         # Network Configuration

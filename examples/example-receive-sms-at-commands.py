@@ -21,12 +21,12 @@ from Hologram.HologramCloud import HologramCloud
 def popReceivedMessage():
     recv = hologram.popReceivedMessage()
     if recv is not None:
-        print 'Received message: ' + str(recv)
+        print('Received message: ' + str(recv))
 
 def handle_polling(timeout, fx, delay_interval=0):
     try:
         if timeout != -1:
-            print 'waiting for ' + str(timeout) + ' seconds...'
+            print('waiting for ' + str(timeout) + ' seconds...')
             end = time.time() + timeout
             while time.time() < end:
                 fx()
@@ -39,15 +39,15 @@ def handle_polling(timeout, fx, delay_interval=0):
         sys.exit(e)
 
 if __name__ == "__main__":
-    print ""
-    print ""
-    print "Testing Hologram Cloud class..."
-    print ""
-    print "* Note: You can obtain device keys from the Devices page"
-    print "* at https://dashboard.hologram.io"
-    print ""
+    print("")
+    print("")
+    print("Testing Hologram Cloud class...")
+    print("")
+    print("* Note: You can obtain device keys from the Devices page")
+    print("* at https://dashboard.hologram.io")
+    print("")
 
-    device_key = raw_input("What is your device key? ")
+    device_key = input("What is your device key? ")
 
     credentials = {'devicekey': device_key}
 

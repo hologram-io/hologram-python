@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Modem import Modem
+from .Modem import Modem
 from Hologram.Event import Event
 
 DEFAULT_NOVA_TIMEOUT = 200
