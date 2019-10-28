@@ -14,11 +14,11 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Network import NetworkManager
 
-class TestNetworkManager(object):
+class TestNetworkManager():
 
     def test_create_non_network(self):
         networkManager = NetworkManager.NetworkManager(None, '')
-        assert networkManager.networkActive == True
+        assert networkManager.networkActive
         assert repr(networkManager) == 'Network Agnostic Mode'
 
     def test_invalid_create(self):
@@ -32,7 +32,7 @@ class TestNetworkManager(object):
     def test_network_connected(self):
         networkManager = NetworkManager.NetworkManager(None, '')
         networkManager.networkConnected()
-        assert networkManager.networkActive == True
+        assert networkManager.networkActive
 
     def test_network_disconnected(self):
         networkManager = NetworkManager.NetworkManager(None, '')

@@ -87,7 +87,9 @@ def parse_operations():
                                      formatter_class=RawTextHelpFormatter)
 
     subparsers = parser.add_subparsers(title='subcommands',
-                                       description='valid subcommands')
+                                       description='valid subcommands',
+                                       dest='subcommand',
+                                       required=True)
 
     # parse hologram send subcommands
     parser_send = subparsers.add_parser('send', help=help_send,
@@ -138,7 +140,7 @@ def parse_version(parser):
 
 def run_version(args):
     cloud = CustomCloud(None)
-    print cloud.version
+    print(cloud.version)
     sys.exit(0)
 
 # EFFECTS: Sets the log level for all SDK interfaces

@@ -13,7 +13,7 @@
 import subprocess
 
 
-class DriverLoader(object):
+class DriverLoader():
     # I would much rather use python-kmod for all this
     # but it doesn't seem to build properly on the Pi and
     # hasn't been updated in years. It's possible we need to update

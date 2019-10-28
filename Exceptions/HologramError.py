@@ -54,7 +54,7 @@ class PPPConnectionError(PPPError):
         self.message = self._PPPD_RETURNCODES.get(code, 'Undocumented error occured')
         self.output = output
 
-        super(PPPConnectionError, self).__init__(code, output)
+        super().__init__(code, output)
 
 class SerialError(HologramError):
     pass

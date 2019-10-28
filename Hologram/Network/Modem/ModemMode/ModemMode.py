@@ -11,7 +11,7 @@ import logging
 from logging import NullHandler
 from Hologram.Event import Event
 
-class ModemMode(object):
+class ModemMode():
 
     def __repr__(self):
         return type(self).__name__

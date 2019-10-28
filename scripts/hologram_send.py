@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hologram_send.py - Hologram Python SDK command line interface (CLI) for sending messages to the cloud
 #
@@ -13,7 +13,7 @@
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
 from Exceptions.HologramError import HologramError
-from hologram_util import VAction
+from .hologram_util import VAction
 
 import argparse
 import time
@@ -99,7 +99,7 @@ def sendPSK(args, data, is_sms=False):
                                   send_host=args['host'],
                                   send_port=args['port'])
         recv = customCloud.sendMessage(args['message'], timeout=args['timeout'])
-        print 'RESPONSE FROM CLOUD: ' + str(recv)
+        print(f'RESPONSE FROM CLOUD: {recv}')
     else:
         # host and port are default so use Hologram
         hologram = HologramCloud(credentials, authentication_type='csrpsk', network='cellular')
@@ -111,18 +111,18 @@ def send_message_helper(cloud, args, is_sms=False):
     if cloud.network is not None and not cloud.network.at_sockets_available:
         cloud.network.connect()
 
-    if is_sms == True:
+    if is_sms:
         args['repeat'] = 0
 
     recv = None
     if args['repeat'] == 0:
-        if is_sms == True:
+        if is_sms:
             # Send SMS to destination number
             recv = cloud.sendSMS(args['destination'], args['message'])
         else:
             recv = cloud.sendMessage(args['message'], topics=args['topic'],
                                      timeout=args['timeout'])
-        print 'RESPONSE MESSAGE: ' + cloud.getResultString(recv)
+        print(f'RESPONSE MESSAGE: {cloud.getResultString(recv)}')
     else:
         cloud.sendPeriodicMessage(args['repeat'],
                                   args['message'],

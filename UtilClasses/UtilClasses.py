@@ -11,7 +11,7 @@
 
 import threading
 
-class Location(object):
+class Location():
 
     def __init__(self, date=None, time=None, latitude=None, longitude=None,
                 altitude=None, uncertainty=None):
@@ -25,7 +25,7 @@ class Location(object):
     def __repr__(self):
         return type(self).__name__
 
-class SMS(object):
+class SMS():
 
     def __init__(self, sender, timestamp, message):
         self.sender = sender
@@ -48,7 +48,7 @@ class ModemResult:
     Timeout = 'Timeout'
     OK = 'OK'
 
-class RWLock(object):
+class RWLock():
 
     def __init__(self):
         self.mutex = threading.Condition()

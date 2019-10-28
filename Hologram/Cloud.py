@@ -9,13 +9,13 @@
 
 import logging
 from logging import NullHandler
-import Event
-from Network import NetworkManager
-from Authentication import *
+from Hologram.Event import Event
+from Hologram.Network import NetworkManager
+from Hologram.Authentication import *
 
-__version__ = '0.8.3'
+__version__ = '0.9.0'
 
-class Cloud(object):
+class Cloud():
 
     def __repr__(self):
         return type(self).__name__
@@ -43,7 +43,7 @@ class Cloud(object):
 
     def initializeNetwork(self, network):
 
-        self.event = Event.Event()
+        self.event = Event()
         self.__message_buffer = []
 
         # Network Configuration

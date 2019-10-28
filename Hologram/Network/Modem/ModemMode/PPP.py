@@ -8,8 +8,8 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import psutil
-from pppd import PPPConnection
-from IPPP import IPPP
+from Hologram.Network.Modem.ModemMode.pppd import PPPConnection
+from Hologram.Network.Modem.ModemMode.IPPP import IPPP
 from Hologram.Network.Route import Route
 from Exceptions.HologramError import PPPError
 
@@ -24,8 +24,8 @@ class PPP(IPPP):
     def __init__(self, device_name='/dev/ttyUSB0', all_attached_device_names=[],
                  baud_rate='9600', chatscript_file=None):
 
-        super(PPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
-                                  chatscript_file=chatscript_file)
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
+                         chatscript_file=chatscript_file)
 
         self.route = Route()
         self.all_attached_device_names = all_attached_device_names
@@ -44,7 +44,7 @@ class PPP(IPPP):
 
         result = self._ppp.connect(timeout=timeout)
 
-        if result == True:
+        if result :
             if not self.route.wait_for_interface(DEFAULT_PPP_INTERFACE,
                                    MAX_PPP_INTERFACE_UP_RETRIES):
                 self.logger.error('Unable to find interface %s. Disconnecting',
@@ -69,7 +69,7 @@ class PPP(IPPP):
 
         if len(pid_list) > 0:
             raise PPPError('Existing PPP session(s) are established by pid(s) %s. Please close/kill these processes first'
-                             % pid_list)
+                           % pid_list)
 
     def __shut_down_existing_ppp_session(self):
         pid_list = self.__check_for_existing_ppp_sessions()

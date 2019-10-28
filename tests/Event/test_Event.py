@@ -14,7 +14,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Event import Event
 
-class TestEvent(object):
+class TestEvent():
 
     def test_create(self):
         event = Event()

@@ -6,15 +6,15 @@
 #
 # Api.py - This file contains the Hologram REST API class implementation.
 
-from Exceptions.HologramError import ApiError
-
 import logging
 from logging import NullHandler
+
+from Exceptions.HologramError import ApiError
 import requests
 
 HOLOGRAM_REST_API_BASEURL = 'https://dashboard.hologram.io/api/1'
 
-class Api(object):
+class Api():
 
     def __init__(self, apikey='', username='', password=''):
         # Logging setup.
@@ -38,15 +38,16 @@ class Api(object):
         args = self.__populate_auth_payload()
         args['data'] = {'plan': plan, 'tier': zone}
 
-        if preview == True:
+        if preview:
             args['params']['preview'] = 1
 
         response = requests.post(endpoint, **args)
+        #pylint: disable=no-member
         if response.status_code != requests.codes.ok:
             return (False, response.text)
 
         response = response.json()
-        if response['success'] == False:
+        if not response['success']:
             return (response['success'], response['data'][str(sim)])
         return (response['success'], response['order_data'])
 
@@ -57,6 +58,7 @@ class Api(object):
         args = self.__populate_auth_payload()
 
         response = requests.get(endpoint, **args)
+        #pylint: disable=no-member
         if response.status_code != requests.codes.ok:
             response.raise_for_status()
 
@@ -71,6 +73,7 @@ class Api(object):
         args['params']['sim'] = str(sim)
 
         response = requests.get(endpoint, **args)
+        #pylint: disable=no-member
         if response.status_code != requests.codes.ok:
             response.raise_for_status()
 

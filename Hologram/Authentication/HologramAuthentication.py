@@ -7,12 +7,9 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from Authentication import Authentication
+from Hologram.Authentication.Authentication import Authentication
 
 class HologramAuthentication(Authentication):
-
-    def __init__(self, credentials):
-        super(HologramAuthentication, self).__init__(credentials)
 
     def buildPayloadString(self, messages, topics=None, modem_type=None,
                            modem_id=None, version=None):
@@ -48,10 +45,10 @@ class HologramAuthentication(Authentication):
         if modem_type is None:
             return 'agnostic'
 
-        payload = str(modem_type.lower())
+        payload = modem_type.lower()
 
         if modem_type == 'Nova':
-            payload += ('-' + str(modem_id))
+            payload += ('-' + modem_id)
         return payload
 
     @property

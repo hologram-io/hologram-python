@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Author: Hologram <support@hologram.io>
 #
 # Copyright 2016 - Hologram (Konekt, Inc.)
@@ -45,7 +45,7 @@ setup(
         'Topic :: Internet',
         'Topic :: Security :: Cryptography',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.7',
     ],
     **kw
 )

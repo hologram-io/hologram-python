@@ -8,16 +8,11 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from ..Event import Event
+from Hologram.Event import Event
 from Exceptions.HologramError import NetworkError
 from Hologram.Network.Route import Route
-from Modem import Modem
-from Modem import E303
-from Modem import MS2131
-from Modem import Nova_U201
-from Modem import NovaM
-from Modem import DriverLoader
-from Network import Network, NetworkScope
+from Hologram.Network.Modem import Modem, E303, MS2131, Nova_U201, NovaM, DriverLoader
+from Hologram.Network import Network, NetworkScope
 import time
 from serial.tools import list_ports
 
@@ -41,7 +36,7 @@ class Cellular(Network):
     }
 
     def __init__(self, event=Event()):
-        super(Cellular, self).__init__(event=event)
+        super().__init__(event=event)
         self._connection_status = CLOUD_DISCONNECTED
         self._modem = None
         self._route = Route()
@@ -82,7 +77,7 @@ class Cellular(Network):
             self.__configure_routing()
             self._connection_status = CLOUD_CONNECTED
             self.event.broadcast('cellular.connected')
-            super(Cellular, self).connect()
+            super().connect()
         else:
             self.logger.info('Failed to connect to cell network')
 
@@ -95,7 +90,7 @@ class Cellular(Network):
             self.logger.info('Successfully disconnected from cell network')
             self._connection_status = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
-            super(Cellular, self).connect()
+            super().connect()
         else:
             self.logger.info('Failed to disconnect from cell network')
 
@@ -180,7 +175,7 @@ class Cellular(Network):
 
     def _load_modem_drivers(self):
         dl = DriverLoader.DriverLoader()
-        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+        for (modemName, modemHandler) in self._modemHandlers.items():
             module = modemHandler.module
             if module:
                 if not dl.is_module_loaded(module):
@@ -196,7 +191,7 @@ class Cellular(Network):
 
     def _scan_for_modems(self):
         res = None
-        for (modemName, modemHandler) in self._modemHandlers.iteritems():
+        for (modemName, modemHandler) in self._modemHandlers.items():
             if self._scan_for_modem(modemHandler):
                 res = (modemName, modemHandler)
                 break

@@ -17,7 +17,7 @@ def handle_timeout(timeout):
 
     try:
         if timeout != -1:
-            print 'waiting for ' + str(timeout) + ' seconds...'
+            print(f'waiting for {str(timeout)} seconds...')
             time.sleep(timeout)
         else:
             while True:
@@ -27,7 +27,7 @@ def handle_timeout(timeout):
 
 def handle_polling(timeout, fx, delay_interval=DEFAULT_DELAY_INTERVAL):
     if timeout != -1:
-        print 'waiting for ' + str(timeout) + ' seconds...'
+        print(f'waiting for {str(timeout)} seconds...')
         end = time.time() + timeout
         while time.time() < end:
             fx()

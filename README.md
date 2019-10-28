@@ -17,7 +17,7 @@ in the spirit of bringing connectivity to your devices.
 
 ### Requirements:
 
-You will need `ppp` and Python 2.7 installed on your system for the SDK to work.
+You will need `ppp` and Python 3.7 installed on your system for the SDK to work.
 
 We wrote scripts to ease the installation process.
 

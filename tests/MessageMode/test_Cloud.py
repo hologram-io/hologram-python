@@ -14,7 +14,7 @@ sys.path.append("../..")
 from Hologram.Authentication import *
 from Hologram.Cloud import Cloud
 
-class TestCloud(object):
+class TestCloud():
 
     def test_create_send(self):
         cloud = Cloud(None, send_host = '127.0.0.1', send_port = 9999)
@@ -48,4 +48,4 @@ class TestCloud(object):
     def test_sdk_version(self):
         cloud = Cloud(None, send_host = '127.0.0.1', send_port = 9999)
 
-        assert cloud.version == '0.8.3'
+        assert cloud.version == '0.9.0'

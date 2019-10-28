@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Nova import Nova
+from Hologram.Network.Modem.Nova import Nova
 from Hologram.Event import Event
 from Exceptions.HologramError import NetworkError
 from UtilClasses import ModemResult
@@ -23,7 +23,7 @@ class NovaM(Nova):
 
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
-        super(NovaM, self).__init__(device_name=device_name, baud_rate=baud_rate,
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
                                          chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
         modem_id = self.modem_id

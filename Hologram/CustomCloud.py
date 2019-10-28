@@ -12,7 +12,7 @@ import socket
 import sys
 import threading
 import time
-from Cloud import Cloud
+from Hologram.Cloud import Cloud
 from Exceptions.HologramError import HologramError
 
 MAX_RECEIVE_BYTES = 1024
@@ -27,12 +27,12 @@ class CustomCloud(Cloud):
                  receive_host='', receive_port=0, enable_inbound=False,
                  network=''):
 
-        super(CustomCloud, self).__init__(credentials,
-                                          send_host=send_host,
-                                          send_port=send_port,
-                                          receive_host=receive_host,
-                                          receive_port=receive_port,
-                                          network=network)
+        super().__init__(credentials,
+                         send_host=send_host,
+                         send_port=send_port,
+                         receive_host=receive_host,
+                         receive_port=receive_port,
+                         network=network)
 
         # Enforce that the send and receive configs are set before using the class.
         if enable_inbound and (receive_host == '' or receive_port == 0):
@@ -54,7 +54,7 @@ class CustomCloud(Cloud):
         self.socketClose = True
         self._is_send_socket_open = False
 
-        if enable_inbound == True:
+        if enable_inbound:
             self.initializeReceiveSocket()
 
     def is_ready_to_send(self):
@@ -87,7 +87,7 @@ class CustomCloud(Cloud):
 
             self.event.broadcast('message.sent')
             return resultbuf
-        except (IOError):
+        except IOError:
             self.__enforce_network_disconnected()
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
@@ -135,13 +135,13 @@ class CustomCloud(Cloud):
 
             self._is_send_socket_open = False
             self.logger.info('Socket closed.')
-        except (IOError):
+        except IOError:
             self.logger.error('An error occurred while attempting to send the message to the cloud')
             self.logger.error('Please try again.')
 
     # EFFECTS: Receives data from inbound socket.
     def receive_send_socket(self, max_receive_bytes=MAX_RECEIVE_BYTES):
-        resultbuf = ''
+        resultbuf = b''
         while max_receive_bytes > 0:
             try:
                 result = self.sock.recv(max_receive_bytes)
@@ -310,8 +310,8 @@ class CustomCloud(Cloud):
                 (clientsocket, address) = self._receive_socket.accept()
                 self.logger.info('Connected to %s', address)
                 # Spin a new thread to handle the current incoming operation.
-                threading.Thread(target = self.__incoming_connection_thread,
-                                 args = [clientsocket]).start()
+                threading.Thread(target=self.__incoming_connection_thread,
+                                 args=[clientsocket]).start()
             except:
                 pass
 
@@ -385,7 +385,7 @@ class CustomCloud(Cloud):
             self.network.disconnect()
 
     def getResultString(self, result_code):
-        return str(response)
+        return str(result_code)
 
     def resultWasSuccess(self, result_code):
         return True

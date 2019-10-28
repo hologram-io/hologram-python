@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hologram_modem.py - Hologram Python SDK command line interface (CLI) for modem interfaces.
 #
@@ -10,8 +10,8 @@
 
 from Hologram.CustomCloud import CustomCloud
 from Exceptions.HologramError import HologramError
-from hologram_util import handle_timeout
-from hologram_util import VAction
+from .hologram_util import handle_timeout
+from .hologram_util import VAction
 import json
 import psutil
 import subprocess
@@ -49,20 +49,20 @@ help_radio_on = '''Turn on the cellular radio\n'''
 help_version = '''Print the firmware version of the modem\n'''
 
 def run_modem_connect(args):
-    print 'Note: "hologram modem connect" is deprecated '\
-            'in favor of "hologram network connect"'
+    print('Note: "hologram modem connect" is deprecated '\
+            'in favor of "hologram network connect"')
     cloud = CustomCloud(None, network='cellular')
     cloud.network.disable_at_sockets_mode()
     res = cloud.network.connect()
     if res:
-        print 'PPP session started'
+        print('PPP session started')
     else:
-        print 'Failed to start PPP'
+        print('Failed to start PPP')
 
 def run_modem_disconnect(args):
-    print 'Note: "hologram modem disconnect" is deprecated '\
-            'in favor of "hologram network disconnect"'
-    print 'Checking for existing PPP sessions'
+    print('Note: "hologram modem disconnect" is deprecated '\
+            'in favor of "hologram network disconnect"')
+    print('Checking for existing PPP sessions')
     for proc in psutil.process_iter():
 
         try:
@@ -71,8 +71,8 @@ def run_modem_disconnect(args):
             raise HologramError('Failed to check for existing PPP sessions')
 
         if 'pppd' in pinfo['name']:
-            print 'Found existing PPP session on pid: %s' % pinfo['pid']
-            print 'Killing pid %s now' % pinfo['pid']
+            print('Found existing PPP session on pid: %s' % pinfo['pid'])
+            print('Killing pid %s now' % pinfo['pid'])
             psutil.Process(pinfo['pid']).terminate()
 
 def run_modem_signal(args):
@@ -80,62 +80,62 @@ def run_modem_signal(args):
 
     if args['repeat'] != 0:
         while True:
-            print 'Signal strength: ' + cloud.network.signal_strength
+            print('Signal strength: ' + cloud.network.signal_strength)
             handle_timeout(args['repeat'])
     else:
-        print 'Signal strength: ' + str(cloud.network.signal_strength)
+        print('Signal strength: ' + str(cloud.network.signal_strength))
 
 def run_modem_version(args):
     cloud = CustomCloud(None, network='cellular')
     version = cloud.network.modem.version
-    print 'Modem version: ' + version
+    print('Modem version: ' + version)
 
 def run_modem_imei(args):
     cloud = CustomCloud(None, network='cellular')
     imei = cloud.network.modem.imei
-    print 'IMEI: ' + imei
+    print('IMEI: ' + imei)
 
 def run_modem_reset(args):
     cloud = CustomCloud(None, network='cellular')
     cloud.network.modem.reset()
-    print 'Restarted modem'
+    print('Restarted modem')
 
 def run_modem_radio_off(args):
     cloud = CustomCloud(None, network='cellular')
     res = cloud.network.modem.radio_power(False)
     if res:
-        print 'Modem radio disabled'
+        print('Modem radio disabled')
     else:
-        print 'Failure to disable radio'
+        print('Failure to disable radio')
 
 def run_modem_radio_on(args):
     cloud = CustomCloud(None, network='cellular')
     res = cloud.network.modem.radio_power(True)
     if res:
-        print 'Modem radio enabled'
+        print('Modem radio enabled')
     else:
-        print 'Failure to enable radio'
+        print('Failure to enable radio')
 
 
 def run_modem_sim(args):
     cloud = CustomCloud(None, network='cellular')
-    print 'ICCID: ' + str(cloud.network.iccid)
+    print('ICCID: ' + str(cloud.network.iccid))
 
 def run_modem_operator(args):
     cloud = CustomCloud(None, network='cellular')
-    print 'Operator: ' + str(cloud.network.operator)
+    print('Operator: ' + str(cloud.network.operator))
 
 def run_modem_type(args):
     cloud = CustomCloud(None, network='cellular')
-    print 'Type: %s' % cloud.network.description
+    print('Type: %s' % cloud.network.description)
 
 def run_modem_location(args):
     cloud = CustomCloud(None, network='cellular')
     location_obj = cloud.network.location
     if location_obj is None:
-        print 'Location: Not Available'
+        print('Location: Not Available')
     else:
-        print 'Location: ' + convert_location_into_json(location_obj)
+        print('Location: ' + convert_location_into_json(location_obj))
 
 _run_handlers = {
     'modem_connect': run_modem_connect,
@@ -155,7 +155,8 @@ _run_handlers = {
 # EFFECTS: Parses the CLI arguments as options to the hologram modem subcommand.
 def parse_hologram_modem_args(parser):
     # Create a subparser
-    subparsers = parser.add_subparsers(title='subcommands')
+    subparsers = parser.add_subparsers(title='subcommands',
+            dest='modem subcommand', required=True)
 
     # Connect
     parser_connect = subparsers.add_parser('connect', help=help_connect)

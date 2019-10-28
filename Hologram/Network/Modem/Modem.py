@@ -8,14 +8,12 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 
-from IModem import IModem
-from ModemMode import *
+from Hologram.Network.Modem import IModem
+from Hologram.Network.Modem.ModemMode import PPP
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
-from Exceptions.HologramError import SerialError
-from Exceptions.HologramError import HologramError
-from Exceptions.HologramError import NetworkError
+from Exceptions.HologramError import SerialError, HologramError, NetworkError
 
 from collections import deque
 import binascii
@@ -61,7 +59,7 @@ class Modem(IModem):
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
-        super(Modem, self).__init__(device_name=device_name, baud_rate=baud_rate,
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
                                     event=event)
 
         self.serial_port = None
@@ -88,7 +86,7 @@ class Modem(IModem):
                          self.__repr__(), self.device_name)
 
     def isConnected(self):
-        return self._mode.connected()
+        return self._mode.isConnected()
 
     def connect(self, timeout):
         if self._mode is None:
@@ -302,7 +300,9 @@ class Modem(IModem):
     def write_socket(self, data):
 
         self.enable_hex_mode()
-        value = '%d,%s,\"%s\"' % (self.socket_identifier, len(data), binascii.hexlify(data))
+        value = b'%d,%d,\"%s\"' % (self.socket_identifier,
+                len(data),
+                binascii.hexlify(data))
         ok, _ = self.set('+USOWR', value, timeout=10)
         if ok != ModemResult.OK:
             self.logger.error('Failed to write to socket')
@@ -322,7 +322,14 @@ class Modem(IModem):
         resp = self._basic_set('+USORD', '%d,%d' % (socket_identifier, payload_length))
         if resp is not None:
             resp = resp.strip('"')
-        resp = binascii.unhexlify(resp)
+        bytedata = binascii.unhexlify(resp)
+        try:
+            resp = bytedata.decode()
+        except:
+            # This is some sort of binary data that can't be decoded so just
+            # return the bytes. We might want to make this happen via parameter
+            # in the future so it is more deterministic
+            resp = bytedata
 
         self.disable_hex_mode()
         return resp
@@ -338,7 +345,7 @@ class Modem(IModem):
 
     def debugwrite(self, x, hide=False):
         if not hide:
-            self.debug_out += x
+            self.debug_out += str(x)
         self._write_to_serial_port_and_flush(x)
 
     def modemwrite(self, cmd, start=False, at=False, seteq=False, read=False,
@@ -757,6 +764,7 @@ class Modem(IModem):
         if timeout is not None:
             self.serial_port.timeout = timeout
         r = self.serial_port.readline()
+        r = r.decode('utf8')
         if len(r) > 0 and not hide:
             self.logger.debug('{' + r.rstrip('\r\n') + '}')
         # Revert back to original default timeout
@@ -767,7 +775,10 @@ class Modem(IModem):
     # REQUIRES: a message string.
     # EFFECTS: Writes it to the actual serial port instance and flushes the buffer.
     def _write_to_serial_port_and_flush(self, message):
-        self.serial_port.write(message.encode())
+        if isinstance(message, str):
+            self.serial_port.write(message.encode())
+        else:
+            self.serial_port.write(message)
         self.serial_port.flush()
 
     # EFFECTS: This actually reads bytes from the serial port instance.

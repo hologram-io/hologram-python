@@ -18,7 +18,7 @@ from pyroute2.netlink.exceptions import NetlinkError
 DEFAULT_DESTINATION = '0.0.0.0/0'
 
 
-class Route(object):
+class Route():
     def __init__(self):
         self.ipr = IPRoute()
         self.logger = logging.getLogger(__name__)

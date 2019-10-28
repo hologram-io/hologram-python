@@ -1,11 +1,11 @@
-from ..Event import Event
-from Network import Network
+from Hologram.Event import Event
+from Hologram.Network import Network
 
 class BLE(Network):
 
     def __init__(self):
         self.event = Event()
-        super(BLE, self).__init__()
+        super().__init__()
 
     def connect(self):
         self.event.broadcast('ble.connected')

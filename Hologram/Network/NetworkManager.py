@@ -9,10 +9,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Wifi import Wifi
-from Ethernet import Ethernet
-from BLE import BLE
-from Cellular import Cellular
+from Hologram.Network import Wifi, Ethernet, BLE, Cellular
 from Exceptions.HologramError import NetworkError
 import logging
 from logging import NullHandler
@@ -20,13 +17,13 @@ import os
 
 DEFAULT_NETWORK_TIMEOUT = 200
 
-class NetworkManager(object):
+class NetworkManager():
 
     _networkHandlers =  {
-        'wifi' : Wifi,
-        'cellular': Cellular,
-        'ble' : BLE,
-        'ethernet' : Ethernet,
+        'wifi' : Wifi.Wifi,
+        'cellular': Cellular.Cellular,
+        'ble' : BLE.BLE,
+        'ethernet' : Ethernet.Ethernet,
     }
 
     def __init__(self, event, network):

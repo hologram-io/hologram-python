@@ -12,7 +12,7 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
-from Hologram.Authentication import *
+from Hologram.Authentication import Authentication
 
 credentials = {'devicekey':'12345678'}
 

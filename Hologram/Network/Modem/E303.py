@@ -8,8 +8,8 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Modem import Modem
-from ...Event import Event
+from Hologram.Network.Modem import Modem
+from Hologram.Event import Event
 
 DEFAULT_E303_TIMEOUT = 200
 
@@ -19,11 +19,11 @@ class E303(Modem):
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
-        super(E303, self).__init__(device_name=device_name, baud_rate=baud_rate,
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
                                    chatscript_file=chatscript_file, event=event)
 
     def connect(self, timeout = DEFAULT_E303_TIMEOUT):
-        return super(E303, self).connect(timeout)
+        return super().connect(timeout)
 
     def init_serial_commands(self):
         self.command("E0") #echo off

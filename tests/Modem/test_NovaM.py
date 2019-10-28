@@ -48,13 +48,13 @@ def test_init_novam_no_args(no_serial_port):
     modem = NovaM()
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
-    assert(modem.chatscript_file.endswith('/chatscripts/default-script') == True)
-    assert(modem._at_sockets_available == True)
+    assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
+    assert(modem._at_sockets_available)
     assert(modem.description == 'Hologram Nova US 4G LTE Cat-M1 Cellular USB Modem (R410)')
 
 def test_disable_at_sockets_mode(no_serial_port):
     modem = NovaM()
-    assert(modem._at_sockets_available == True)
+    assert(modem._at_sockets_available)
     modem.disable_at_sockets_mode()
     assert(modem._at_sockets_available == False)
 
@@ -63,7 +63,7 @@ def test_is_registered(mock_check_registered, no_serial_port):
     modem = NovaM()
     mock_check_registered.return_value = True
     mock_check_registered.reset_mock()
-    assert(modem.is_registered() == True)
+    assert(modem.is_registered())
     mock_check_registered.assert_called_once_with('+CEREG')
 
 @patch.object(NovaM, 'set')

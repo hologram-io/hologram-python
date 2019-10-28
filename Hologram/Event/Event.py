@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 import logging
 
-class Event(object):
+class Event():
     _funcLookupTable = {}
     def __init__(self):
         self.__dict__ = self._funcLookupTable

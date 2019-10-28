@@ -18,13 +18,13 @@ sys.path.append("../..")
 from Hologram.HologramCloud import HologramCloud
 
 if __name__ == "__main__":
-    print ""
-    print ""
-    print "Testing Hologram Cloud class..."
-    print ""
-    print "* Note: You can obtain device keys from the Devices page"
-    print "* at https://dashboard.hologram.io"
-    print ""
+    print("")
+    print("")
+    print("Testing Hologram Cloud class...")
+    print("")
+    print("* Note: You can obtain device keys from the Devices page")
+    print("* at https://dashboard.hologram.io")
+    print("")
 
     logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 
@@ -33,12 +33,12 @@ if __name__ == "__main__":
 
     result = hologram.network.connect()
     if result == False:
-        print 'Failed to connect to cell network'
+        print('Failed to connect to cell network')
 
     recv = hologram.sendMessage("one two three!",
                                 topics = ["TOPIC1","TOPIC2"],
-                                timeout = 3)
+                                timeout = 5)
 
-    print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
+    print('RESPONSE MESSAGE: ' + hologram.getResultString(recv))
 
     hologram.network.disconnect()

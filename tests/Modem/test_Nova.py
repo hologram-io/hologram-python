@@ -46,7 +46,7 @@ def test_init_nova_no_args(no_serial_port):
     modem = Nova()
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
-    assert(modem.chatscript_file.endswith('/chatscripts/default-script') == True)
+    assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
     assert(modem._at_sockets_available == False)
 
 def test_init_nova_chatscriptfileoverride(no_serial_port):

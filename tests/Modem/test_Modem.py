@@ -13,7 +13,7 @@ sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
 from Exceptions.HologramError import SerialError
-from Hologram.Network.Modem.Modem import Modem
+from Hologram.Network.Modem import Modem
 from UtilClasses import ModemResult
 
 def mock_write(modem, message):
@@ -51,7 +51,7 @@ def test_init_modem_no_args(no_serial_port):
     modem = Modem()
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
-    assert(modem.chatscript_file.endswith('/chatscripts/default-script') == True)
+    assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
     assert(modem._at_sockets_available == False)
     assert(modem.description == 'Modem')
 
@@ -77,7 +77,7 @@ def test_get_location(no_serial_port):
     modem = Modem()
     with pytest.raises(NotImplementedError) as e:
         assert(modem.location == 'test location')
-    assert('This modem does not support this property' in e.value)
+        assert('This modem does not support this property' in str(e))
 
 
 # DEBUGWRITE
@@ -177,12 +177,12 @@ def test_command_result(no_serial_port):
 
 # These are static methods that can be tested independently.
 # We decided to wrap it all here under this test object
-class TestModemProtectedStaticMethods(object):
+class TestModemProtectedStaticMethods():
 
     def test_check_registered_string(self):
         result = '+CREG: 2,5,"5585","404C790",6'
         registered = Modem._check_registered_helper('+CREG', result)
-        assert(registered == True)
+        assert(registered)
 
     def test_registered_basic_unregistered_string(self):
         # This should force strips left and right, but the return value will
@@ -201,7 +201,7 @@ class TestModemProtectedStaticMethods(object):
                   '+CREG: 5,"5585","404C790",6',
                   '+CREG: 2,5,"5585","404C790",6']
         registered = Modem._check_registered_helper('+CREG', result)
-        assert(registered == True)
+        assert(registered)
 
     def test_registered_empty_list(self):
         result = []
@@ -221,4 +221,4 @@ class TestModemProtectedStaticMethods(object):
                   '+CREG: 5,"5585","404C790",6',
                   '+CREG: 2,5,"5585","404C790",6']
         registered = Modem._check_registered_helper('+CREG', result)
-        assert(registered == True)
+        assert(registered)

@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Nova import Nova
+from Hologram.Network.Modem.Nova import Nova
 from Exceptions.HologramError import SerialError
 from Hologram.Event import Event
 from UtilClasses import Location
@@ -22,7 +22,7 @@ class Nova_U201(Nova):
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
-        super(Nova_U201, self).__init__(device_name=device_name, baud_rate=baud_rate,
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
                                         chatscript_file=chatscript_file, event=event)
         # We need to enforce multi serial port support. We then reinstantiate
         # the serial interface with the correct device name.
@@ -33,7 +33,7 @@ class Nova_U201(Nova):
 
     def connect(self, timeout=DEFAULT_NOVA_U201_TIMEOUT):
 
-        success = super(Nova_U201, self).connect(timeout)
+        success = super().connect(timeout)
 
         # put serial mode on other port
         if success is True:
@@ -42,13 +42,13 @@ class Nova_U201(Nova):
             if not devices:
                 raise SerialError('Not enough serial ports detected for Nova')
             self.device_name = devices[0]
-            super(Nova_U201, self).initialize_serial_interface()
+            super().initialize_serial_interface()
 
         return success
 
     def create_socket(self):
         self._set_up_pdp_context()
-        super(Nova_U201, self).create_socket()
+        super().create_socket()
 
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
@@ -65,7 +65,7 @@ class Nova_U201(Nova):
             self.modem_mode = 0
             devices = self.detect_usable_serial_port()
             self.device_name = devices[0]
-            super(Nova_U201, self).initialize_serial_interface()
+            super().initialize_serial_interface()
 
     def init_serial_commands(self):
         self.command("E0") #echo off
@@ -101,7 +101,7 @@ class Nova_U201(Nova):
             self.parse_and_populate_last_sim_otp_response(urc.lstrip('+CSIM: '))
             return
 
-        super(Nova_U201, self).handleURC(urc)
+        super().handleURC(urc)
 
     def populate_location_obj(self, response):
         response_list = response.split(',')

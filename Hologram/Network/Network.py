@@ -19,7 +19,7 @@ class NetworkScope(Enum):
     HOLOGRAM = 2
 
 
-class Network(object):
+class Network():
 
     def __repr__(self):
         return type(self).__name__

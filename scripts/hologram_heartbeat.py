@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hologram_heartbeat.py - Hologram Python SDK command line interface (CLI) for
 #                           heartbeat interfaces

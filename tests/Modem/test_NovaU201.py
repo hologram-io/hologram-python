@@ -47,14 +47,14 @@ def test_init_nova_u201_no_args(no_serial_port):
     modem = Nova_U201()
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
-    assert(modem.chatscript_file.endswith('/chatscripts/default-script') == True)
-    assert(modem._at_sockets_available == True)
+    assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
+    assert(modem._at_sockets_available)
     assert(modem.description == 'Hologram Nova Global 3G/2G Cellular USB Modem (U201)')
-    assert(modem.last_location == None)
+    assert(modem.last_location is None)
 
 def test_disable_at_sockets_mode(no_serial_port):
     modem = Nova_U201()
-    assert(modem._at_sockets_available == True)
+    assert(modem._at_sockets_available)
     modem.disable_at_sockets_mode()
     assert(modem._at_sockets_available == False)
 

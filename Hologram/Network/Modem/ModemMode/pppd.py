@@ -15,14 +15,15 @@ import re
 import signal
 import time
 import threading
+import errno
 from subprocess import Popen, PIPE, STDOUT
 from Exceptions.HologramError import PPPError, PPPConnectionError
-import errno
+
 
 __version__ = '1.0.3'
 DEFAULT_CONNECT_TIMEOUT = 200
 
-class PPPConnection(object):
+class PPPConnection():
 
     def __repr__(self):
         return type(self).__name__
@@ -53,7 +54,7 @@ class PPPConnection(object):
 
         self._commands.append(pppd_path)
 
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             self._commands.append(k)
             self._commands.append(v)
         self._commands.extend(args)
@@ -63,10 +64,10 @@ class PPPConnection(object):
     # EFFECTS: Spins out a new thread that connects to the network with a given
     #          timeout value. Default to DEFAULT_CONNECT_TIMEOUT seconds.
     #          Returns true if successful, false otherwise.
-    def connect(self, timeout = DEFAULT_CONNECT_TIMEOUT):
+    def connect(self, timeout=DEFAULT_CONNECT_TIMEOUT):
 
         self.logger.info('Starting pppd')
-        self.proc = Popen(self._commands, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+        self.proc = Popen(self._commands, stdout=PIPE, stderr=STDOUT)
 
         # set stdout to non-blocking
         fd = self.proc.stdout.fileno()
@@ -89,7 +90,9 @@ class PPPConnection(object):
 
     def readFromPPP(self):
         try:
-            self.output += self.proc.stdout.read()
+            pppd_out = self.proc.stdout.read()
+            if pppd_out is not None:
+                self.output += pppd_out.decode()
         except IOError as e:
             if e.errno != errno.EAGAIN:
                 raise
@@ -124,7 +127,7 @@ class PPPConnection(object):
             if self.proc.returncode not in [0, 5]:
                 raise PPPConnectionError(self.proc.returncode, self.output)
             return False
-        elif self.laddr != None and self.raddr != None:
+        elif self.laddr is not None and self.raddr is not None:
             return True
 
         return False
@@ -150,4 +153,3 @@ class PPPConnection(object):
                 self._raddr = result.group(1)
 
         return self._raddr
-

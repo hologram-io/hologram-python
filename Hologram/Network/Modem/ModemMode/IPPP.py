@@ -7,18 +7,18 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from ModemMode import ModemMode
+from Hologram.Network.Modem.ModemMode.ModemMode import ModemMode
 
 class IPPP(ModemMode):
 
     def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
                  chatscript_file=None):
 
-        super(IPPP, self).__init__(device_name=device_name, baud_rate=baud_rate)
+        super().__init__(device_name=device_name, baud_rate=baud_rate)
 
         self.chatscript_file = chatscript_file
 
-        if self.chatscript_file == None:
+        if self.chatscript_file is None:
             raise Exception('Must specify chatscript file')
 
     @property

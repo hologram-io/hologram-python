@@ -14,7 +14,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Network import Ethernet
 
-class TestEthernet(object):
+class TestEthernet():
 
     def test_Ethernet(self):
         ethernet = Ethernet.Ethernet()

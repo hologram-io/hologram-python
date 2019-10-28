@@ -7,15 +7,15 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-from IPPP import IPPP
+from Hologram.Network.Modem.ModemMode.IPPP import IPPP
 
 class MockPPP(IPPP):
 
     def __init__(self, device_name='/dev/ttyUSB0', baud_rate='9600',
                  chatscript_file=None):
 
-        super(MockPPP, self).__init__(device_name=device_name, baud_rate=baud_rate,
-                                      chatscript_file=chatscript_file)
+        super().__init__(device_name=device_name, baud_rate=baud_rate,
+                         chatscript_file=chatscript_file)
 
     @property
     def localIPAddress(self):

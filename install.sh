@@ -13,7 +13,7 @@ set -euo pipefail
 # This script will install the Hologram SDK and the necessary software dependencies
 # for it to work.
 
-required_programs=('python' 'pip' 'ps' 'kill' 'libpython2.7-dev')
+required_programs=('python3' 'pip3' 'ps' 'kill' 'libpython3.7-dev')
 OS=''
 
 # Check OS.
@@ -51,7 +51,7 @@ function pause() {
 
 function install_software() {
     if [ "$OS" == 'LINUX' ]; then
-        sudo apt-get -y install "$*"
+        sudo apt -y install "$*"
     elif [ "$OS" == 'DARWIN' ]; then
         brew install "$*"
         echo 'TODO: macOS should go here'
@@ -71,7 +71,7 @@ function check_if_installed() {
 
 function update_repository() {
     if [ "$OS" == 'LINUX' ]; then
-        sudo apt-get update
+        sudo apt update
     elif [ "$OS" == 'DARWIN' ]; then
         brew update
         echo 'TODO: macOS should go here'
@@ -84,7 +84,7 @@ function update_repository() {
 function verify_installation() {
     echo 'Verifying that all dependencies are installed correctly...'
     # Verify pip packages
-    INSTALLED_PIP_PACKAGES="$(pip list)"
+    INSTALLED_PIP_PACKAGES="$(pip3 list)"
 
     if ! [[ "$INSTALLED_PIP_PACKAGES" == *"python-sdk-auth"* ]]; then
         echo 'Cannot find python-sdk-auth. Please rerun the install script.'
@@ -110,10 +110,10 @@ do
             pause "Installing $program. Press [Enter] key to continue...";
             install_software 'ppp'
         fi
-    elif [ "$program" == 'pip' ]; then
+    elif [ "$program" == 'pip3' ]; then
         if ! check_if_installed "$program"; then
             pause "Installing $program. Press [Enter] key to continue...";
-            install_software 'python-pip'
+            install_software 'python3-pip'
         fi
     elif check_if_installed "$program"; then
         echo "$program is already installed."
@@ -124,6 +124,6 @@ do
 done
 
 # Install SDK itself.
-sudo pip install hologram-python
+sudo pip3 install hologram-python
 
 verify_installation

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # hologram_activate.py - Hologram Python SDK command line interface (CLI) for activating
 #                        devices.
@@ -18,7 +18,7 @@ import time
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Api import Api
 from Exceptions.HologramError import HologramError
-from hologram_util import VAction
+from .hologram_util import VAction
 
 CHECK_LIVE_SIM_STATE_MAX_TIMEOUT = 120 # 2 mins for max timeout
 CHECK_LIVE_SIM_STATE_INTERVAL = 5
@@ -74,7 +74,7 @@ def run_hologram_activate(args):
     success, response = api.activateSIM(sim=sim, plan=selected_plan,
                                         zone=selected_zone)
 
-    if success == True:
+    if success:
         print('Activating SIM... (this may take up to a few minutes)')
     else:
         print('Activation failed')
@@ -96,7 +96,7 @@ def run_hologram_activate(args):
 
 
 def confirm_activation(sim, plan_name, selected_plan, selected_zone, total_cost):
-    response = raw_input("Activate SIM #%s on %s Zone %s for $%.2f (y/N)? " % (sim, plan_name, str(selected_zone), total_cost))
+    response = input("Activate SIM #%s on %s Zone %s for $%.2f (y/N)? " % (sim, plan_name, str(selected_zone), total_cost))
     return response == 'y'
 
 # EFFECTS: Populate valid and available plans and returns a plan -> zones dictionary.
@@ -125,7 +125,7 @@ def prompt_for_plan(plans, planIdToZonesDict):
 
     while True:
         try:
-            planid = raw_input('Choose the plan id for this device: ')
+            planid = input('Choose the plan id for this device: ')
             if not planid.isdigit():
                 print('Error: Invalid plan id')
                 continue
@@ -146,7 +146,7 @@ def prompt_for_zone(zones):
     zoneid = None
     zoneids = []
 
-    for zoneid, zone_details in zones.iteritems():
+    for zoneid, zone_details in zones.items():
         zoneids.append(zoneid)
         print_zone_description(zoneid, zone_details)
 
@@ -157,7 +157,7 @@ def prompt_for_zone(zones):
 
     while True:
         try:
-            zone = raw_input('Choose the zone for this device: ')
+            zone = input('Choose the zone for this device: ')
             if zone not in zoneids:
                 print('Error: Invalid zone')
                 continue
@@ -169,7 +169,7 @@ def prompt_for_zone(zones):
 # EFFECTS: Returns true if the given plan is a developer plan with the
 #          available flag set to True.
 def is_available_developer_plan(plan):
-    return 'available' in plan and plan['available'] == True
+    return 'available' in plan and plan['available']
 
 # EFFECTS: Returns true if it's a pay as you go plan, false otherwise.
 def is_pay_as_you_go_plan(plan):
@@ -196,7 +196,7 @@ def print_zone_description(zoneid, zone_details):
 def prompt_for_username_and_password():
 
     try:
-        username = raw_input("Please enter your Hologram username: ")
+        username = input("Please enter your Hologram username: ")
         password = getpass.getpass("Please enter your Hologram password: ")
     except KeyboardInterrupt as e:
         sys.exit(1)

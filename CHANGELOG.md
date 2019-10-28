@@ -1,5 +1,12 @@
 # What's New in Hologram Python SDK
 
+## v0.9.0
+2019-10-28 Hologram <support@hologram.io>
+    * Converted SDK to use Python 3. This version is compatible with Python 3 only
+        and drops support for Python 2. There are no changes to any features or
+        interfaces in this release. Functionality should mirror v0.8.3 but will now
+        run on Python 3
+
 ## v0.8.3
 
 2019-08-27 Hologram <support@hologram.io>

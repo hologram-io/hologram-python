@@ -11,17 +11,15 @@
 import binascii
 import json
 import sys
-from CustomCloud import CustomCloud
-from Authentication import *
+from Hologram.CustomCloud import CustomCloud
+from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
+from Hologram.Authentication import CSRPSKAuthentication
 from Exceptions.HologramError import HologramError
-
-from HologramAuth.TOTPAuthentication import TOTPAuthentication
-from HologramAuth.SIMOTPAuthentication import SIMOTPAuthentication
 
 DEFAULT_SEND_MESSAGE_TIMEOUT = 5
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
 HOLOGRAM_PORT_SEND = 9999
-HOLOGRAM_HOST_RECEIVE= '0.0.0.0'
+HOLOGRAM_HOST_RECEIVE = '0.0.0.0'
 HOLOGRAM_PORT_RECEIVE = 4010
 MAX_SMS_LENGTH = 160
 
@@ -43,8 +41,8 @@ class HologramCloud(CustomCloud):
 
     _authentication_handlers = {
         'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
-        'totp' : TOTPAuthentication,
-        'sim-otp' : SIMOTPAuthentication,
+        'totp' : TOTPAuthentication.TOTPAuthentication,
+        'sim-otp' : SIMOTPAuthentication.SIMOTPAuthentication,
     }
 
     _errorCodeDescription = {
@@ -63,13 +61,13 @@ class HologramCloud(CustomCloud):
 
     def __init__(self, credentials, enable_inbound=False, network='',
                  authentication_type='totp'):
-        super(HologramCloud, self).__init__(credentials,
-                                            send_host=HOLOGRAM_HOST_SEND,
-                                            send_port=HOLOGRAM_PORT_SEND,
-                                            receive_host=HOLOGRAM_HOST_RECEIVE,
-                                            receive_port=HOLOGRAM_PORT_RECEIVE,
-                                            enable_inbound=enable_inbound,
-                                            network=network)
+        super().__init__(credentials,
+                         send_host=HOLOGRAM_HOST_SEND,
+                         send_port=HOLOGRAM_PORT_SEND,
+                         receive_host=HOLOGRAM_HOST_RECEIVE,
+                         receive_port=HOLOGRAM_PORT_RECEIVE,
+                         enable_inbound=enable_inbound,
+                         network=network)
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
 
@@ -109,7 +107,7 @@ class HologramCloud(CustomCloud):
                                                         modem_id=modem_id,
                                                         version=self.version)
 
-        result = super(HologramCloud, self).sendMessage(output, timeout)
+        result = super().sendMessage(output, timeout)
         return self.__parse_result(result)
 
     def __parse_result(self, result):
@@ -148,7 +146,7 @@ class HologramCloud(CustomCloud):
         self.logger.debug('Destination number: %s', destination_number)
         self.logger.debug('SMS: %s', message)
 
-        result = super(HologramCloud, self).sendMessage(output)
+        result = super().sendMessage(output)
 
         resultList = self.__parse_hologram_compact_result(result)
         return resultList[0]
@@ -165,8 +163,7 @@ class HologramCloud(CustomCloud):
         self.logger.debug("Sending nonce request with body of length %d", len(nonce_request))
         self.logger.debug('Send: %s', nonce_request)
 
-        nonce = super(HologramCloud, self).sendMessage(message=nonce_request,
-                timeout=10, close_socket=False)
+        nonce = super().sendMessage(message=nonce_request, timeout=10, close_socket=False)
         self.logger.debug('Nonce request sent.')
 
         resultbuf_hex = binascii.b2a_hex(nonce)
@@ -204,11 +201,7 @@ class HologramCloud(CustomCloud):
 
         resultList = []
         for x in result:
-            try:
-                resultList.append(int(x))
-            except ValueError:
-                self.logger.error('Server replied with invalid JSON [%s]', result)
-                resultList = [ERR_UNKNOWN]
+            resultList.append(int(x))
 
         if len(resultList) == 0:
             resultList = [ERR_UNKNOWN]
@@ -224,7 +217,7 @@ class HologramCloud(CustomCloud):
             raise HologramError('SMS destination number must start with a \'+\' sign')
 
     def __enforce_authentication_type_supported_for_sms(self):
-        if self.authenticationType is not 'csrpsk':
+        if self.authenticationType != 'csrpsk':
             raise HologramError('%s does not support SDK SMS features' % self.authenticationType)
 
     # REQUIRES: A result code (int).

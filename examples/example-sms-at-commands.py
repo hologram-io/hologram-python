@@ -18,16 +18,16 @@ sys.path.append("../..")
 from Hologram.HologramCloud import HologramCloud
 
 if __name__ == "__main__":
-    print ""
-    print ""
-    print "Testing Hologram Cloud class..."
-    print ""
-    print "* Note: You can obtain device keys from the Devices page"
-    print "* at https://dashboard.hologram.io"
-    print ""
+    print("")
+    print("")
+    print("Testing Hologram Cloud class...")
+    print("")
+    print("* Note: You can obtain device keys from the Devices page")
+    print("* at https://dashboard.hologram.io")
+    print("")
 
-    device_key = raw_input("What is your device key? ")
-    destination_number = raw_input("What is your destination number? ")
+    device_key = input("What is your device key? ")
+    destination_number = input("What is your destination number? ")
 
     credentials = {'devicekey': device_key}
 
@@ -36,4 +36,4 @@ if __name__ == "__main__":
 
     recv = hologram.sendSMS(destination_number, 'Hi, SMS!')
 
-    print 'RESPONSE MESSAGE: ' + hologram.getResultString(recv)
+    print('RESPONSE MESSAGE: ' + hologram.getResultString(recv))

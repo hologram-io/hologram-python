@@ -10,7 +10,7 @@
 import logging
 from logging import NullHandler
 
-class Authentication(object):
+class Authentication():
 
     def __init__(self, credentials):
         self.credentials = credentials
