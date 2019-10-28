@@ -10,20 +10,21 @@ jobs:
   include:
     - stage: test
       python: 3.7
-      name: 'lint'
+      name: 'test'
       script: 
-        - pip install . --upgrade
-        - pip install python-sdk-auth --upgrade
-        - pip install pylint --upgrade
-        - pip freeze
-        - pylint -rn --errors-only Hologram
-
-    - script:
         - pip install coveralls
         - coverage run --source Hologram -m pytest
         - coveralls
-      python: 3.7
-      name: 'test'
+
+# Linting just doesn't seem to work on travis
+#     - script:
+#         - pip install . --upgrade
+#         - pip install python-sdk-auth --upgrade
+#         - pip install pylint --upgrade
+#         - pip freeze
+#         - pylint -rn --errors-only Hologram
+#       python: 3.7
+#       name: 'lint'
 
 notifications:
   email: false
