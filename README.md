@@ -3,6 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/hologram-python.svg)](https://badge.fury.io/py/hologram-python)
 
 [![Build Status](https://travis-ci.org/hologram-io/hologram-python.svg?branch=master)](https://travis-ci.org/hologram-io/hologram-python)
+[![Coverage Status](https://coveralls.io/repos/github/hologram-io/hologram-python/badge.svg?branch=master)](https://coveralls.io/github/hologram-io/hologram-python?branch=master)
 
 ## Introduction
 The Hologram Python Device SDK provides a simple way for devices to connect 
