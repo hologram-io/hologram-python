@@ -15,6 +15,7 @@ jobs:
         - pip install . --upgrade
         - pip install python-sdk-auth --upgrade
         - pip install pylint --upgrade
+        - pip freeze
         - pylint -rn --errors-only Hologram
 
     - script:
