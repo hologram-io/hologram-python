@@ -4,40 +4,25 @@ os: linux
 dist: xenial          # required for Python >= 3.7
 
 before_install: 
-  - pip3 install --upgrade pip 
+  - pip install --upgrade pip 
 
 jobs:
   include:
     - stage: test
       python: 3.7
-      name: 'lint 3.7'
+      name: 'lint'
       script: 
-        - pip3 install .
-        - pip3 install pylint --upgrade
+        - pip install . --upgrade
+        - pip install python-sdk-auth --upgrade
+        - pip install pylint --upgrade
         - pylint -rn --errors-only Hologram
-        
-    - script:
-        - pip3 install .
-        - pip3 install pylint --upgrade
-        - pylint -rn --errors-only Hologram
-      python: 3.8
-      name: 'lint 3.8'
 
-    - script:      
-        - pip3 install .
-        - pip3 install coveralls
+    - script:
+        - pip install coveralls
         - coverage run --source Hologram -m pytest
         - coveralls
       python: 3.7
-      name: 'test 3.7'
-      
-    - script:      
-        - pip3 install .
-        - pip3 install coveralls
-        - coverage run --source Hologram -m pytest
-        - coveralls
-      python: 3.8
-      name: 'test 3.8'
+      name: 'test'
 
 notifications:
   email: false
