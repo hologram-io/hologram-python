@@ -2,29 +2,42 @@ sudo: required
 language: python
 os: linux
 dist: xenial          # required for Python >= 3.7
-python:
-  - '3.7'
-  - '3.8'
 
-install: 
-  - pip install --upgrade pip 
+before_install: 
+  - pip3 install --upgrade pip 
 
 jobs:
   include:
     - stage: test
-      name: 'lint'
+      python: 3.7
+      name: 'lint 3.7'
       script: 
-        - pip install .
-        - pip install pylint --upgrade
-        - pylint -rn --errors-only ./Hologram
-    
-      
+        - pip3 install .
+        - pip3 install pylint --upgrade
+        - pylint -rn --errors-only Hologram
+        
+    - script:
+        - pip3 install .
+        - pip3 install pylint --upgrade
+        - pylint -rn --errors-only Hologram
+      python: 3.8
+      name: 'lint 3.8'
+
     - script:      
-        - pip install .
-        - pip install coveralls
+        - pip3 install .
+        - pip3 install coveralls
         - coverage run --source Hologram -m pytest
         - coveralls
-      name: 'test'
+      python: 3.7
+      name: 'test 3.7'
+      
+    - script:      
+        - pip3 install .
+        - pip3 install coveralls
+        - coverage run --source Hologram -m pytest
+        - coveralls
+      python: 3.8
+      name: 'test 3.8'
 
 notifications:
   email: false
