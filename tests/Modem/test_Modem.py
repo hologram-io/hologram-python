@@ -86,13 +86,13 @@ def test_get_location(no_serial_port):
 
 def test_socket_write_under_512(no_serial_port, override_command_result):
     modem = Modem()
-    data = b'{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
-    modem.write_socket(data)
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
+    modem.write_socket(data.encode())
 
 def test_socket_write_over_512(no_serial_port, override_command_result):
     modem = Modem()
-    data = b'{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
-    modem.write_socket(data)
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
+    modem.write_socket(data.encode())
 
 # DEBUGWRITE
 
