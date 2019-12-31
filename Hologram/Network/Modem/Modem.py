@@ -300,14 +300,30 @@ class Modem(IModem):
     def write_socket(self, data):
 
         self.enable_hex_mode()
-        value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                len(data),
-                binascii.hexlify(data))
-        ok, _ = self.set('+USOWR', value, timeout=10)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to write to socket')
-            raise NetworkError('Failed to write socket')
+        hexdata = binascii.hexlify(data)
+        if len(hexdata) <= 512:
+            value = b'%d,%d,\"%s\"' % (self.socket_identifier,
+                    len(hexdata),
+                    binascii.hexlify(hexdata))
+            ok, _ = self.set('+USOWR', value, timeout=10)
+            if ok != ModemResult.OK:
+                self.logger.error('Failed to write to socket')
+                raise NetworkError('Failed to write socket')
+        else:
+            for chunk in self._chunks(hexdata, 512):
+                value = b'%d,%d,\"%s\"' % (self.socket_identifier,
+                        len(chunk),
+                        binascii.hexlify(chunk))
+                ok, _ = self.set('+USOWR', value, timeout=10)
+                if ok != ModemResult.OK:
+                    self.logger.error('Failed to write to socket')
+                    raise NetworkError('Failed to write socket')
         self.disable_hex_mode()
+
+    def _chunks(self, data, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(data), n):
+            yield data[i:i + n]
 
     def read_socket(self, socket_identifier=None, payload_length=None):
 
