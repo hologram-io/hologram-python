@@ -48,7 +48,7 @@ def no_serial_port(monkeypatch):
 
 @pytest.fixture
 def override_command_result(monkeypatch):
-    monkeypatch.setattr(Modem, '_command_result', mock_read)
+    monkeypatch.setattr(Modem, '_command_result', mock_result)
 
 # CONSTRUCTOR
 
