@@ -32,7 +32,7 @@ def mock_close_serial_port(modem):
     return True
 
 def mock_result(modem):
-    return ModemResult.OK
+    return (ModemResult.OK, None)
 
 def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
