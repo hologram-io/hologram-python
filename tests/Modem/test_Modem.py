@@ -99,6 +99,16 @@ def test_get_sms(no_serial_port, get_sms):
     assert(res.timestamp == datetime.utcfromtimestamp(1498264009))
     assert(res.message == 'Test 123')
 
+def test_socket_write_under_512(no_serial_port):
+    modem = Modem()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
+    modem.write_socket(data)
+
+def test_socket_write_over_512(no_serial_port):
+    modem = Modem()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
+    modem.write_socket(data)
+
 # DEBUGWRITE
 
 
