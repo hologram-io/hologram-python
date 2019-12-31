@@ -79,6 +79,17 @@ def test_get_location(no_serial_port):
         assert(modem.location == 'test location')
         assert('This modem does not support this property' in str(e))
 
+# SOCKET WRITE
+
+def test_socket_write_under_512(no_serial_port):
+    modem = Modem()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
+    modem.write_socket(data)
+
+def test_socket_write_over_512(no_serial_port):
+    modem = Modem()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
+    modem.write_socket(data)
 
 # DEBUGWRITE
 
