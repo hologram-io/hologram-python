@@ -31,6 +31,9 @@ def mock_open_serial_port(modem, device_name=None):
 def mock_close_serial_port(modem):
     return True
 
+def mock_result(modem):
+    return ModemResult.OK
+
 def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
 
@@ -43,9 +46,11 @@ def no_serial_port(monkeypatch):
     monkeypatch.setattr(Modem, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Modem, 'detect_usable_serial_port', mock_detect_usable_serial_port)
 
+@pytest.fixture
+def override_command_result(monkeypatch):
+    monkeypatch.setattr(Modem, '_command_result', mock_read)
 
 # CONSTRUCTOR
-
 
 def test_init_modem_no_args(no_serial_port):
     modem = Modem()
@@ -69,9 +74,7 @@ def test_get_result_string(no_serial_port):
     assert(modem.getResultString(-3) == 'Modem response doesn\'t match expected return value')
     assert(modem.getResultString(-99) == 'Unknown response code')
 
-
 # PROPERTIES
-
 
 def test_get_location(no_serial_port):
     modem = Modem()
@@ -81,18 +84,17 @@ def test_get_location(no_serial_port):
 
 # SOCKET WRITE
 
-def test_socket_write_under_512(no_serial_port):
+def test_socket_write_under_512(no_serial_port, override_command_result):
     modem = Modem()
-    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
-    modem.write_socket(data.encode())
+    data = b'{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
+    modem.write_socket(data)
 
-def test_socket_write_over_512(no_serial_port):
+def test_socket_write_over_512(no_serial_port, override_command_result):
     modem = Modem()
-    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
-    modem.write_socket(data.encode())
+    data = b'{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
+    modem.write_socket(data)
 
 # DEBUGWRITE
-
 
 def test_debugwrite(no_serial_port):
     modem = Modem()
@@ -103,9 +105,7 @@ def test_debugwrite(no_serial_port):
     modem.debugwrite('test222', hide=True)
     assert(modem.debug_out == 'test') # debug_out shouldn't change since hide is enabled.
 
-
 # MODEMWRITE
-
 
 def test_modemwrite(no_serial_port):
     modem = Modem()
@@ -127,7 +127,6 @@ def test_modemwrite(no_serial_port):
 
     modem.modemwrite('test5', start=True, at=True, seteq=True, read=True, end=True)
     assert(modem.debug_out == '[ATtest5=?]')
-
 
 # COMMAND_RESULT
 
@@ -184,7 +183,6 @@ def test_command_result(no_serial_port):
     assert(resp == [])
 
 # HANDLEURC
-
 
 # These are static methods that can be tested independently.
 # We decided to wrap it all here under this test object
