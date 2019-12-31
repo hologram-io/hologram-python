@@ -59,7 +59,7 @@ def get_sms(monkeypatch):
     monkeypatch.setattr(Modem, 'set', mock_set_sms)
 @pytest.fixture
 def override_command_result(monkeypatch):
-    monkeypatch.setattr(Modem, '_command_result', mock_read)
+    monkeypatch.setattr(Modem, '_command_result', mock_result)
 
 # CONSTRUCTOR
 
