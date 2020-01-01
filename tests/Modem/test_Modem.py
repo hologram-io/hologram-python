@@ -33,6 +33,9 @@ def mock_close_serial_port(modem):
 
 def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
+    
+def mock_command_sms(modem, stop_on_first=True):
+    return (ModemResult.OK, '+CMGL: 303,"REC READ","+39340 1234999",,"08/08/06,10:01:38+08" You have a missed called. Free information provided by your operator.')
 
 @pytest.fixture
 def no_serial_port(monkeypatch):
@@ -43,6 +46,9 @@ def no_serial_port(monkeypatch):
     monkeypatch.setattr(Modem, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Modem, 'detect_usable_serial_port', mock_detect_usable_serial_port)
 
+@pytest.fixture
+def get_sms(monkeypatch):
+    monkeypatch.setattr(Modem, 'command', mock_command_sms)
 
 # CONSTRUCTOR
 
@@ -79,6 +85,12 @@ def test_get_location(no_serial_port):
         assert(modem.location == 'test location')
         assert('This modem does not support this property' in str(e))
 
+# SMS
+
+def test_get_location(no_serial_port, get_sms):
+    modem = Modem()
+    res = modem.popReceivedSMS()
+    assert(res == 'You have a missed called. Free information provided by your operator.')
 
 # DEBUGWRITE
 
