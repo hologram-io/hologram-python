@@ -35,7 +35,7 @@ def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
     
 def mock_command_sms(modem, stop_on_first=True):
-    return (ModemResult.OK, ['+CMGL: 303,"REC READ","+39340 1234999",,"08/08/06,10:01:38+08" You have a missed called. Free information provided by your operator.'])
+    return (ModemResult.OK, ['+CMGL: 305,1,,57 079193432900 1185440ED0D637396C7EBBCB0 000909092708024802A050 003000303DEA0584CE60 205D974791994769BDF3A90 DB759687E9F534FD0DA2C9603419', ''])
 
 @pytest.fixture
 def no_serial_port(monkeypatch):
