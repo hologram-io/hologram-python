@@ -96,7 +96,7 @@ def test_get_sms(no_serial_port, get_sms):
     modem = Modem()
     res = modem.popReceivedSMS()
     assert(res.sender == '447937405250')
-    assert(res.timestamp == datetime.fromtimestamp(1498282009))
+    assert(res.timestamp == datetime.utcfromtimestamp(1498264009))
     assert(res.message == 'Test 123')
 
 # DEBUGWRITE
