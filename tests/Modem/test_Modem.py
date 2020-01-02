@@ -8,6 +8,7 @@
 
 import pytest
 import sys
+from datetime import datetime
 
 sys.path.append(".")
 sys.path.append("..")
@@ -34,8 +35,11 @@ def mock_close_serial_port(modem):
 def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
     
-def mock_command_sms(modem, stop_on_first=True):
-    return (ModemResult.OK, ['+CMGL: 305,1,,57 079193432900 1185440ED0D637396C7EBBCB0 000909092708024802A050 003000303DEA0584CE60 205D974791994769BDF3A90 DB759687E9F534FD0DA2C9603419', ''])
+def mock_command_sms(modem, at_command):
+    return (ModemResult.OK, ['+CMGL: 2,1,,26', '0791447779071413040C9144977304250500007160421062944008D4F29C0E8AC966'])
+
+def mock_set_sms(modem, at_command, val):
+    return None
 
 @pytest.fixture
 def no_serial_port(monkeypatch):
@@ -49,6 +53,7 @@ def no_serial_port(monkeypatch):
 @pytest.fixture
 def get_sms(monkeypatch):
     monkeypatch.setattr(Modem, 'command', mock_command_sms)
+    monkeypatch.setattr(Modem, 'set', mock_set_sms)
 
 # CONSTRUCTOR
 
@@ -87,10 +92,12 @@ def test_get_location(no_serial_port):
 
 # SMS
 
-def test_get_location(no_serial_port, get_sms):
+def test_get_sms(no_serial_port, get_sms):
     modem = Modem()
     res = modem.popReceivedSMS()
-    assert(res == 'You have a missed called. Free information provided by your operator.')
+    assert(res.sender == '447937405250')
+    assert(res.timestamp == datetime.fromtimestamp(1498282009))
+    assert(res.message == 'Test 123')
 
 # DEBUGWRITE
 
