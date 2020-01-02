@@ -301,19 +301,20 @@ class Modem(IModem):
 
         self.enable_hex_mode()
         hexdata = binascii.hexlify(data)
-        if len(hexdata) <= 512:
+        if len(hexdata) < 512:
             value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                    len(hexdata),
-                    binascii.hexlify(hexdata))
+                    len(data),
+                    hexdata)
             ok, _ = self.set('+USOWR', value, timeout=10)
             if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
                 raise NetworkError('Failed to write socket')
         else:
-            for chunk in self._chunks(hexdata, 512):
+            # We have to do it in chunks of 510 since 512 is actually too long and we need 2 chars for hexified data
+            for chunk in self._chunks(hexdata, 510):
                 value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                        len(chunk),
-                        binascii.hexlify(chunk))
+                        len(binascii.unhexlify(chunk)),
+                        chunk)
                 ok, _ = self.set('+USOWR', value, timeout=10)
                 if ok != ModemResult.OK:
                     self.logger.error('Failed to write to socket')
