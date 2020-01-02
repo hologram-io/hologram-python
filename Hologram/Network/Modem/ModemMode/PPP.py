@@ -78,7 +78,10 @@ class PPP(IPPP):
         for pid in pid_list:
             self.logger.info('Killing pid %s that currently have an active PPP session',
                              pid)
-            psutil.Process(pid).terminate()
+            process = psutil.Process(pid)
+            process.terminate()
+            # Wait at least 10 seconds for the process to terminate
+            process.wait(10)
 
     def __check_for_existing_ppp_sessions(self):
 
