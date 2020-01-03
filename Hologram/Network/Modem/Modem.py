@@ -550,9 +550,10 @@ class Modem(IModem):
 
     # EFFECTS: Parses the rest of the sms pdu (sender).
     def _parse_sender(self, pdu, offset):
-
         sms_deliver = int(pdu[offset],16)
-        if sms_deliver & 0x03 != 0: return None
+        # options are SMS-SUBMIT, SMS-DELIVER or SMS-STATUS-REPORT
+        # we are looking for a deliver, return none for other types
+        if sms_deliver & 0x03 != 0: return None, offset
         offset += 1
         sender_len = int(pdu[offset:offset+2],16)
         offset += 2
@@ -889,4 +890,3 @@ class Modem(IModem):
     @property
     def imei(self):
         return self._basic_command('+GSN')
-
