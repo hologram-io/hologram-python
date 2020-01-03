@@ -289,7 +289,6 @@ class Modem(IModem):
             self.logger.info('Connect socket is successful')
 
     def listen_socket(self, port):
-
         at_command_val = "%d,%s" % (self.socket_identifier, port)
         self.listen_socket_identifier = self.socket_identifier
         ok, _ = self.set('+USOLI', at_command_val, timeout=5)
@@ -298,27 +297,18 @@ class Modem(IModem):
             raise NetworkError('Failed to listen socket')
 
     def write_socket(self, data):
-
         self.enable_hex_mode()
         hexdata = binascii.hexlify(data)
-        if len(hexdata) < 512:
+        # We have to do it in chunks of 510 since 512 is actually too long (CMEE error)
+        # and we need 2n chars for hexified data
+        for chunk in self._chunks(hexdata, 510):
             value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                    len(data),
-                    hexdata)
+                    len(binascii.unhexlify(chunk)),
+                    chunk)
             ok, _ = self.set('+USOWR', value, timeout=10)
             if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
                 raise NetworkError('Failed to write socket')
-        else:
-            # We have to do it in chunks of 510 since 512 is actually too long and we need 2 chars for hexified data
-            for chunk in self._chunks(hexdata, 510):
-                value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                        len(binascii.unhexlify(chunk)),
-                        chunk)
-                ok, _ = self.set('+USOWR', value, timeout=10)
-                if ok != ModemResult.OK:
-                    self.logger.error('Failed to write to socket')
-                    raise NetworkError('Failed to write socket')
         self.disable_hex_mode()
 
     def _chunks(self, data, n):
