@@ -57,6 +57,7 @@ def no_serial_port(monkeypatch):
 def get_sms(monkeypatch):
     monkeypatch.setattr(Modem, 'command', mock_command_sms)
     monkeypatch.setattr(Modem, 'set', mock_set_sms)
+
 @pytest.fixture
 def override_command_result(monkeypatch):
     monkeypatch.setattr(Modem, '_command_result', mock_result)
@@ -101,6 +102,8 @@ def test_get_sms(no_serial_port, get_sms):
     assert(res.sender == '447937405250')
     assert(res.timestamp == datetime.utcfromtimestamp(1498264009))
     assert(res.message == 'Test 123')
+
+# WRITE SOCKET
 
 def test_socket_write_under_512(no_serial_port, override_command_result):
     modem = Modem()
