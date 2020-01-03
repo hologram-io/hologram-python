@@ -57,8 +57,6 @@ def no_serial_port(monkeypatch):
 def get_sms(monkeypatch):
     monkeypatch.setattr(Modem, 'command', mock_command_sms)
     monkeypatch.setattr(Modem, 'set', mock_set_sms)
-def override_command_result(monkeypatch):
-    monkeypatch.setattr(Modem, '_command_result', mock_result)
 
 @pytest.fixture
 def override_command_result(monkeypatch):
