@@ -8,6 +8,7 @@
 
 import pytest
 import sys
+from datetime import datetime
 
 sys.path.append(".")
 sys.path.append("..")
@@ -33,6 +34,12 @@ def mock_close_serial_port(modem):
 
 def mock_detect_usable_serial_port(modem, stop_on_first=True):
     return '/dev/ttyUSB0'
+    
+def mock_command_sms(modem, at_command):
+    return (ModemResult.OK, ['+CMGL: 2,1,,26', '0791447779071413040C9144977304250500007160421062944008D4F29C0E8AC966'])
+
+def mock_set_sms(modem, at_command, val):
+    return None
 
 @pytest.fixture
 def no_serial_port(monkeypatch):
@@ -43,6 +50,10 @@ def no_serial_port(monkeypatch):
     monkeypatch.setattr(Modem, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Modem, 'detect_usable_serial_port', mock_detect_usable_serial_port)
 
+@pytest.fixture
+def get_sms(monkeypatch):
+    monkeypatch.setattr(Modem, 'command', mock_command_sms)
+    monkeypatch.setattr(Modem, 'set', mock_set_sms)
 
 # CONSTRUCTOR
 
@@ -79,6 +90,14 @@ def test_get_location(no_serial_port):
         assert(modem.location == 'test location')
         assert('This modem does not support this property' in str(e))
 
+# SMS
+
+def test_get_sms(no_serial_port, get_sms):
+    modem = Modem()
+    res = modem.popReceivedSMS()
+    assert(res.sender == '447937405250')
+    assert(res.timestamp == datetime.utcfromtimestamp(1498264009))
+    assert(res.message == 'Test 123')
 
 # DEBUGWRITE
 
