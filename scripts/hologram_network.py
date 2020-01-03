@@ -40,7 +40,9 @@ def run_network_disconnect(args):
         if 'pppd' in pinfo['name']:
             print('Found existing PPP session on pid: %s' % pinfo['pid'])
             print('Killing pid %s now' % pinfo['pid'])
-            psutil.Process(pinfo['pid']).terminate()
+            process = psutil.Process(pinfo['pid'])
+            process.terminate()
+            process.wait()
 
 _run_handlers = {
     'network_connect': run_network_connect,

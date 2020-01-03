@@ -73,7 +73,9 @@ def run_modem_disconnect(args):
         if 'pppd' in pinfo['name']:
             print('Found existing PPP session on pid: %s' % pinfo['pid'])
             print('Killing pid %s now' % pinfo['pid'])
-            psutil.Process(pinfo['pid']).terminate()
+            process = psutil.Process(pinfo['pid'])
+            process.terminate()
+            process.wait()
 
 def run_modem_signal(args):
     cloud = CustomCloud(None, network='cellular')
