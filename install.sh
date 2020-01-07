@@ -60,6 +60,14 @@ function install_software() {
     fi
 }
 
+function check_python_version() {
+    python3 -V | grep '3.[7-9].[0-9]' &> /dev/null
+    if ! [ $? == 0 ]; then
+        echo "An unsupported version of python 3 is installed. Must have python 3.7+ installed to use the Hologram SDK"
+        exit 1
+    fi
+}
+
 # EFFECTS: Returns true if the specified program is installed, false otherwise.
 function check_if_installed() {
     if command -v "$*" >/dev/null 2>&1; then
@@ -99,6 +107,8 @@ function verify_installation() {
     echo 'You are now ready to use the Hologram Python SDK!'
 }
 
+check_python_version
+
 update_repository
 
 # Iterate over all programs to see if they are installed
@@ -114,6 +124,11 @@ do
         if ! check_if_installed "$program"; then
             pause "Installing $program. Press [Enter] key to continue...";
             install_software 'python3-pip'
+        fi
+        pip3 -V | grep '3.[7-9]' &> /dev/null
+        if ! [ $? == 0 ]; then
+            echo "pip3 is installed for an unsupported version of python."
+            exit 1
         fi
     elif check_if_installed "$program"; then
         echo "$program is already installed."
