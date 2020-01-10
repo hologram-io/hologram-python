@@ -67,9 +67,13 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def delete(self, destination, gateway):
-        self.ipr.route('del',
-                       dst=destination,
-                       gateway=gateway)
+        try:
+            self.ipr.route('del',
+                           dst=destination,
+                           gateway=gateway)
+        except NetlinkError as e:
+            self.logger.debug('Could not delete route due to NetlinkError: %s', str(e))
+
 
     def __interface_index(self, interface):
         index = None
