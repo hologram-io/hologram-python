@@ -41,7 +41,7 @@ class Cellular(Network):
         self._modem = None
         self._route = Route()
         self.__receive_port = None
-        # self.__routing_configured = False
+        self.__routing_configured = False
 
 
     def autodetect_modem(self):
@@ -169,16 +169,16 @@ class Cellular(Network):
 
     def __configure_routing(self):
         # maybe we don't have to tear down the routes but we probably should
-        # if not self.__routing_configured: 
-        self.logger.info('Adding routes to Hologram cloud')
-        self._route.add('10.176.0.0/16', self.localIPAddress)
-        self._route.add('10.254.0.0/16', self.localIPAddress)
-        if self.scope == NetworkScope.SYSTEM:
-            self.logger.info('Adding system-wide default route to cellular interface')
-            self._route.add_default(self.localIPAddress)
+        if not self.__routing_configured: 
+            self.logger.info('Adding routes to Hologram cloud')
+            self._route.add('10.176.0.0/16', self.localIPAddress)
+            self._route.add('10.254.0.0/16', self.localIPAddress)
+            if self.scope == NetworkScope.SYSTEM:
+                self.logger.info('Adding system-wide default route to cellular interface')
+                self._route.add_default(self.localIPAddress)
 
     def __remove_routing(self):
-        self.logger.info('Adding routes to Hologram cloud')
+        self.logger.info('Removing routes to Hologram cloud')
         self._route.delete('10.176.0.0/16', self.localIPAddress)
         self._route.delete('10.254.0.0/16', self.localIPAddress)
         if self.scope == NetworkScope.SYSTEM:
