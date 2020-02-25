@@ -1,8 +1,7 @@
-# MS2131.py - Hologram Python SDK Huawei MS2131 modem interface
+# E372.py - Based on Hologram Python SDK Huawei MS2131 modem interface
 #
-# Author: Hologram <support@hologram.io>
 #
-# Copyright 2016 - Hologram (Konekt, Inc.)
+#
 #
 #
 # LICENSE: Distributed under the terms of the MIT License
@@ -38,7 +37,6 @@ class E372(Modem):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")
 
-    # AT sockets mode is always disabled for MS2131.
     def disable_at_sockets_mode(self):
         pass
 
