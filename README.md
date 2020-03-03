@@ -1,7 +1,7 @@
 # hologram-python
 
 [![PyPI version](https://badge.fury.io/py/hologram-python.svg)](https://badge.fury.io/py/hologram-python)
-[![Python package](https://github.com/hologram-io/hologram-python/actions)](https://github.com/hologram-io/hologram-python/workflows/Python%20package/badge.svg)
+[![Python package](https://github.com/hologram-io/hologram-python/workflows/Python%20package/badge.svg)](https://github.com/hologram-io/hologram-python/actions)
 [![Coverage Status](https://coveralls.io/repos/github/hologram-io/hologram-python/badge.svg?branch=master)](https://coveralls.io/github/hologram-io/hologram-python?branch=master)
 
 ## Introduction
