@@ -90,7 +90,7 @@ class Cellular(Network):
             self.logger.info('Successfully disconnected from cell network')
             self._connection_status = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
-            super().connect()
+            super().disconnect()
         else:
             self.logger.info('Failed to disconnect from cell network')
 
