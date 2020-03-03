@@ -32,7 +32,7 @@ jobs:
     
     - name: Test with coverage and coveralls
       run: |
-        pip install coveralls
+        pip install coveralls pytest
         coverage run --source Hologram -m pytest
           
     - name: Coveralls
