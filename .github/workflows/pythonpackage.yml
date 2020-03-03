@@ -32,8 +32,8 @@ jobs:
     
     - name: Test with coverage and coveralls
       run: |
-        - pip install coveralls
-        - coverage run --source Hologram -m pytest
+        pip install coveralls
+        coverage run --source Hologram -m pytest
           
     - name: Coveralls
       uses: coverallsapp/github-action@master
