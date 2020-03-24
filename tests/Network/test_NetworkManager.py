@@ -14,7 +14,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Network import NetworkManager
 
-class TestNetworkManager():
+class TestNetworkManager:
 
     def test_create_non_network(self):
         networkManager = NetworkManager.NetworkManager(None, '')

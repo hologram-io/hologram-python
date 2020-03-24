@@ -207,7 +207,7 @@ def test_command_result(no_serial_port):
 
 # These are static methods that can be tested independently.
 # We decided to wrap it all here under this test object
-class TestModemProtectedStaticMethods():
+class TestModemProtectedStaticMethods:
 
     def test_check_registered_string(self):
         result = '+CREG: 2,5,"5585","404C790",6'
