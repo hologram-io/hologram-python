@@ -14,7 +14,7 @@ import requests
 
 HOLOGRAM_REST_API_BASEURL = 'https://dashboard.hologram.io/api/1'
 
-class Api():
+class Api:
 
     def __init__(self, apikey='', username='', password=''):
         # Logging setup.

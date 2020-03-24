@@ -17,7 +17,7 @@ from Hologram.Authentication.HologramAuthentication import HologramAuthenticatio
 
 credentials = {'devicekey': '12345678'}
 
-class TestHologramAuthentication():
+class TestHologramAuthentication:
 
     def test_create(self):
         auth = HologramAuthentication(credentials)

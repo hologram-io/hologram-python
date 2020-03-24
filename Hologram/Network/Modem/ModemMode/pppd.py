@@ -23,7 +23,7 @@ from Exceptions.HologramError import PPPError, PPPConnectionError
 __version__ = '1.0.3'
 DEFAULT_CONNECT_TIMEOUT = 200
 
-class PPPConnection():
+class PPPConnection:
 
     def __repr__(self):
         return type(self).__name__

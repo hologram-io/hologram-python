@@ -16,7 +16,7 @@ from Hologram.HologramCloud import HologramCloud
 
 credentials = {'devicekey':'12345678'}
 
-class TestHologramCloud():
+class TestHologramCloud:
 
     def test_create(self):
         hologram = HologramCloud(credentials, enable_inbound = False)
