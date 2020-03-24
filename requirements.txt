@@ -3,7 +3,6 @@ mock~=3.0.5
 pyroute2==0.5.*
 pyserial~=3.4.0
 python-pppd==1.0.3
-python-sdk-auth~=0.3.0
 pyudev~=0.21.0
 pyusb~=1.0.2
 psutil~=5.6.3

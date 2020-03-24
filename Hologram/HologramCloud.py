@@ -12,7 +12,6 @@ import binascii
 import json
 import sys
 from Hologram.CustomCloud import CustomCloud
-from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
 from Hologram.Authentication import CSRPSKAuthentication
 from Exceptions.HologramError import HologramError
 
@@ -40,9 +39,7 @@ ERR_UNKNOWN = -1 # Unknown error
 class HologramCloud(CustomCloud):
 
     _authentication_handlers = {
-        'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication,
-        'totp' : TOTPAuthentication.TOTPAuthentication,
-        'sim-otp' : SIMOTPAuthentication.SIMOTPAuthentication,
+        'csrpsk' : CSRPSKAuthentication.CSRPSKAuthentication
     }
 
     _errorCodeDescription = {
@@ -60,7 +57,7 @@ class HologramCloud(CustomCloud):
     }
 
     def __init__(self, credentials, enable_inbound=False, network='',
-                 authentication_type='totp'):
+                 authentication_type='csrpsk'):
         super().__init__(credentials,
                          send_host=HOLOGRAM_HOST_SEND,
                          send_port=HOLOGRAM_PORT_SEND,
@@ -70,9 +67,6 @@ class HologramCloud(CustomCloud):
                          network=network)
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
-
-        if self.authenticationType == 'totp':
-            self.__populate_totp_credentials()
 
     # EFFECTS: Authentication Configuration
     def setAuthenticationType(self, credentials, authentication_type='csrpsk'):
@@ -90,10 +84,6 @@ class HologramCloud(CustomCloud):
         if not self.is_ready_to_send():
             self.addPayloadToBuffer(message)
             return ''
-
-        # Set the appropriate credentials required for sim otp authentication.
-        if self.authenticationType == 'sim-otp':
-            self.__populate_sim_otp_credentials()
 
         modem_type = None
         modem_id = None
@@ -118,21 +108,6 @@ class HologramCloud(CustomCloud):
             resultList = self.__parse_hologram_compact_result(result)
 
         return resultList[0]
-
-    def __populate_totp_credentials(self):
-        try:
-            self.authentication.credentials['device_id'] = self.network.iccid
-            self.authentication.credentials['private_key'] = self.network.imsi
-        except Exception as e:
-            self.logger.error('Unable to fetch device id or private key')
-
-    def __populate_sim_otp_credentials(self):
-        nonce = self.request_hex_nonce()
-        command = self.authentication.generate_sim_otp_command(imsi=self.network.imsi,
-                                                               iccid=self.network.iccid,
-                                                               nonce=nonce)
-        modem_response = self.network.get_sim_otp_response(command)
-        self.authentication.generate_sim_otp_token(modem_response)
 
     def sendSMS(self, destination_number, message):
 
