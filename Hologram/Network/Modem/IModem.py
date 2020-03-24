@@ -17,7 +17,7 @@ MODEM_ERROR = -2
 MODEM_TIMEOUT = -1
 MODEM_OK = 0
 
-class IModem():
+class IModem:
 
     usb_ids = []
     # module needed by modem

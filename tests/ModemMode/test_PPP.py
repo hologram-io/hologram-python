@@ -13,7 +13,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Network.Modem.ModemMode.MockPPP import MockPPP
 
-class TestPPP():
+class TestPPP:
 
     def test_ppp_create(self):
         ppp = MockPPP(chatscript_file='test')

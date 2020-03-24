@@ -15,7 +15,7 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Authentication.CSRPSKAuthentication import CSRPSKAuthentication
 
-class TestCSRPSKAuthentication():
+class TestCSRPSKAuthentication:
 
     def test_create(self):
         credentials = {'devicekey': '12345678'}
