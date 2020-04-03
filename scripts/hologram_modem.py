@@ -91,11 +91,14 @@ def run_modem_signal(args):
 
 def run_at_command(args):
     cloud = CustomCloud(None, network='cellular')
-    cmd = args['command'].lstrip("AT")
+    cmd = ''
+    if args['command'] is not None:
+        cmd = args['command'].lstrip("AT")
     val = None
     if not cmd.endswith('?') and '=' in cmd:
         cmd, val = cmd.split('=')
-    response = cloud.network.modem.command(cmd, val)
+    # We dont really care about the result just the response
+    _, response = cloud.network.modem.command(cmd, val)
     print('Response: ' + response)
 
 def run_modem_version(args):
