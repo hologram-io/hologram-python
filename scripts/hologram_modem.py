@@ -232,7 +232,7 @@ def parse_hologram_modem_args(parser):
     parser_command = subparsers.add_parser('command', help=help_at_command)
     parser_command.set_defaults(command_selected='modem_command')
     parser_command.add_argument('command', nargs='?', help='AT command to send to the modem')
-    parser.add_argument('-t', '--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
+    parser_command.add_argument('-t', '--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
                         help='The period in seconds before the command exits if it doesn\'t receive a response')
     parser_command.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
