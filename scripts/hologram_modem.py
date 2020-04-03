@@ -97,9 +97,8 @@ def run_at_command(args):
     val = None
     if not cmd.endswith('?') and '=' in cmd:
         cmd, val = cmd.split('=')
-    # We dont really care about the result just the response
-    _, response = cloud.network.modem.command(cmd, val)
-    print('Response: ' + '\n'.join(map(str, response)))
+    result, response = cloud.network.modem.command(cmd, val)
+    print('Response: ' + '\n'.join(map(str, response)) + f'\n{result}')
 
 def run_modem_version(args):
     cloud = CustomCloud(None, network='cellular')
