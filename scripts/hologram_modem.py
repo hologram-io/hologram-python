@@ -99,7 +99,7 @@ def run_at_command(args):
         cmd, val = cmd.split('=')
     # We dont really care about the result just the response
     _, response = cloud.network.modem.command(cmd, val)
-    print('Response: ' + response)
+    print('Response: ' + '\n'.join(map(str, response)))
 
 def run_modem_version(args):
     cloud = CustomCloud(None, network='cellular')
