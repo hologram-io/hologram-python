@@ -56,6 +56,7 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def add(self, destination, gateway):
+        self.logger.info('Adding Route %s : %s', destination, gateway)
         with IPRoute() as ipr:
             ipr.route('add',
                        dst=destination,
@@ -68,6 +69,7 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def delete(self, destination, gateway):
+        self.logger.info('Removing Route %s : %s', destination, gateway)
         try:
             with IPRoute() as ipr:
                 ipr.route('del',
