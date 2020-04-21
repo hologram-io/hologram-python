@@ -179,10 +179,11 @@ class Cellular(Network):
 
     def __remove_routing(self):
         self.logger.info('Removing routes to Hologram cloud')
+        self._route.list_routes()
         self._route.delete('10.176.0.0/16', self.localIPAddress)
         self._route.delete('10.254.0.0/16', self.localIPAddress)
         if self.scope == NetworkScope.SYSTEM:
-            self.logger.info('Adding system-wide default route to cellular interface')
+            self.logger.info('Removing system-wide default route to cellular interface')
             self._route.delete_default(self.localIPAddress)
 
     def _load_modem_drivers(self):

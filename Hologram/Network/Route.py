@@ -11,6 +11,7 @@
 
 import logging
 import time
+from socket import AF_INET
 from logging import NullHandler
 from pyroute2 import IPRoute
 from pyroute2.netlink.exceptions import NetlinkError
@@ -74,6 +75,12 @@ class Route:
                            gateway=gateway)
         except NetlinkError as e:
             self.logger.debug('Could not delete route due to NetlinkError: %s', str(e))
+
+    def list_routes(self):
+        with IPRoute() as ipr:
+            routes = ipr.get_routes(family=AF_INET)
+            for route in routes:
+                print(route)
 
 
     def __interface_index(self, interface):
