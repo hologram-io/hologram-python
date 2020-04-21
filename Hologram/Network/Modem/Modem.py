@@ -13,7 +13,8 @@ from Hologram.Network.Modem.ModemMode import PPP
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
-from Exceptions.HologramError import SerialError, HologramError, NetworkError
+from Exceptions.HologramError import SerialError, HologramError, NetworkError, PPPError
+
 
 from collections import deque
 import binascii
@@ -101,7 +102,13 @@ class Modem(IModem):
 
         if self._mode is not None:
             return self._mode.disconnect()
-        return None
+        else:
+            try:
+                PPP.shut_down_existing_ppp_session(self.logger)
+                return True
+            except PPPError as e:
+                self.logger.info('Got PPPError trying to disconnect open sessions')
+                return None
 
     def _initialize_device_name(self, device_name):
         if device_name is None:
