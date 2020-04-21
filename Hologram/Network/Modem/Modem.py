@@ -890,11 +890,17 @@ class Modem(IModem):
 
     @property
     def localIPAddress(self):
-        return self._mode.localIPAddress
+        if self._mode:
+            return self._mode.localIPAddress
+        else:
+            return None
 
     @property
     def remoteIPAddress(self):
-        return self._mode.remoteIPAddress
+        if self._mode:
+            return self._mode.remoteIPAddress
+        else:
+            return None
 
 
     @property

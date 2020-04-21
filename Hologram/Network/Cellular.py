@@ -86,12 +86,12 @@ class Cellular(Network):
 
     def disconnect(self):
         self.logger.info('Disconnecting from cell network')
+        self.__remove_routing()
         success = self.modem.disconnect()
         if success:
             self.logger.info('Successfully disconnected from cell network')
             self._connection_status = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
-            self.__remove_routing()
             super().disconnect()
         else:
             self.logger.info('Failed to disconnect from cell network')
@@ -180,11 +180,12 @@ class Cellular(Network):
     def __remove_routing(self):
         self.logger.info('Removing routes to Hologram cloud')
         self._route.list_routes()
-        self._route.delete('10.176.0.0/16', self.localIPAddress)
-        self._route.delete('10.254.0.0/16', self.localIPAddress)
-        if self.scope == NetworkScope.SYSTEM:
-            self.logger.info('Removing system-wide default route to cellular interface')
-            self._route.delete_default(self.localIPAddress)
+        if self.localIPAddress:
+            self._route.delete('10.176.0.0/16', self.localIPAddress)
+            self._route.delete('10.254.0.0/16', self.localIPAddress)
+            if self.scope == NetworkScope.SYSTEM:
+                self.logger.info('Removing system-wide default route to cellular interface')
+                self._route.delete_default(self.localIPAddress)
 
     def _load_modem_drivers(self):
         dl = DriverLoader.DriverLoader()
