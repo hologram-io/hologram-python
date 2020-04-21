@@ -73,6 +73,8 @@ class Cellular(Network):
             self.logger.info('Successfully connected to cell network')
             # Disable at sockets mode since we're already establishing PPP.
             # This call is needed in certain modems that have limited interfaces to work with.
+            time.sleep(5)
+            # give the device a little time to enumerate
             self.disable_at_sockets_mode()
             self.__configure_routing()
             self._connection_status = CLOUD_CONNECTED

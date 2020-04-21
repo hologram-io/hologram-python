@@ -101,7 +101,9 @@ class Modem(IModem):
     def disconnect(self):
 
         if self._mode is not None:
-            return self._mode.disconnect()
+            res = self._mode.disconnect()
+            self._mode = None
+            return res
         else:
             try:
                 PPP.shut_down_existing_ppp_session(self.logger)

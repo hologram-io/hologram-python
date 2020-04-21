@@ -104,6 +104,8 @@ class PPPConnection:
         while (time.time() - starttime) < timeout:
             self.readFromPPP()
 
+            self.logger.info(self.output)
+
             if self.laddr is not None and self.raddr is not None:
                 return True
 
