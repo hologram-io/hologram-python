@@ -118,6 +118,9 @@ class PPPConnection:
         if self.proc and self.proc.poll() is None:
             self.proc.send_signal(signal.SIGTERM)
             time.sleep(1)
+            self._laddr = None
+            self._raddr = None
+            self.proc = None
 
 
     # EFFECTS: Returns true if a cellular connection is established.
