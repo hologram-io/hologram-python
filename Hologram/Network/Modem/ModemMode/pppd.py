@@ -104,8 +104,6 @@ class PPPConnection:
         while (time.time() - starttime) < timeout:
             self.readFromPPP()
 
-            self.logger.info(self.output)
-
             if self.laddr is not None and self.raddr is not None:
                 return True
 
@@ -120,6 +118,7 @@ class PPPConnection:
         if self.proc and self.proc.poll() is None:
             self.proc.send_signal(signal.SIGTERM)
             time.sleep(1)
+            # Reset the values when we disconnect
             self._laddr = None
             self._raddr = None
             self.proc = None

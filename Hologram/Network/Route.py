@@ -11,7 +11,6 @@
 
 import logging
 import time
-from socket import AF_INET
 from logging import NullHandler
 from pyroute2 import IPRoute
 from pyroute2.netlink.exceptions import NetlinkError
@@ -56,7 +55,7 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def add(self, destination, gateway):
-        self.logger.info('Adding Route %s : %s', destination, gateway)
+        self.logger.debug('Adding Route %s : %s', destination, gateway)
         with IPRoute() as ipr:
             ipr.route('add',
                        dst=destination,
@@ -69,7 +68,7 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def delete(self, destination, gateway):
-        self.logger.info('Removing Route %s : %s', destination, gateway)
+        self.logger.debug('Removing Route %s : %s', destination, gateway)
         try:
             with IPRoute() as ipr:
                 ipr.route('del',
@@ -77,12 +76,6 @@ class Route:
                            gateway=gateway)
         except NetlinkError as e:
             self.logger.debug('Could not delete route due to NetlinkError: %s', str(e))
-
-    def list_routes(self):
-        with IPRoute() as ipr:
-            routes = ipr.get_routes(family=AF_INET)
-            for route in routes:
-                print(route)
 
 
     def __interface_index(self, interface):

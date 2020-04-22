@@ -73,7 +73,7 @@ class Cellular(Network):
             self.logger.info('Successfully connected to cell network')
             # Disable at sockets mode since we're already establishing PPP.
             # This call is needed in certain modems that have limited interfaces to work with.
-            time.sleep(5)
+            time.sleep(2)
             # give the device a little time to enumerate
             self.disable_at_sockets_mode()
             self.__configure_routing()
@@ -170,7 +170,6 @@ class Cellular(Network):
 
     def __configure_routing(self):
         # maybe we don't have to tear down the routes but we probably should
-        self._route.list_routes()
         self.logger.info('Adding routes to Hologram cloud')
         self._route.add('10.176.0.0/16', self.localIPAddress)
         self._route.add('10.254.0.0/16', self.localIPAddress)
@@ -180,7 +179,6 @@ class Cellular(Network):
 
     def __remove_routing(self):
         self.logger.info('Removing routes to Hologram cloud')
-        self._route.list_routes()
         if self.localIPAddress:
             self._route.delete('10.176.0.0/16', self.localIPAddress)
             self._route.delete('10.254.0.0/16', self.localIPAddress)
