@@ -20,7 +20,6 @@ DEFAULT_DESTINATION = '0.0.0.0/0'
 
 class Route:
     def __init__(self):
-        self.ipr = IPRoute()
         self.logger = logging.getLogger(__name__)
         self.logger.addHandler(NullHandler())
 
@@ -56,13 +55,33 @@ class Route:
             self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
 
     def add(self, destination, gateway):
-        self.ipr.route('add',
+        self.logger.debug('Adding Route %s : %s', destination, gateway)
+        with IPRoute() as ipr:
+            ipr.route('add',
                        dst=destination,
                        gateway=gateway)
 
+    def delete_default(self, gateway):
+        try:
+            self.delete(DEFAULT_DESTINATION, gateway)
+        except NetlinkError as e:
+            self.logger.debug('Could not set default route due to NetlinkError: %s', str(e))
+
+    def delete(self, destination, gateway):
+        self.logger.debug('Removing Route %s : %s', destination, gateway)
+        try:
+            with IPRoute() as ipr:
+                ipr.route('del',
+                           dst=destination,
+                           gateway=gateway)
+        except NetlinkError as e:
+            self.logger.debug('Could not delete route due to NetlinkError: %s', str(e))
+
+
     def __interface_index(self, interface):
         index = None
-        indexes = self.ipr.link_lookup(ifname=interface)
+        with IPRoute() as ipr:
+            indexes = ipr.link_lookup(ifname=interface)
         if len(indexes) == 1:
             index = indexes[0]
         return index
@@ -71,7 +90,8 @@ class Route:
         if self.is_interface_available(interface):
             link_state = None
             ipr_index = self.__interface_index(interface)
-            links = self.ipr.get_links()
+            with IPRoute() as ipr:
+                links = ipr.get_links()
 
             for link in links:
                 if link['index'] == ipr_index:
