@@ -325,7 +325,7 @@ class CustomCloud(Cloud):
         clientsocket.settimeout(RECEIVE_TIMEOUT)
 
         # Keep parsing the received data until timeout or receive no more data.
-        recv = ''
+        recv = b''
         while True:
             try:
                 result = clientsocket.recv(MAX_RECEIVE_BYTES)
