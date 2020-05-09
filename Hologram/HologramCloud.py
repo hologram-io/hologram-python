@@ -186,7 +186,10 @@ class HologramCloud(CustomCloud):
     def __parse_hologram_json_result(self, result):
         try:
             resultList = json.loads(result)
-            resultList[0] = int(resultList[0])
+            if isinstance(resultList, bytes):
+                resultList[0] = int(chr(resultList[0]))
+            else:
+                resultList[0] = int(resultList[0])
         except ValueError:
             self.logger.error('Server replied with invalid JSON [%s]', result)
             resultList = [ERR_UNKNOWN]
