@@ -203,8 +203,12 @@ class HologramCloud(CustomCloud):
             return [ERR_UNKNOWN]
 
         resultList = []
-        for x in result:
-            resultList.append(int(x))
+        if isinstance(result, bytes):
+            for x in result:
+                resultList.append(int(chr(x)))
+        else:
+            for x in result:
+                resultList.append(int(x))
 
         if len(resultList) == 0:
             resultList = [ERR_UNKNOWN]
