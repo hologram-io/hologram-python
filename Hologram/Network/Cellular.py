@@ -41,14 +41,16 @@ class Cellular(Network):
         self._modem = None
         self._route = Route()
         self.__receive_port = None
+        self.available_modems = []
 
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
-        dev_devices = self._scan_for_modems()
-        if dev_devices is None:
+        self.available_modems = self._scan_for_modems()
+        if self.available_modems is None:
             raise NetworkError('Modem not detected')
-        self.modem = dev_devices[0]
+        # get the first device in the list and its name
+        self.modem = self.available_modems[0]
 
     def load_modem_drivers(self):
         self._load_modem_drivers()
@@ -207,24 +209,25 @@ class Cellular(Network):
 
 
     def _scan_for_modems(self):
-        res = None
+        res = []
         for (modemName, modemHandler) in self._modemHandlers.items():
-            if self._scan_for_modem(modemHandler):
-                res = (modemName, modemHandler)
-                break
+            for modem in self._scan_for_modem_model(modemHandler):
+                res.append((modemName, modemHandler, modem.device))
         return res
 
 
-    def _scan_for_modem(self, modemHandler):
+    def _scan_for_modem_model(self, modemHandler):
         usb_ids = modemHandler.usb_ids
-        for vid_pid in usb_ids:
-            if not vid_pid:
+        modems = {}
+        for vid, pid in usb_ids:
+            if not vid or not pid:
                 continue
-            self.logger.debug('checking for vid_pid: %s', str(vid_pid))
-            for dev in list_ports.grep("{0}:{1}".format(vid_pid[0], vid_pid[1])):
-                self.logger.info('Detected modem %s', modemHandler.__name__)
-                return True
-        return False
+            self.logger.debug('checking for vid_pid: %s:%s', vid, pid)
+            for dev in list_ports.grep("{0}:{1}".format(vid, pid)):
+                if dev.serial_number not in modems:
+                    self.logger.info('Detected modem %s with serial number %s', modemHandler.__name__, dev.serial_number)
+                    modems[dev.serial_number] = dev
+        return modems.values()
 
 
 
@@ -235,9 +238,15 @@ class Cellular(Network):
 
     @modem.setter
     def modem(self, modem):
-        if modem not in self._modemHandlers:
-            raise NetworkError('Invalid modem type: %s' % modem)
-        else:
+        if isinstance(modem, Modem):
+            self._modem = modem
+        elif isinstance(modem, tuple):
+            # This is the name, handler, and device path of the modem, lets unpack it
+            name, handler, device_name = modem
+            self._modem = handler(event=self.event, device_name=device_name)
+        elif isinstance(modem, str):
+            if modem not in self._modemHandlers:
+                raise NetworkError('Invalid modem type: %s' % modem)
             self._modem = self._modemHandlers[modem](event=self.event)
 
     @property

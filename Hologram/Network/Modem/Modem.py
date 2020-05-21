@@ -188,33 +188,46 @@ class Modem(IModem):
 
     def __detect_all_serial_ports(self, stop_on_first=False, include_all_ports=True):
         # figures out the serial ports associated with the modem and returns them
-        device_names = []
-        for usb_id in self.usb_ids:
-            vid = usb_id[0]
-            pid = usb_id[1]
+        devices = {}
+        serial_num = None
+        if self.device_name:
+            udevices = [x for x in list_ports.grep()]
+            if len(udevices) > 0:
+                serial_num = udevices[0].serial_number
+        if serial_num:
+            return [x.device for x in reversed(list_ports.grep(serial_num))]
+        else:
+            for vid, pid in self.usb_ids:
 
-            # The list_ports function returns devices in descending order, so reverse
-            # the order here to iterate in ascending order (e.g. from /dev/xx0 to /dev/xx6)
-            # since our usable serial devices usually start at 0.
-            udevices = [x for x in list_ports.grep("{0}:{1}".format(vid, pid))]
-            for udevice in reversed(udevices):
-                if include_all_ports == False:
-                    self.logger.debug('checking port %s', udevice.name)
-                    port_opened = self.openSerialPort(udevice.device)
-                    if not port_opened:
-                        continue
+                # The list_ports function returns devices in descending order, so reverse
+                # the order here to iterate in ascending order (e.g. from /dev/xx0 to /dev/xx6)
+                # since our usable serial devices usually start at 0.
+                for udevice in reversed(list_ports.grep("{0}:{1}".format(vid, pid))):
+                    if include_all_ports == False:
+                        self.logger.debug('checking port %s', udevice.name)
+                        port_opened = self.openSerialPort(udevice.device)
+                        if not port_opened:
+                            continue
 
-                    res = self.command('', timeout=1)
-                    if res[0] != ModemResult.OK:
-                        continue
-                    self.logger.info('found working port at %s', udevice.name)
+                        res = self.command('', timeout=1)
+                        if res[0] != ModemResult.OK:
+                            continue
+                        self.logger.info('found working port at %s', udevice.name)
 
-                device_names.append(udevice.device)
-                if stop_on_first:
+                    if not serial_num:
+                        # get the first serial we find and return the ports for that device only
+                        serial_num = udevice.serial_number
+                    if not devices[udevice.serial_number]:
+                        devices[udevice.serial_number] = [udevice.device]
+                    else:
+                        devices[udevice.serial_number].append(udevice.device)
+                    if stop_on_first:
+                        break
+                if stop_on_first and devices:
                     break
-            if stop_on_first and device_names:
-                break
-        return device_names
+            if devices and serial_num:
+                return devices[serial_num].values()
+        return []
 
     def detect_usable_serial_port(self, stop_on_first=True):
         return self.__detect_all_serial_ports(stop_on_first=stop_on_first,
