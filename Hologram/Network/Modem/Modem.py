@@ -212,7 +212,7 @@ class Modem(IModem):
                         devices[serial_num].append(udevice.device)
                     if stop_on_first:
                         break
-                return devices[serial_num].values()
+                return devices[serial_num]
             return list(reversed([x.device for x in list_ports.grep(serial_num)]))
         else:
             for vid, pid in self.usb_ids:
@@ -244,7 +244,7 @@ class Modem(IModem):
                 if stop_on_first and devices:
                     break
             if devices and serial_num:
-                return devices[serial_num].values()
+                return devices[serial_num]
         return []
 
     def detect_usable_serial_port(self, stop_on_first=True):
