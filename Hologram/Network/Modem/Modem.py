@@ -133,6 +133,7 @@ class Modem(IModem):
             device_name = self.device_name
 
         try:
+            self.logger.debug('Connecting to serial port %s', device_name)
             self.serial_port = serial.Serial(device_name, baudrate=self.baud_rate,
                                              bytesize=8, parity='N', stopbits=1,
                                              timeout=self.timeout, write_timeout=1)

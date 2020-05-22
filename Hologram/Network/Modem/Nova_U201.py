@@ -41,6 +41,7 @@ class Nova_U201(Nova):
             devices = self.detect_usable_serial_port()
             if not devices:
                 raise SerialError('Not enough serial ports detected for Nova')
+            self.logger.debug('Moving connection to port %s', devices[0])
             self.device_name = devices[0]
             super().initialize_serial_interface()
 
