@@ -196,7 +196,7 @@ class Modem(IModem):
                 serial_num = udevices[0].serial_number
         if serial_num:
             if not include_all_ports:
-                for udevice in list(reversed([x.device for x in list_ports.grep(serial_num)])):
+                for udevice in reversed(list(list_ports.grep(serial_num))):
                     self.logger.debug('checking port %s', udevice.name)
                     port_opened = self.openSerialPort(udevice.device)
                     if not port_opened:
