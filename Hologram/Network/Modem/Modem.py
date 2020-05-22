@@ -206,7 +206,7 @@ class Modem(IModem):
                     if res[0] != ModemResult.OK:
                         continue
                     self.logger.info('found working port at %s', udevice.name)
-                    if not devices[serial_num]:
+                    if serial_num not in devices:
                         devices[serial_num] = [udevice.device]
                     else:
                         devices[serial_num].append(udevice.device)
@@ -235,7 +235,7 @@ class Modem(IModem):
                     if not serial_num:
                         # get the first serial we find and return the ports for that device only
                         serial_num = udevice.serial_number
-                    if not devices[udevice.serial_number]:
+                    if udevice.serial_number not in devices:
                         devices[udevice.serial_number] = [udevice.device]
                     else:
                         devices[udevice.serial_number].append(udevice.device)
