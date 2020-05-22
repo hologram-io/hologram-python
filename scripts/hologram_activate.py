@@ -52,7 +52,7 @@ def run_hologram_activate(args):
 
     success, plans = api.getPlans()
 
-    if success == False:
+    if not success:
         raise HologramError('Failed to fetch plans')
 
     planIdToZonesDict = populate_valid_plans(plans)
@@ -64,7 +64,7 @@ def run_hologram_activate(args):
     success, response = api.activateSIM(sim=sim, plan=selected_plan,
                                         zone=selected_zone, preview=True)
 
-    if success == False:
+    if not success:
         print('Activation verification failed: %s' % response)
         return
     elif not confirm_activation(sim, plan_name, selected_plan, selected_zone, response['total_cost']):

@@ -32,7 +32,7 @@ if __name__ == "__main__":
                              network='cellular')
 
     result = hologram.network.connect()
-    if result == False:
+    if not result:
         print('Failed to connect to cell network')
 
     recv = hologram.sendMessage("one two three!",

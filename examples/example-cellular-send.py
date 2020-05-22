@@ -33,7 +33,7 @@ if __name__ == "__main__":
     hologram = HologramCloud(credentials, network='cellular')
 
     result = hologram.network.connect()
-    if result == False:
+    if not result:
         print('Failed to connect to cell network')
 
     print('Cloud type: ' + str(hologram))

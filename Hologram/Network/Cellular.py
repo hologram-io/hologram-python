@@ -106,7 +106,7 @@ class Cellular(Network):
         self.logger.info('Reconnecting to cell network')
         success = self.disconnect()
 
-        if success == False:
+        if not success:
             self.logger.info('Failed to disconnect from cell network')
             return False
 

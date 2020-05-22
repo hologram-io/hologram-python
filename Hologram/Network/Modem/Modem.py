@@ -191,7 +191,7 @@ class Modem(IModem):
         devices = {}
         serial_num = None
         if self.device_name:
-            udevices = [x for x in list_ports.grep()]
+            udevices = [x for x in list_ports.grep(self.device_name)]
             if len(udevices) > 0:
                 serial_num = udevices[0].serial_number
         if serial_num:
@@ -203,7 +203,7 @@ class Modem(IModem):
                 # the order here to iterate in ascending order (e.g. from /dev/xx0 to /dev/xx6)
                 # since our usable serial devices usually start at 0.
                 for udevice in reversed(list_ports.grep("{0}:{1}".format(vid, pid))):
-                    if include_all_ports == False:
+                    if not include_all_ports:
                         self.logger.debug('checking port %s', udevice.name)
                         port_opened = self.openSerialPort(udevice.device)
                         if not port_opened:
