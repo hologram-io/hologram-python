@@ -195,6 +195,24 @@ class Modem(IModem):
             if len(udevices) > 0:
                 serial_num = udevices[0].serial_number
         if serial_num:
+            if not include_all_ports:
+                for udevice in list(reversed([x.device for x in list_ports.grep(serial_num)])):
+                    self.logger.debug('checking port %s', udevice.name)
+                    port_opened = self.openSerialPort(udevice.device)
+                    if not port_opened:
+                        continue
+
+                    res = self.command('', timeout=1)
+                    if res[0] != ModemResult.OK:
+                        continue
+                    self.logger.info('found working port at %s', udevice.name)
+                    if not devices[serial_num]:
+                        devices[serial_num] = [udevice.device]
+                    else:
+                        devices[serial_num].append(udevice.device)
+                    if stop_on_first:
+                        break
+                return devices[serial_num].values()
             return list(reversed([x.device for x in list_ports.grep(serial_num)]))
         else:
             for vid, pid in self.usb_ids:
