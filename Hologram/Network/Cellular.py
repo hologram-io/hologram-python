@@ -223,7 +223,7 @@ class Cellular(Network):
             if not vid or not pid:
                 continue
             self.logger.debug('checking for vid_pid: %s:%s', vid, pid)
-            for dev in list_ports.grep("{0}:{1}".format(vid, pid)):
+            for dev in reversed(list(list_ports.grep("{0}:{1}".format(vid, pid)))):
                 if dev.serial_number not in modems:
                     self.logger.info('Detected modem %s with serial number %s', modemHandler.__name__, dev.serial_number)
                     modems[dev.serial_number] = dev

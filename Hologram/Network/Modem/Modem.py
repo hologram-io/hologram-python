@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Modem.py - Hologram Python SDK Modem interface
 #
 # Author: Hologram <support@hologram.io>
@@ -195,7 +194,7 @@ class Modem(IModem):
             if len(udevices) > 0:
                 serial_num = udevices[0].serial_number
         if serial_num:
-            return reversed([x.device for x in list_ports.grep(serial_num)])
+            return list(reversed([x.device for x in list_ports.grep(serial_num)]))
         else:
             for vid, pid in self.usb_ids:
 
