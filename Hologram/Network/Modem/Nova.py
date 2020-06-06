@@ -24,6 +24,9 @@ class Nova(Modem):
     def disable_at_sockets_mode(self):
         self._at_sockets_available = False
 
+    def enable_at_sockets_mode(self):
+        self._at_sockets_available = True
+
     @property
     def version(self):
         return self._basic_command('I9')

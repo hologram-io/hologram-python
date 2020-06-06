@@ -91,6 +91,7 @@ class Cellular(Network):
         success = self.modem.disconnect()
         if success:
             self.logger.info('Successfully disconnected from cell network')
+            self.enable_at_sockets_mode()
             self._connection_status = CLOUD_DISCONNECTED
             self.event.broadcast('cellular.disconnected')
             super().disconnect()
@@ -139,6 +140,9 @@ class Cellular(Network):
 
     def disable_at_sockets_mode(self):
         self.modem.disable_at_sockets_mode()
+
+    def enable_at_sockets_mode(self):
+        self.modem.enable_at_sockets_mode()
 
     def enableSMS(self):
         return self.modem.enableSMS()

@@ -37,10 +37,6 @@ class E303(Modem):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")
 
-    # AT sockets mode is always disabled for E303.
-    def disable_at_sockets_mode(self):
-        pass
-
     @property
     def iccid(self):
         return self._basic_command('^ICCID?').lstrip('^ICCID: ')[:-1]

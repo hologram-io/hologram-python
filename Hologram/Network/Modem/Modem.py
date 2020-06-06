@@ -809,7 +809,10 @@ class Modem(IModem):
         return r
 
     def disable_at_sockets_mode(self):
-        raise HologramError('Cannot disable AT command sockets on this Modem type')
+        pass
+
+    def enable_at_sockets_mode(self):
+        pass
 
     def enable_hex_mode(self):
         self.__set_hex_mode(1)
