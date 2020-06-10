@@ -65,6 +65,20 @@ class BG96(Modem):
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
 
+    def _is_pdp_context_active(self):
+        if not self.is_registered():
+            return False
+
+        ok, r = self.command('+QIACT=?')
+        if ok == ModemResult.OK:
+            try:
+                pdpstatus = int(r.lstrip('+QIACT: ').split(',')[1])
+                # 1: PDP active
+                return pdpstatus == 1
+            except (IndexError, ValueError) as e:
+                self.logger.error(repr(e))
+        return False
+
     def init_serial_commands(self):
         self.command("E0") #echo off
         self.command("+CMEE", "2") #set verbose error codes
