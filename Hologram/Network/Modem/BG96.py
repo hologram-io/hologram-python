@@ -69,7 +69,7 @@ class BG96(Modem):
         # and we need 2n chars for hexified data
         for chunk in self._chunks(hexdata, 510):
             value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
-            ok, _ = self.command('+QISENDEX', value, timeout=10)
+            ok, _ = self.set('+QISENDEX', value, timeout=10)
             if ok != 'SEND OK':
                 self.logger.error('Failed to write to socket, got %s', ok)
                 raise NetworkError('Failed to write to socket')
