@@ -44,7 +44,7 @@ class BG96(Modem):
 
     def send_message(self, data, timeout=Modem.DEFAULT_SEND_TIMEOUT):
         # Waiting for the open socket urc
-        while self.urc_state != Modem.SOCKET_INIT:
+        while self.urc_state != Modem.SOCKET_WRITE_STATE:
             self.checkURC()
 
         super().send_message(data, timeout)
@@ -105,7 +105,7 @@ class BG96(Modem):
             socket_identifier = int(response_list[0])
             err = int(response_list[-1])
             if err == 0:
-                self.urc_state = Modem.SOCKET_INIT
+                self.urc_state = Modem.SOCKET_WRITE_STATE
                 self.socket_identifier = socket_identifier
             else:
                 self.logger.error('Failed to open socket')
