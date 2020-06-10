@@ -132,6 +132,8 @@ class BG96(Modem):
                 # 1: PDP active
                 return pdpstatus == 1
             except (IndexError, ValueError) as e:
+                self.logger.error(repr(e))
+            except AttributeError as e:
                 self.logger.info('response was %s', r)
                 self.logger.error(repr(e))
         return False
