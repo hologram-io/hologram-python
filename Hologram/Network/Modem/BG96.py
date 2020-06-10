@@ -115,8 +115,12 @@ class BG96(Modem):
             self.logger.info('Got URC: %s', urc)
             response_list = urc.lstrip('+QIURC: ').split(',')
             urctype = response_list[0]
-            if urctype == 'recv':
+            if urctype == '\"recv\"':
                 self.urc_state = Modem.SOCKET_SEND_READ
+                self.socket_identifier = int(response_list[1])
+                self.last_read_payload_length = int(response_list[2])
+            if urctype == '\"closed\"':
+                self.urc_state = Modem.SOCKET_CLOSED
                 self.socket_identifier = int(response_list[-1])
             return
         super().handleURC(urc)
