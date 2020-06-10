@@ -42,28 +42,79 @@ class BG96(Modem):
 
         return success
 
+    def send_message(self, data, timeout=Modem.DEFAULT_SEND_TIMEOUT):
+        # Waiting for the open socket urc
+        while self.urc_state != Modem.SOCKET_INIT:
+            self.checkURC()
+
+        super().send_message(data, timeout)
+
     def create_socket(self):
         self._set_up_pdp_context()
 
     def connect_socket(self, host, port):
         self.command('+QIOPEN', '1,0,\"TCP\",\"%s\",%d,0,1' % (host, port))
+        # According to the BG96 Docs
+        # Have to wait for URC response “+QIOPEN: <connectID>,<err>”
 
     def close_socket(self, socket_identifier=None):
-        self.command('+QICLOSE', '1')
+        ok, _ = self.command('+QICLOSE', '1')
+        if ok != ModemResult.OK:
+                self.logger.error('Failed to close socket')
+        self.urc_state = Modem.SOCKET_CLOSED
 
     def write_socket(self, data):
         hexdata = binascii.hexlify(data)
         # We have to do it in chunks of 510 since 512 is actually too long (CMEE error)
         # and we need 2n chars for hexified data
         for chunk in self._chunks(hexdata, 510):
-            value = '1,\"%s\"' % chunk.decode()
+            value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
             ok, _ = self.command('+QISENDEX', value, timeout=10)
             if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
-                raise NetworkError('Failed to write socket')
+                raise NetworkError('Failed to write to socket')
+
+    def read_socket(self, socket_identifier=None, payload_length=None):
+
+        if socket_identifier is None:
+            socket_identifier = self.socket_identifier
+
+        if payload_length is None:
+            payload_length = self.last_read_payload_length
+
+        resp = self._basic_set('+QIRD', '%d,%d' % (socket_identifier, payload_length))
+        if resp is not None:
+            resp = resp.strip('"')
+        try:
+            resp = resp.decode()
+        except:
+            # This is some sort of binary data that can't be decoded so just
+            # return the bytes. We might want to make this happen via parameter
+            # in the future so it is more deterministic
+            self.logger.debug('Could not decode recieved data')
+
+        return resp
 
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
+
+    # EFFECTS: Handles URC related AT command responses.
+    def handleURC(self, urc):
+        if urc.startswith('+QIOPEN: '):
+            connectId, err = urc.lstrip('+QIOPEN: ').split(',')
+            if err == 0:
+                self.urc_state = Modem.SOCKET_INIT
+                self.socket_identifier = connectId
+            else:
+                self.logger.error('Failed to open socket')
+                raise NetworkError('Failed to open socket')
+            return
+        if urc.startswith('+QIURC:  \"recv\",'):
+            connectId = int(urc.lstrip('+QIURC:  \"recv\",'))
+            self.urc_state = Modem.SOCKET_SEND_READ
+            self.socket_identifier = connectId
+            return
+        super().handleURC(urc)
 
     def _is_pdp_context_active(self):
         if not self.is_registered():
