@@ -69,7 +69,7 @@ class BG96(Modem):
         if not self.is_registered():
             return False
 
-        ok, r = self.command('+QIACT=?')
+        ok, r = self.command('+QIACT?')
         if ok == ModemResult.OK:
             try:
                 pdpstatus = int(r.lstrip('+QIACT: ').split(',')[1])
