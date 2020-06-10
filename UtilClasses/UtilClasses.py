@@ -47,7 +47,6 @@ class ModemResult:
     Error = 'Error'
     Timeout = 'Timeout'
     OK = 'OK'
-    SEND_OK = 'SEND OK'
 
 class RWLock:
 

@@ -464,6 +464,9 @@ class Modem(IModem):
             if response == 'OK':
                 return ModemResult.OK
 
+            if response == 'SEND OK':
+                return ModemResult.OK
+
             if response.startswith('+'):
                 if response.lower().startswith(cmd.lower() + ': '):
                     self.response.append(response)
@@ -520,7 +523,7 @@ class Modem(IModem):
                     self._write_to_serial_port_and_flush(data)
 
             self.result = self.process_response(cmd, timeout, hide=hide)
-            if self.result in [ModemResult.OK, ModemResult.SEND_OK]:
+            if self.result == ModemResult.OK:
                 if expected is not None:
                     self.result = ModemResult.NoMatch
                     for s in self.response:

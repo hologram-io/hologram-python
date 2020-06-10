@@ -70,7 +70,7 @@ class BG96(Modem):
         for chunk in self._chunks(hexdata, 510):
             value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
             ok, _ = self.set('+QISENDEX', value, timeout=10)
-            if ok != ModemResult.SEND_OK:
+            if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
                 raise NetworkError('Failed to write to socket')
 
@@ -100,6 +100,7 @@ class BG96(Modem):
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
+        self.logger.info('Got URC: %s', urc)
         if urc.startswith('+QIOPEN: '):
             response_list = urc.lstrip('+QIOPEN: ').split(',')
             socket_identifier = int(response_list[0])
@@ -112,7 +113,6 @@ class BG96(Modem):
                 raise NetworkError('Failed to open socket')
             return
         if urc.startswith('+QIURC: '):
-            self.logger.info('Got URC: %s', urc)
             response_list = urc.lstrip('+QIURC: ').split(',')
             urctype = response_list[0]
             if urctype == '\"recv\"':
