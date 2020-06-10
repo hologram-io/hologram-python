@@ -71,7 +71,7 @@ class BG96(Modem):
             value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
             ok, _ = self.command('+QISENDEX', value, timeout=10)
             if ok != 'SEND OK':
-                self.logger.error('Failed to write to socket')
+                self.logger.error('Failed to write to socket, got %s', ok)
                 raise NetworkError('Failed to write to socket')
 
     def read_socket(self, socket_identifier=None, payload_length=None):
