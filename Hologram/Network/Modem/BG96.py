@@ -24,6 +24,7 @@ class BG96(Modem):
 
         super().__init__(device_name=device_name, baud_rate=baud_rate,
                                         chatscript_file=chatscript_file, event=event)
+        self._at_sockets_available = True
 
     def connect(self, timeout=DEFAULT_BG96_TIMEOUT):
 
@@ -93,4 +94,4 @@ class BG96(Modem):
 
     @property
     def description(self):
-        return 'Hologram Nova Global 3G/2G Cellular USB Modem (U201)'
+        return 'Quecetel BG96'
