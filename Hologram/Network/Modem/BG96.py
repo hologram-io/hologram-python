@@ -56,9 +56,7 @@ class BG96(Modem):
         # We have to do it in chunks of 510 since 512 is actually too long (CMEE error)
         # and we need 2n chars for hexified data
         for chunk in self._chunks(hexdata, 510):
-            value = b'1,\"%s\"' % (self.socket_identifier,
-                    len(binascii.unhexlify(chunk)),
-                    chunk)
+            value = b'1,\"%s\"' % chunk
             ok, _ = self.set('+QISENDEX', value, timeout=10)
             if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
