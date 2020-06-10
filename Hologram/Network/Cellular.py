@@ -31,6 +31,7 @@ class Cellular(Network):
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
         'e372': E372.E372,
+        'bg96': BG96.BG96,
         'nova': Nova_U201.Nova_U201,
         'novam': NovaM.NovaM,
         '': Modem
