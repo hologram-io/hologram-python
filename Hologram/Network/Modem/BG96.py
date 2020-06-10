@@ -101,18 +101,23 @@ class BG96(Modem):
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
         if urc.startswith('+QIOPEN: '):
-            connectId, err = urc.lstrip('+QIOPEN: ').split(',')
+            response_list = urc.lstrip('+QIOPEN: ').split(',')
+            socket_identifier = int(response_list[0])
+            err = int(response_list[-1])
             if err == 0:
                 self.urc_state = Modem.SOCKET_INIT
-                self.socket_identifier = connectId
+                self.socket_identifier = socket_identifier
             else:
                 self.logger.error('Failed to open socket')
                 raise NetworkError('Failed to open socket')
             return
-        if urc.startswith('+QIURC:  \"recv\",'):
-            connectId = int(urc.lstrip('+QIURC:  \"recv\",'))
-            self.urc_state = Modem.SOCKET_SEND_READ
-            self.socket_identifier = connectId
+        if urc.startswith('+QIURC: '):
+            self.logger.info('Got URC: %s', urc)
+            response_list = urc.lstrip('+QIURC: ').split(',')
+            urctype = response_list[0]
+            if urctype == 'recv':
+                self.urc_state = Modem.SOCKET_SEND_READ
+                self.socket_identifier = int(response_list[-1])
             return
         super().handleURC(urc)
 
