@@ -70,7 +70,7 @@ class BG96(Modem):
         for chunk in self._chunks(hexdata, 510):
             value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
             ok, _ = self.command('+QISENDEX', value, timeout=10)
-            if ok != ModemResult.OK:
+            if ok != 'SEND OK':
                 self.logger.error('Failed to write to socket')
                 raise NetworkError('Failed to write to socket')
 
