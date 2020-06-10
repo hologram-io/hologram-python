@@ -58,7 +58,7 @@ class BG96(Modem):
         # Have to wait for URC response “+QIOPEN: <connectID>,<err>”
 
     def close_socket(self, socket_identifier=None):
-        ok, _ = self.command('+QICLOSE', '1')
+        ok, _ = self.command('+QICLOSE', self.socket_identifier)
         if ok != ModemResult.OK:
                 self.logger.error('Failed to close socket')
         self.urc_state = Modem.SOCKET_CLOSED
@@ -82,18 +82,20 @@ class BG96(Modem):
         if payload_length is None:
             payload_length = self.last_read_payload_length
 
-        resp = self._basic_set('+QIRD', '%d,%d' % (socket_identifier, payload_length))
-        if resp is not None:
-            resp = resp.strip('"')
-        try:
-            resp = resp.decode()
-        except:
-            # This is some sort of binary data that can't be decoded so just
-            # return the bytes. We might want to make this happen via parameter
-            # in the future so it is more deterministic
-            self.logger.debug('Could not decode recieved data')
+        ok, resp = self.set('+QIRD', '%d,%d' % (socket_identifier, payload_length))
+        if ok == ModemResult.OK:
+            resp = resp.lstrip('+QIRD: ')
+            if resp is not None:
+                resp = resp.strip('"')
+            try:
+                resp = resp.decode()
+            except:
+                # This is some sort of binary data that can't be decoded so just
+                # return the bytes. We might want to make this happen via parameter
+                # in the future so it is more deterministic
+                self.logger.debug('Could not decode recieved data')
 
-        return resp
+            return resp
 
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
