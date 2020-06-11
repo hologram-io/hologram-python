@@ -25,6 +25,7 @@ class BG96(Modem):
         super().__init__(device_name=device_name, baud_rate=baud_rate,
                                         chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
+        self.urc_response = ''
 
     def connect(self, timeout=DEFAULT_BG96_TIMEOUT):
 
@@ -47,7 +48,19 @@ class BG96(Modem):
         while self.urc_state != Modem.SOCKET_WRITE_STATE:
             self.checkURC()
 
-        super().send_message(data, timeout)
+        self.write_socket(data)
+
+        loop_timeout = Timeout(timeout)
+        while self.urc_state != Modem.SOCKET_SEND_READ:
+            self.checkURC()
+            if self.urc_state != Modem.SOCKET_SEND_READ:
+                if loop_timeout.expired():
+                    raise SerialError('Timeout occurred waiting for message status')
+                time.sleep(self._RETRY_DELAY)
+            elif self.urc_state == Modem.SOCKET_CLOSED:
+                return '[1,0]' #this is connection closed for hologram cloud response
+
+        return self.urc_response
 
     def create_socket(self):
         self._set_up_pdp_context()
@@ -121,6 +134,7 @@ class BG96(Modem):
                 self.urc_state = Modem.SOCKET_SEND_READ
                 self.socket_identifier = int(response_list[1])
                 self.last_read_payload_length = int(response_list[2])
+                self.urc_response = self._readline_from_serial_port(5)
             if urctype == '\"closed\"':
                 self.urc_state = Modem.SOCKET_CLOSED
                 self.socket_identifier = int(response_list[-1])
