@@ -76,7 +76,7 @@ class BG96(Modem):
     def close_socket(self, socket_identifier=None):
         ok, _ = self.command('+QICLOSE', self.socket_identifier)
         if ok != ModemResult.OK:
-                self.logger.error('Failed to close socket')
+            self.logger.error('Failed to close socket')
         self.urc_state = Modem.SOCKET_CLOSED
 
     def write_socket(self, data):
@@ -118,7 +118,6 @@ class BG96(Modem):
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
-        self.logger.info('Got URC: %s', urc)
         if urc.startswith('+QIOPEN: '):
             response_list = urc.lstrip('+QIOPEN: ').split(',')
             socket_identifier = int(response_list[0])
