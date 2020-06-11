@@ -8,6 +8,9 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import binascii
+import time
+
+from serial.serialutil import Timeout
 
 from Hologram.Network.Modem import Modem
 from Hologram.Event import Event
