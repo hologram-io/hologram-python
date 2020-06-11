@@ -156,7 +156,6 @@ class BG96(Modem):
             except (IndexError, ValueError) as e:
                 self.logger.error(repr(e))
             except AttributeError as e:
-                self.logger.info('response was %s', r)
                 self.logger.error(repr(e))
         return False
 
