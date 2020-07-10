@@ -464,6 +464,9 @@ class Modem(IModem):
             if response == 'OK':
                 return ModemResult.OK
 
+            if response == 'SEND OK':
+                return ModemResult.OK
+
             if response.startswith('+'):
                 if response.lower().startswith(cmd.lower() + ': '):
                     self.response.append(response)
