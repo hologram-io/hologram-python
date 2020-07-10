@@ -11,7 +11,7 @@
 from Hologram.Event import Event
 from Exceptions.HologramError import NetworkError
 from Hologram.Network.Route import Route
-from Hologram.Network.Modem import Modem, E303, MS2131, Nova_U201, NovaM, DriverLoader
+from Hologram.Network.Modem import Modem, E303, MS2131, E372, Nova_U201, NovaM, DriverLoader
 from Hologram.Network import Network, NetworkScope
 import time
 from serial.tools import list_ports
@@ -30,6 +30,7 @@ class Cellular(Network):
     _modemHandlers = {
         'e303': E303.E303,
         'ms2131': MS2131.MS2131,
+        'e372': E372.E372,
         'nova': Nova_U201.Nova_U201,
         'novam': NovaM.NovaM,
         '': Modem
