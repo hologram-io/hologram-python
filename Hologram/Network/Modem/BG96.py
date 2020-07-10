@@ -1,4 +1,4 @@
-# E303.py - Hologram Python SDK Huawei E303 modem interface
+# BG96.py - Hologram Python SDK Quectel BG96 modem interface
 #
 # Author: Hologram <support@hologram.io>
 #
