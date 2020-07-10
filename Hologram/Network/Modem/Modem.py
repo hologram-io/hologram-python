@@ -400,46 +400,16 @@ class Modem(IModem):
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
-        self.logger.debug("URC! %s",  urc)
+        self.logger.debug("URC! %s", urc)
         self.logger.debug("handleURC state: %d",  self.urc_state)
-
-        next_urc_state = self.urc_state
 
         if urc.startswith("+CMTI: "):
             self._handle_sms_receive_urc(urc)
-        elif urc.startswith('+UULOC: '):
-            self._handle_location_urc(urc)
-        elif urc.startswith('+UUSORD: '):
-
-            # Strip UUSORD socket identifier + payload length from the URC event.
-            # Example: {+UUSORD: 0,2} -> 0 and 2
-            response_list = urc.lstrip('+UUSORD: ').split(',')
-            socket_identifier = int(response_list[0])
-            payload_length = int(response_list[-1])
-
-            if self.urc_state == Modem.SOCKET_RECEIVE_READ:
-                self._read_and_append_message_receive_buffer(socket_identifier, payload_length)
-            else:
-                self.socket_identifier = socket_identifier
-                self.last_read_payload_length = payload_length
-                next_urc_state = Modem.SOCKET_SEND_READ
-        elif urc.startswith('+UUSOLI: '):
-            self._handle_listen_urc(urc)
-            self.last_read_payload_length = 0
-            next_urc_state = Modem.SOCKET_RECEIVE_READ
-        elif urc.startswith('+UUPSDD: '):
-            self.event.broadcast('cellular.forced_disconnect')
-        elif urc.startswith('+UUSOCL: '):
-            next_urc_state = Modem.SOCKET_CLOSED
         else:
             self.logger.debug("URC was not handled. \'%s\'",  urc)
 
-        self.urc_state = next_urc_state
-
 
     # URC handlers
-
-
     def _handle_sms_receive_urc(self, urc):
         self.event.broadcast('sms.received')
 
