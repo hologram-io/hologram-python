@@ -1,5 +1,7 @@
 name-template: 'v$RESOLVED_VERSION 🌈'
+
 tag-template: 'v$RESOLVED_VERSION'
+
 categories:
   - title: '🚀 Features'
     labels:
@@ -12,7 +14,9 @@ categories:
       - 'bug'
   - title: '🧰 Maintenance'
     label: 'chore'
+
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
 version-resolver:
   major:
     labels:
@@ -24,6 +28,10 @@ version-resolver:
     labels:
       - 'patch'
   default: patch
+
+exclude-labels:
+  - 'skip-changelog'
+
 template: |
   ## Changes
 
