@@ -23,12 +23,16 @@ version-resolver:
   major:
     labels:
       - 'major'
+      - 'breaking'
   minor:
     labels:
       - 'minor'
+      - 'feature'
   patch:
     labels:
       - 'patch'
+      - 'bugfix'
+      - 'debt'
   default: patch
 
 exclude-labels:
