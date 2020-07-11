@@ -16,6 +16,7 @@ categories:
     labels: 
       - 'chore'
       - 'debt'
+      - 'dependencies'
 
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 
@@ -33,6 +34,7 @@ version-resolver:
       - 'patch'
       - 'bugfix'
       - 'debt'
+      - 'dependencies'
   default: patch
 
 exclude-labels:
