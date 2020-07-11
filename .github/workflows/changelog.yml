@@ -1,12 +1,10 @@
 name: Changelog Drafter
 
 on:
-  push
-# on:
-#   push:
-#     # develop is our tracking branch
-#     branches:
-#       - develop
+  push:
+    # develop is our tracking branch
+    branches:
+      - develop
 
 jobs:
   update_release_draft:
