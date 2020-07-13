@@ -302,6 +302,7 @@ class CustomCloud(Cloud):
             self._receive_cv.acquire()
 
             if self.socketClose:
+                self.logger.debug('Closing socket connection')
                 self._receive_cv.release()
                 break
 
@@ -329,6 +330,7 @@ class CustomCloud(Cloud):
         while True:
             try:
                 result = clientsocket.recv(MAX_RECEIVE_BYTES)
+                self.logger.debug('Received message: %s', result)
             except socket.timeout:
                 break
             if not result:
