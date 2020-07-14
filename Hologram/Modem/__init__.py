@@ -7,7 +7,6 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 
-from Hologram.Modem import IModem
 from Hologram.PPP.PPP import PPP
 from Hologram.Utils import ModemResult
 from Hologram.Utils import SMS
