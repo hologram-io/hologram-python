@@ -9,7 +9,7 @@
 import logging
 from logging import NullHandler
 
-from Hologram.Exceptions.HologramError import ApiError
+from Hologram.Exceptions import ApiError
 import requests
 
 HOLOGRAM_REST_API_BASEURL = 'https://dashboard.hologram.io/api/1'

@@ -10,7 +10,7 @@
 
 from Hologram.Modem.UBlox.Nova import Nova
 from Hologram.Event import Event
-from Hologram.Exceptions.HologramError import NetworkError
+from Hologram.Exceptions import NetworkError
 from Hologram.Utils import ModemResult
 
 DEFAULT_NOVAM_TIMEOUT = 200

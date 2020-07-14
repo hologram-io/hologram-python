@@ -11,7 +11,7 @@ from Hologram.PPP.PPP import PPP
 from Hologram.Utils import ModemResult
 from Hologram.Utils import SMS
 from Hologram.Event import Event
-from Hologram.Exceptions.HologramError import SerialError, HologramError, NetworkError, PPPError
+from Hologram.Exceptions import SerialError, HologramError, NetworkError, PPPError
 
 
 from collections import deque

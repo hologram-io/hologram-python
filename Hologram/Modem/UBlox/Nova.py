@@ -10,7 +10,7 @@
 
 from Hologram.Modem import Modem
 from Hologram.Utils import ModemResult
-from Hologram.Exceptions.HologramError import NetworkError
+from Hologram.Exceptions import NetworkError
 from Hologram.Event import Event
 
 import time

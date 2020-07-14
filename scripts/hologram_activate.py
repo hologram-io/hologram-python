@@ -17,7 +17,7 @@ import time
 
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Api import Api
-from Hologram.Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 from .hologram_util import VAction
 
 CHECK_LIVE_SIM_STATE_MAX_TIMEOUT = 120 # 2 mins for max timeout

@@ -9,7 +9,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 import json
-from Hologram.Exceptions.HologramError import AuthenticationError
+from Hologram.Exceptions import AuthenticationError
 from Hologram.Authentication.HologramAuthentication import HologramAuthentication
 
 DEVICE_KEY_LEN = 8

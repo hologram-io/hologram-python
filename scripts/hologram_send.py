@@ -12,7 +12,7 @@
 
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
-from Hologram.Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 from .hologram_util import VAction
 
 import argparse

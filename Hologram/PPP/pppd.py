@@ -17,7 +17,7 @@ import time
 import threading
 import errno
 from subprocess import Popen, PIPE, STDOUT
-from Hologram.Exceptions.HologramError import PPPError, PPPConnectionError
+from Hologram.Exceptions import PPPError, PPPConnectionError
 
 
 __version__ = '1.0.3'

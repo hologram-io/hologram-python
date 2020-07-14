@@ -15,7 +15,7 @@ from serial.serialutil import Timeout
 from Hologram.Modem import Modem
 from Hologram.Event import Event
 from Hologram.Utils import ModemResult
-from Hologram.Exceptions.HologramError import SerialError, NetworkError
+from Hologram.Exceptions import SerialError, NetworkError
 
 DEFAULT_BG96_TIMEOUT = 200
 

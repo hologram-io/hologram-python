@@ -13,7 +13,7 @@ from datetime import datetime
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
-from Hologram.Exceptions.HologramError import SerialError
+from Hologram.Exceptions import SerialError
 from Hologram.Modem import Modem
 from Hologram.Utils import ModemResult
 

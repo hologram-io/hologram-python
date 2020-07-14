@@ -9,7 +9,7 @@
 #
 
 from Hologram.Event import Event
-from Hologram.Exceptions.HologramError import NetworkError
+from Hologram.Exceptions import NetworkError
 from Hologram.Utils.Route import Route
 from Hologram.Modem import Modem, DriverLoader
 from Hologram.Modem.Huawei import E303, MS2131, E372

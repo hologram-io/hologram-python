@@ -14,7 +14,7 @@ import sys
 from Hologram.CustomCloud import CustomCloud
 from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
 from Hologram.Authentication import CSRPSKAuthentication
-from Hologram.Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 
 DEFAULT_SEND_MESSAGE_TIMEOUT = 5
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
