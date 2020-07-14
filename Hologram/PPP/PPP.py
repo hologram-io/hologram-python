@@ -10,7 +10,7 @@
 import psutil
 from Hologram.PPP.pppd import PPPConnection
 from Hologram.PPP import IPPP
-from Hologram.Util.Route import Route
+from Hologram.Utils.Route import Route
 from Hologram.Exceptions.HologramError import PPPError
 
 DEFAULT_PPP_TIMEOUT = 200
