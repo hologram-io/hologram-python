@@ -11,7 +11,10 @@
 from Hologram.Event import Event
 from Hologram.Exceptions.HologramError import NetworkError
 from Hologram.Utils.Route import Route
-from Hologram.Modem import Modem, E303, MS2131, E372, BG96, Nova_U201, NovaM, DriverLoader
+from Hologram.Modem import Modem, DriverLoader
+from Hologram.Modem.Huawei import E303, MS2131, E372
+from Hologram.Modem.Quectel import BG96
+from Hologram.Modem.UBlox import Nova_U201, NovaM
 import logging
 import time
 from logging import NullHandler
