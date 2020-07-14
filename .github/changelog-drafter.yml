@@ -44,3 +44,7 @@ template: |
   ## Changes
 
   $CHANGES
+
+  **Release Date:** <DATE>
+  **Release Engineer:** $CONTRIBUTORS
+  **Previous Release:** $PREVIOUS_TAG
