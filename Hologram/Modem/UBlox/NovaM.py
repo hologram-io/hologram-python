@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Hologram.Modem.Nova import Nova
+from Hologram.Modem.UBlox.Nova import Nova
 from Hologram.Event import Event
 from Hologram.Exceptions.HologramError import NetworkError
 from Hologram.Utils import ModemResult
