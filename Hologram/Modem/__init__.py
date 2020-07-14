@@ -891,15 +891,6 @@ class Modem:
     def at_sockets_available(self):
         return self._at_sockets_available
 
-    @modem_mode.setter
-    def modem_mode(self, mode):
-        self.set('+UUSBCONF', str(mode))
-        self.logger.info('Restarting modem')
-        self.reset()
-        self.logger.info('Modem restarted')
-        self.closeSerialPort()
-        time.sleep(Modem.DEFAULT_MODEM_RESTART_TIME)
-
     @property
     def localIPAddress(self):
         if self._ppp:

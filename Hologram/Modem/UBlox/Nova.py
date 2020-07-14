@@ -13,6 +13,8 @@ from Hologram.Utils import ModemResult
 from Hologram.Exceptions.HologramError import NetworkError
 from Hologram.Event import Event
 
+import time
+
 DEFAULT_NOVA_TIMEOUT = 200
 
 class Nova(Modem):
@@ -77,6 +79,15 @@ class Nova(Modem):
         except (IndexError, ValueError) as e:
             self.logger.error(repr(e))
         return mode_number
+
+    @modem_mode.setter
+    def modem_mode(self, mode):
+        self.set('+UUSBCONF', str(mode))
+        self.logger.info('Restarting modem')
+        self.reset()
+        self.logger.info('Modem restarted')
+        self.closeSerialPort()
+        time.sleep(Modem.DEFAULT_MODEM_RESTART_TIME)
 
     @property
     def version(self):
