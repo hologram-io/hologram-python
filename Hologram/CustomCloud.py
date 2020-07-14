@@ -9,11 +9,9 @@
 
 from collections import deque
 import socket
-import sys
 import threading
-import time
 from Hologram.Cloud import Cloud
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions.HologramError import HologramError
 
 MAX_RECEIVE_BYTES = 1024
 MAX_QUEUED_CONNECTIONS = 5

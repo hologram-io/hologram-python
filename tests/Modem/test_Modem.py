@@ -13,9 +13,9 @@ from datetime import datetime
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
-from Exceptions.HologramError import SerialError
-from Hologram.Network.Modem import Modem
-from UtilClasses import ModemResult
+from Hologram.Exceptions.HologramError import SerialError
+from Hologram.Modem import Modem
+from Hologram.Utils import ModemResult
 
 def mock_write(modem, message):
     return True

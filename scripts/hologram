@@ -14,7 +14,7 @@ from argparse import RawTextHelpFormatter
 import logging
 import sys
 from Hologram.CustomCloud import CustomCloud
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions.HologramError import HologramError
 
 from scripts.hologram_send import parse_hologram_send_args
 from scripts.hologram_send import run_hologram_send

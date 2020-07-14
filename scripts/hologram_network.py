@@ -9,7 +9,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 
 from Hologram.CustomCloud import CustomCloud
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions.HologramError import HologramError
 from .hologram_util import VAction
 import psutil
 

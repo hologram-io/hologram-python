@@ -40,10 +40,3 @@ class TestCSRPSKAuthentication:
         message = 'test with empty modem_type and modem_id'
         assert b"{\"k\": \"12345678\", \"m\": \"\\u0001agnostic-None\", \"d\": \"test with empty modem_type and modem_id\"}\r\r" \
             == auth.buildPayloadString(message, modem_type=None)
-
-    def test_invalid_device_key_length(self):
-        credentials = {'devicekey': '12345678'}
-        auth = CSRPSKAuthentication(credentials)
-        auth.credentials['devicekey'] = '12345'
-        with pytest.raises(Exception, match = 'Device key must be 8 characters long'):
-            auth.buildPayloadString('test invalid device key')
