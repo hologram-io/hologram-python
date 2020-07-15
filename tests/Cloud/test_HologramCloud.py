@@ -15,6 +15,8 @@ from Hologram.Authentication import *
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Network import Network
 
+from tests.MockModem import MockModem
+
 credentials = {'devicekey':'12345678'}
 
 def mock_scan(network):
@@ -23,6 +25,7 @@ def mock_scan(network):
 @pytest.fixture
 def no_modem(monkeypatch):
     monkeypatch.setattr(Network, '_scan_for_modems', mock_scan)
+    monkeypatch.setattr(Network, '_modemHandlers', {'MockModem': MockModem})
 
 def test_create(no_modem):
     hologram = HologramCloud(credentials, enable_inbound = False)

@@ -15,12 +15,16 @@ from Hologram.Authentication import *
 from Hologram.CustomCloud import CustomCloud
 from Hologram.Network import Network
 
-def mock_scan(self):
+from tests.MockModem import MockModem
+
+def mock_scan(network):
     return ['MockModem']
 
 @pytest.fixture
 def no_modem(monkeypatch):
     monkeypatch.setattr(Network, '_scan_for_modems', mock_scan)
+    monkeypatch.setattr(Network, '_modemHandlers', {'MockModem': MockModem})
+
 
 def test_create_send(no_modem):
     customCloud = CustomCloud(None, send_host='127.0.0.1',

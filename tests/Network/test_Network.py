@@ -15,5 +15,5 @@ sys.path.append("../..")
 from Hologram.Network import Network
 
 
-def test_create_network(self):
+def test_create_network():
     network = Network()
