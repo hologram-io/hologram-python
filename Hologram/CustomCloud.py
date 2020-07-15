@@ -379,8 +379,7 @@ class CustomCloud(Cloud):
             raise HologramError('Interval cannot be less than %d seconds.' % MIN_PERIODIC_INTERVAL)
 
     def __enforce_network_disconnected(self):
-        if self.network_type == 'Cellular':
-            self.network.disconnect()
+        self.network.disconnect()
 
     def getResultString(self, result_code):
         return str(result_code)
