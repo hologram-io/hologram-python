@@ -22,15 +22,13 @@ MIN_PERIODIC_INTERVAL = 1
 class CustomCloud(Cloud):
 
     def __init__(self, credentials, send_host='', send_port=0,
-                 receive_host='', receive_port=0, enable_inbound=False,
-                 network=''):
+                 receive_host='', receive_port=0, enable_inbound=False):
 
         super().__init__(credentials,
                          send_host=send_host,
                          send_port=send_port,
                          receive_host=receive_host,
-                         receive_port=receive_port,
-                         network=network)
+                         receive_port=receive_port)
 
         # Enforce that the send and receive configs are set before using the class.
         if enable_inbound and (receive_host == '' or receive_port == 0):

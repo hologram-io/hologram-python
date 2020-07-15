@@ -59,15 +59,14 @@ class HologramCloud(CustomCloud):
         ERR_UNKNOWN: 'Unknown error'
     }
 
-    def __init__(self, credentials, enable_inbound=False, network='',
+    def __init__(self, credentials, enable_inbound=False,
                  authentication_type='totp'):
         super().__init__(credentials,
                          send_host=HOLOGRAM_HOST_SEND,
                          send_port=HOLOGRAM_PORT_SEND,
                          receive_host=HOLOGRAM_HOST_RECEIVE,
                          receive_port=HOLOGRAM_PORT_RECEIVE,
-                         enable_inbound=enable_inbound,
-                         network=network)
+                         enable_inbound=enable_inbound)
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
 
