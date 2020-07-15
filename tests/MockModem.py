@@ -23,3 +23,11 @@ class MockModem(Modem):
         self.result = ModemResult.OK
         self.debug_out = ''
         self.in_ext = False
+        self._ppp = None
+
+    def is_connected(self):
+        return True
+
+    @property
+    def localIPAddress(self):
+        return "0.0.0.0"

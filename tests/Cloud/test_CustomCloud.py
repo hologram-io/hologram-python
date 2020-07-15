@@ -20,10 +20,14 @@ from tests.MockModem import MockModem
 def mock_scan(network):
     return ['MockModem']
 
+def mock_disconnect(network):
+    return True
+
 @pytest.fixture
 def no_modem(monkeypatch):
     monkeypatch.setattr(Network, '_scan_for_modems', mock_scan)
     monkeypatch.setattr(Network, '_modemHandlers', {'MockModem': MockModem})
+    monkeypatch.setattr(Network, 'disconnect', mock_disconnect)
 
 
 def test_create_send(no_modem):
