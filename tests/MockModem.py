@@ -7,10 +7,11 @@ from Hologram.Utils import ModemResult
 
 
 class MockModem(Modem):
-    def __init__(self):
+    def __init__(self, device_name=None, baud_rate='9600',
+                 chatscript_file=None, event=None):
         # dont init super class
         self.device_name = 'Mock Modem'
-        self.baud_rate = 9600
+        self.baud_rate = baud_rate
 
         self.serial_port = '/dev/ttyUSB0'
         self.timeout = Modem.DEFAULT_SERIAL_TIMEOUT
