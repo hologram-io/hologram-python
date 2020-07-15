@@ -13,10 +13,18 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Authentication import *
 from Hologram.CustomCloud import CustomCloud
+from Hologram.Network import Network
 
 class TestCustomCloud:
 
-    def test_create_send(self):
+    def mock_scan(self, network):
+        return ['MockModem']
+
+    @pytest.fixture
+    def no_modem(self, monkeypatch):
+        monkeypatch.setattr(Network, '_scan_for_modems', self.mock_scan)
+
+    def test_create_send(self, no_modem):
         customCloud = CustomCloud(None, send_host='127.0.0.1',
                                   send_port=9999, enable_inbound=False)
 
@@ -25,7 +33,7 @@ class TestCustomCloud:
         assert customCloud.receive_host == ''
         assert customCloud.receive_port == 0
 
-    def test_create_receive(self):
+    def test_create_receive(self, no_modem):
         customCloud = CustomCloud(None, receive_host='127.0.0.1',
                                   receive_port=9999, enable_inbound=False)
 
@@ -34,19 +42,19 @@ class TestCustomCloud:
         assert customCloud.receive_host == '127.0.0.1'
         assert customCloud.receive_port == 9999
 
-    def test_enable_inbound(self):
+    def test_enable_inbound(self, no_modem):
 
         with pytest.raises(Exception, match='Must set receive host and port for inbound connection'):
             customCloud = CustomCloud(None, send_host='receive.com',
                                       send_port=9999, enable_inbound=True)
 
-    def test_invalid_send_host_and_port(self):
+    def test_invalid_send_host_and_port(self, no_modem):
         customCloud = CustomCloud(None, receive_host='receive.com', receive_port=9999)
 
         with pytest.raises(Exception, match = 'Send host and port must be set before making this operation'):
             customCloud.sendMessage("hello")
 
-    def test_invalid_send_sms(self):
+    def test_invalid_send_sms(self, no_modem):
         customCloud = CustomCloud(None, 'test.com', 9999)
 
         temp = "hello"

@@ -13,12 +13,20 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Authentication import *
 from Hologram.HologramCloud import HologramCloud
+from Hologram.Network import Network
 
 credentials = {'devicekey':'12345678'}
 
 class TestHologramCloud:
 
-    def test_create(self):
+    def mock_scan(self, network):
+        return ['MockModem']
+
+    @pytest.fixture
+    def no_modem(self, monkeypatch):
+        monkeypatch.setattr(Network, '_scan_for_modems', self.mock_scan)
+
+    def test_create(self, no_modem):
         hologram = HologramCloud(credentials, enable_inbound = False)
 
         assert hologram.send_host == 'cloudsocket.hologram.io'
@@ -26,7 +34,7 @@ class TestHologramCloud:
         assert hologram.receive_host == '0.0.0.0'
         assert hologram.receive_port == 4010
 
-    def test_invalid_sms_length(self):
+    def test_invalid_sms_length(self, no_modem):
 
         hologram = HologramCloud(credentials, authentication_type='csrpsk', enable_inbound = False)
 
@@ -34,7 +42,7 @@ class TestHologramCloud:
         with pytest.raises(Exception, match = 'SMS cannot be more than 160 characters long'):
             hologram.sendSMS('+1234567890', temp)
 
-    def test_get_result_string(self):
+    def test_get_result_string(self, no_modem):
 
         hologram = HologramCloud(credentials, enable_inbound = False)
 
