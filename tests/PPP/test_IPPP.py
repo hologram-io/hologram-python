@@ -15,7 +15,7 @@ from Hologram.PPP import IPPP
 class TestIPPP:
 
     def test_modem_mode_create(self):
-        modem_mode = IPPP(device_name='/dev/ttyUSB0', baud_rate='9600')
+        modem_mode = IPPP(device_name='/dev/ttyUSB0', baud_rate='9600',chatscript_file='test')
 
         assert modem_mode.device_name == '/dev/ttyUSB0'
         assert modem_mode.baud_rate == '9600'

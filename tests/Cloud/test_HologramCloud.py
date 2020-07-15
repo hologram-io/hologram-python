@@ -17,42 +17,40 @@ from Hologram.Network import Network
 
 credentials = {'devicekey':'12345678'}
 
-class TestHologramCloud:
+def mock_scan(network):
+    return ['MockModem']
 
-    def mock_scan(self, network):
-        return ['MockModem']
+@pytest.fixture
+def no_modem(monkeypatch):
+    monkeypatch.setattr(Network, '_scan_for_modems', mock_scan)
 
-    @pytest.fixture
-    def no_modem(self, monkeypatch):
-        monkeypatch.setattr(Network, '_scan_for_modems', self.mock_scan)
+def test_create(no_modem):
+    hologram = HologramCloud(credentials, enable_inbound = False)
 
-    def test_create(self, no_modem):
-        hologram = HologramCloud(credentials, enable_inbound = False)
+    assert hologram.send_host == 'cloudsocket.hologram.io'
+    assert hologram.send_port == 9999
+    assert hologram.receive_host == '0.0.0.0'
+    assert hologram.receive_port == 4010
 
-        assert hologram.send_host == 'cloudsocket.hologram.io'
-        assert hologram.send_port == 9999
-        assert hologram.receive_host == '0.0.0.0'
-        assert hologram.receive_port == 4010
+def test_invalid_sms_length(no_modem):
 
-    def test_invalid_sms_length(self, no_modem):
+    hologram = HologramCloud(credentials, authentication_type='csrpsk', enable_inbound = False)
 
-        hologram = HologramCloud(credentials, authentication_type='csrpsk', enable_inbound = False)
+    temp = '111111111234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
+    with pytest.raises(Exception, match = 'SMS cannot be more than 160 characters long'):
+        hologram.sendSMS('+1234567890', temp)
 
-        temp = '111111111234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'
-        with pytest.raises(Exception, match = 'SMS cannot be more than 160 characters long'):
-            hologram.sendSMS('+1234567890', temp)
+def test_get_result_string(no_modem):
 
-    def test_get_result_string(self, no_modem):
+    hologram = HologramCloud(credentials, enable_inbound = False)
 
-        hologram = HologramCloud(credentials, enable_inbound = False)
-
-        assert hologram.getResultString(-1) == 'Unknown error'
-        assert hologram.getResultString(0) == 'Message sent successfully'
-        assert hologram.getResultString(1) == 'Connection was closed so we couldn\'t read the whole message'
-        assert hologram.getResultString(2) == 'Failed to parse the message'
-        assert hologram.getResultString(3) == 'Auth section of the message was invalid'
-        assert hologram.getResultString(4) == 'Payload type was invalid'
-        assert hologram.getResultString(5) == 'Protocol type was invalid'
-        assert hologram.getResultString(6) == 'Internal error in Hologram Cloud'
-        assert hologram.getResultString(7) == 'Metadata was formatted incorrectly'
-        assert hologram.getResultString(8) == 'Topic was formatted incorrectly'
+    assert hologram.getResultString(-1) == 'Unknown error'
+    assert hologram.getResultString(0) == 'Message sent successfully'
+    assert hologram.getResultString(1) == 'Connection was closed so we couldn\'t read the whole message'
+    assert hologram.getResultString(2) == 'Failed to parse the message'
+    assert hologram.getResultString(3) == 'Auth section of the message was invalid'
+    assert hologram.getResultString(4) == 'Payload type was invalid'
+    assert hologram.getResultString(5) == 'Protocol type was invalid'
+    assert hologram.getResultString(6) == 'Internal error in Hologram Cloud'
+    assert hologram.getResultString(7) == 'Metadata was formatted incorrectly'
+    assert hologram.getResultString(8) == 'Topic was formatted incorrectly'
