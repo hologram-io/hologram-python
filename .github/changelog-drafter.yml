@@ -16,6 +16,8 @@ categories:
     labels: 
       - 'chore'
       - 'debt'
+  - title: '🛠 Dependency Updates'
+    labels: 
       - 'dependencies'
 
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
