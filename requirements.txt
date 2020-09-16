@@ -1,4 +1,4 @@
-hjson~=3.0.1
+hjson~=3.0.2
 mock~=3.0.5
 pyroute2==0.5.*
 pyserial~=3.4.0
