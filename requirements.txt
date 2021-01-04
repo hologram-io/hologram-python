@@ -1,5 +1,3 @@
-hjson~=3.0.1
-mock~=3.0.5
 pyroute2==0.5.*
 pyserial~=3.5
 python-pppd==1.0.3
