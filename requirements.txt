@@ -1,7 +1,7 @@
 hjson~=3.0.1
 mock~=3.0.5
 pyroute2==0.5.*
-pyserial~=3.4.0
+pyserial~=3.5
 python-pppd==1.0.3
 python-sdk-auth~=0.3.0
 pyudev~=0.22.0
