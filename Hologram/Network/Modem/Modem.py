@@ -697,7 +697,7 @@ class Modem(IModem):
 
     #returns the raw result of a command, with the 'CMD: ' prefix stripped
     def _basic_command(self, cmd, prefix=True):
-        base_cmd = cmd.rstrip('?').rstrip('%')
+        base_cmd = cmd.rstrip('?%')
         try:
             ok, r = self.command(cmd)
             if ok == ModemResult.OK:
