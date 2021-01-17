@@ -737,11 +737,14 @@ class Modem(IModem):
 
     #returns the raw result of a command, with the 'CMD: ' prefix stripped
     def _basic_command(self, cmd, prefix=True):
+        base_cmd = cmd.rstrip('?%')
         try:
             ok, r = self.command(cmd)
             if ok == ModemResult.OK:
                 if prefix and r.startswith(cmd+': '):
                     return r.lstrip(cmd + ': ')
+                elif prefix and r.startswith(base_cmd+': '):
+                    return r.lstrip(base_cmd + ': ')
                 else:
                     return r
         except AttributeError as e:
