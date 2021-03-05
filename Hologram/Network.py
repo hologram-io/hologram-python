@@ -14,6 +14,7 @@ from Hologram.Utils.Route import Route
 from Hologram.Modem import Modem, DriverLoader
 from Hologram.Modem.Huawei import E303, MS2131, E372
 from Hologram.Modem.Quectel import BG96
+from Hologram.Modem.SIMCom import SIM7000
 from Hologram.Modem.UBlox import Nova_U201, NovaM
 import logging
 import time
@@ -42,6 +43,7 @@ class Network:
         'ms2131': MS2131.MS2131,
         'e372': E372.E372,
         'bg96': BG96.BG96,
+        'sim7000': SIM7000.SIM7000,
         'nova': Nova_U201.Nova_U201,
         'novam': NovaM.NovaM,
         '': Modem
