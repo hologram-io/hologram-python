@@ -120,7 +120,7 @@ class SIM7000(Modem):
             return False
 
         ok, r = self.command('+CIPSTATUS', expected="STATE: IP START")
-        return ok == ModemResult.OK:
+        return ok == ModemResult.OK
 
     def init_serial_commands(self):
         self.command("E0") #echo off
