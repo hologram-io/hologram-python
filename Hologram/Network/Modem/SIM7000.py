@@ -142,11 +142,13 @@ class SIM7000(Modem):
         if urc.startswith('STATE'):
             urc = urc.strip('STATE: ')
             self.network_state = NetworkState(urc)
-        if urc == 'CONNECT OK':
+            return 
+        elif urc == 'CONNECT OK':
             self.urc_state = Modem.SOCKET_WRITE_STATE
-        if urc == 'CLOSED':
+        elif urc == 'CLOSED':
             self.urc_state = Modem.SOCKET_CLOSED
-        super().handleURC(urc)
+        else:
+            super().handleURC(urc)
 
     def _is_pdp_context_active(self):
         if not self.is_registered():
