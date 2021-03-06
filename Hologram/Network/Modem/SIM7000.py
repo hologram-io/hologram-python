@@ -133,16 +133,14 @@ class SIM7000(Modem):
         while(True):
             response = self._readline_from_serial_port(0, hide=hide)
             if len(response) > 0 and (response.startswith('+') or response.startswith('STATE') or response in ['CONNECT', 'CONNECT OK', 'CONNECT FAIL', 'SEND OK', 'ALREADY CONNECT', 'CLOSED']):
-                self.logger.debug(response)
                 urc = response.rstrip('\r\n')
-                self.logger.debug(urc)
                 self.handleURC(urc)
             else:
                 return
 
     def handleURC(self, urc):
         if urc.startswith('STATE'):
-            urc = urc.strip('STATE: ')
+            urc = urc.lstrip('STATE: ')
             self.network_state = NetworkState(urc)
             return 
         elif urc == 'CONNECT OK':
