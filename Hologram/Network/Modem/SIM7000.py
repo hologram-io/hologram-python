@@ -126,7 +126,7 @@ class SIM7000(Modem):
             return resp
 
     def is_registered(self):
-        return self.check_registered('+CREG') or self.check_registered('+CEREG')
+        return self.check_registered('+CREG') or self.check_registered('+CEREG')  or self.check_registered('+CGREG')
 
     def checkURC(self, hide=False):
         # Not all SIMCOM urcs have a + in front
