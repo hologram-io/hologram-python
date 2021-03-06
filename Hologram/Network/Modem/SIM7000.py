@@ -154,6 +154,7 @@ class SIM7000(Modem):
         if not self.is_registered():
             return False
 
+        self.checkURC()
         self.command('+CIPSTATUS')
         self.checkURC()
         return self.network_state is NetworkState.CONNECTED
@@ -185,6 +186,7 @@ class SIM7000(Modem):
 
         self.set('+CSTT', '\"hologram\"')
         self.command('+CIICR', timeout=30)
+        time.sleep(1)
         if not self._is_pdp_context_active():
             self.logger.error('PDP Context setup failed')
             raise NetworkError('Failed PDP context setup')
