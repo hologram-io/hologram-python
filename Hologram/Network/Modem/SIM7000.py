@@ -155,6 +155,8 @@ class SIM7000(Modem):
             return False
 
         self.command('+CIPSTATUS')
+        # wait for the buffer to fill up
+        time.sleep(0.5)
         self.checkURC()
         return self.network_state is NetworkState.CONNECTED
 
