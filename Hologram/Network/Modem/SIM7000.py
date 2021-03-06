@@ -176,6 +176,7 @@ class SIM7000(Modem):
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
+        self.command("+CGREG", "2")
         self.command("+CEREG", "2")
 
     def _set_up_pdp_context(self):
