@@ -114,7 +114,7 @@ class BG96(Modem):
             return resp
 
     def is_registered(self):
-        return self.check_registered('+CREG') or self.check_registered('+CGREG')
+        return self.check_registered('+CREG') or self.check_registered('+CEREG')
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
@@ -171,7 +171,7 @@ class BG96(Modem):
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
-        self.command("+CGREG", "2")
+        self.command("+CEREG", "2")
 
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
