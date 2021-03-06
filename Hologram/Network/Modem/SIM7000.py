@@ -156,7 +156,7 @@ class SIM7000(Modem):
 
         self.command('+CIPSTATUS')
         self.checkURC()
-        return self.network_state = NetworkState.CONNECTED
+        return self.network_state is NetworkState.CONNECTED
 
     def init_serial_commands(self):
         self.command("E0") #echo off
