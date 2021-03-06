@@ -154,8 +154,9 @@ class SIM7000(Modem):
         if not self.is_registered():
             return False
 
-        ok, r = self.command('+CIPSTATUS', expected="STATE: IP START")
-        return ok == ModemResult.OK
+        self.command('+CIPSTATUS')
+        self.checkURC()
+        return self.network_state = NetworkState.CONNECTED
 
     def init_serial_commands(self):
         self.command("E0") #echo off
