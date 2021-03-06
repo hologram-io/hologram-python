@@ -107,7 +107,7 @@ class SIM7000(Modem):
             return resp
 
     def is_registered(self):
-        return self.check_registered('+CREG') or self.check_registered('+CGREG')
+        return self.check_registered('+CREG') or self.check_registered('+CEREG')
 
     def checkURC(self, hide=False):
         # Not all SIMCOM urcs have a + in front
@@ -147,7 +147,7 @@ class SIM7000(Modem):
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
-        self.command("+CGREG", "2")
+        self.command("+CEREG", "2")
 
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
@@ -157,7 +157,7 @@ class SIM7000(Modem):
             ok, _ = self.command('+CIPSTATUS', expected="STATE: IP INITIAL")
 
         self.set('+CSTT', '\"hologram\"')
-        self.set('+CIICR', timeout=30)
+        self.command('+CIICR', timeout=30)
         if not self._is_pdp_context_active():
             self.logger.error('PDP Context setup failed')
             raise NetworkError('Failed PDP context setup')

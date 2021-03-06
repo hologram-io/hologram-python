@@ -709,7 +709,7 @@ class Modem:
         response_list = r.lstrip(cmd).lstrip(': ').split(',')
 
         if len(response_list) < 2:
-            raise SerialError('Unable to parse registration URC response')
+            raise SerialError('Unable to parse registration URC response, got response: %s', response_list)
 
         regstatus = int(response_list[1])
         # 1: registered home network
