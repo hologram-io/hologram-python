@@ -154,7 +154,6 @@ class SIM7000(Modem):
         if not self.is_registered():
             return False
 
-        self.checkURC()
         self.command('+CIPSTATUS')
         self.checkURC()
         return self.network_state is NetworkState.CONNECTED
@@ -170,6 +169,7 @@ class SIM7000(Modem):
         self.command("+CMNB", "1")
         self.set_sms_configs()
         self.set_network_registration_status()
+        time.sleep(0.5)
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
