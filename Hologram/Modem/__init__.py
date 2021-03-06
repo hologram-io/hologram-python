@@ -407,6 +407,12 @@ class Modem:
             self._write_to_serial_port_and_flush('\r\n')
 
     def checkURC(self, hide=False):
+        """
+        Polls serial port until a response is returned
+
+        :param hide: [description], defaults to False
+        :type hide: bool, optional
+        """
         while(True):
             response = self._readline_from_serial_port(0, hide=hide)
             if len(response) > 0 and response.startswith('+'):
@@ -415,8 +421,13 @@ class Modem:
             else:
                 return
 
-    # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
+        """
+        Handle Unsolicited Result Codes, usually a asynch response prepended with a +
+
+        :param urc: Urc response
+        :type urc: string
+        """
         self.logger.debug("URC! %s",  urc)
         self.logger.debug("handleURC state: %d",  self.urc_state)
 

@@ -70,7 +70,6 @@ class SIM7000(Modem):
 
     def connect_socket(self, host, port):
         self.command('+CIPSTART', '\"TCP\",\"%s\",%d' % (host, port))
-        self.urc_state = Modem.SOCKET_WRITE_STATE
 
     def close_socket(self, socket_identifier=None):
         ok, _ = self.command('+CIPCLOSE')
@@ -110,9 +109,21 @@ class SIM7000(Modem):
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
 
-    # EFFECTS: Handles URC related AT command responses.
+    def checkURC(self, hide=False):
+        # Not all SIMCOM urcs have a + in front
+        while(True):
+            response = self._readline_from_serial_port(0, hide=hide)
+            if len(response) > 0 and (response.startswith('+') or response in ['CONNECT', 'CONNECT OK', 'CONNECT FAIL', 'SEND OK', 'ALREADY CONNECT', 'CLOSED']):
+                urc = response.rstrip('\r\n')
+                self.handleURC(urc)
+            else:
+                return
+
     def handleURC(self, urc):
-        # Figure out what urcs there are to handle
+        if urc == 'CONNECT OK':
+            self.urc_state = Modem.SOCKET_WRITE_STATE
+        if urc == 'CLOSED':
+            self.urc_state = Modem.SOCKET_CLOSED
         super().handleURC(urc)
 
     def _is_pdp_context_active(self):
