@@ -55,7 +55,7 @@ help_version = '''Print the firmware version of the modem\n'''
 def run_modem_connect(args):
     print('Note: "hologram modem connect" is deprecated '\
             'in favor of "hologram network connect"')
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     cloud.network.disable_at_sockets_mode()
     res = cloud.network.connect()
     if res:
@@ -82,7 +82,7 @@ def run_modem_disconnect(args):
             process.wait()
 
 def run_modem_signal(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
 
     if args['repeat'] != 0:
         while True:
@@ -92,7 +92,7 @@ def run_modem_signal(args):
         print('Signal strength: ' + str(cloud.network.signal_strength))
 
 def run_at_command(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     cmd = ''
     if args['command'] is not None:
         cmd = args['command'].lstrip("AT")
@@ -103,22 +103,22 @@ def run_at_command(args):
     print('Response: ' + ''.join(map(str, response)) + f'\n{result}')
 
 def run_modem_version(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     version = cloud.network.modem.version
     print('Modem version: ' + version)
 
 def run_modem_imei(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     imei = cloud.network.modem.imei
     print('IMEI: ' + imei)
 
 def run_modem_reset(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     cloud.network.modem.reset()
     print('Restarted modem')
 
 def run_modem_radio_off(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     res = cloud.network.modem.radio_power(False)
     if res:
         print('Modem radio disabled')
@@ -126,7 +126,7 @@ def run_modem_radio_off(args):
         print('Failure to disable radio')
 
 def run_modem_radio_on(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     res = cloud.network.modem.radio_power(True)
     if res:
         print('Modem radio enabled')
@@ -135,19 +135,19 @@ def run_modem_radio_on(args):
 
 
 def run_modem_sim(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     print('ICCID: ' + str(cloud.network.iccid))
 
 def run_modem_operator(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     print('Operator: ' + str(cloud.network.operator))
 
 def run_modem_type(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     print('Type: %s' % cloud.network.description)
 
 def run_modem_location(args):
-    cloud = CustomCloud(None, network='cellular')
+    cloud = CustomCloud(None)
     location_obj = cloud.network.location
     if location_obj is None:
         print('Location: Not Available')

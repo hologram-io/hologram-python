@@ -33,7 +33,7 @@ def parse_hologram_activate_args(parser):
 #          This function will call the appropriate cloud/sms handler.
 def run_hologram_activate(args):
 
-    hologram = HologramCloud(dict(), network='cellular')
+    hologram = HologramCloud(dict())
     sim = hologram.network.iccid
 
     if sim is None:

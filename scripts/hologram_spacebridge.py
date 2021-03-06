@@ -33,7 +33,7 @@ def parse_hologram_spacebridge_args(parser):
 
 def run_hologram_spacebridge(args):
     global hologram
-    hologram = HologramCloud(dict(), network='cellular')
+    hologram = HologramCloud(dict())
 
     hologram.event.subscribe('message.received', popReceivedMessage)
 
