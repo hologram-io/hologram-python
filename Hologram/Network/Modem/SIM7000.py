@@ -9,6 +9,7 @@
 #
 import binascii
 import time
+from enum import Enum
 
 from serial.serialutil import Timeout
 
@@ -18,6 +19,23 @@ from UtilClasses import ModemResult
 from Exceptions.HologramError import SerialError, NetworkError
 
 DEFAULT_SIM7000_TIMEOUT = 200
+
+class NetworkState(Enum):
+    INITIAL = 'IP INITIAL',
+    START = 'IP START'
+    CONFIG = 'IP CONFIG',
+    GPRSACT = 'IP GPRSACT',
+    STATUS = 'IP STATUS',
+    TCPCONN = 'TCP CONNECTING',
+    UDPCONN = 'UDP CONNECTING',
+    LISTENING = 'SERVER LISTENING',
+    CONNECTED = 'CONNECT OK',
+    TCPCLOSING = 'TCP CLOSING',
+    UDPCLOSING = 'UDP CLOSING',
+    TCPCLOSED = 'TCP CLOSED',
+    UDPCLOSED = 'UDP CLOSED',
+    DISCONNECTED = 'PDP DEACT'
+
 
 class SIM7000(Modem):
     usb_ids = [('1e0e', '9001')]
@@ -29,6 +47,7 @@ class SIM7000(Modem):
                                         chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
         self.urc_response = ''
+        self.network_state = NetworkState.DISCONNECTED
 
     def connect(self, timeout=DEFAULT_SIM7000_TIMEOUT):
 
@@ -113,13 +132,16 @@ class SIM7000(Modem):
         # Not all SIMCOM urcs have a + in front
         while(True):
             response = self._readline_from_serial_port(0, hide=hide)
-            if len(response) > 0 and (response.startswith('+') or response in ['CONNECT', 'CONNECT OK', 'CONNECT FAIL', 'SEND OK', 'ALREADY CONNECT', 'CLOSED']):
+            if len(response) > 0 and (response.startswith('+') or response.startswith('STATE') or response in ['CONNECT', 'CONNECT OK', 'CONNECT FAIL', 'SEND OK', 'ALREADY CONNECT', 'CLOSED']):
                 urc = response.rstrip('\r\n')
                 self.handleURC(urc)
             else:
                 return
 
     def handleURC(self, urc):
+        if urc.startswith('STATE'):
+            urc = urc.strip('STATE: ')
+            self.network_state = NetworkState(urc)
         if urc == 'CONNECT OK':
             self.urc_state = Modem.SOCKET_WRITE_STATE
         if urc == 'CLOSED':
@@ -151,10 +173,12 @@ class SIM7000(Modem):
 
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
-        ok, _ = self.command('+CIPSTATUS', expected="STATE: IP INITIAL")
-        while ok != ModemResult.OK:
+        self.command('+CIPSTATUS')
+        self.checkURC()
+        while self.network_state is not NetworkState.INITIAL:
             self.command('+CIPSHUT')
-            ok, _ = self.command('+CIPSTATUS', expected="STATE: IP INITIAL")
+            self.command('+CIPSTATUS')
+            self.checkURC()
 
         self.set('+CSTT', '\"hologram\"')
         self.command('+CIICR', timeout=30)
