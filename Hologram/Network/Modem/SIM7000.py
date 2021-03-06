@@ -156,9 +156,10 @@ class SIM7000(Modem):
 
         self.command('+CIPSTATUS')
         # wait for the buffer to fill up
-        time.sleep(0.5)
         self.checkURC()
-        return self.network_state is NetworkState.CONNECTED
+        self.checkURC()
+        self.checkURC()
+        return self.network_state is NetworkState.GPRSACT
 
     def init_serial_commands(self):
         self.command("E0") #echo off
