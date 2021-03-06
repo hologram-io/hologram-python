@@ -10,7 +10,8 @@
 import logging
 from logging import NullHandler
 from Hologram.Event import Event
-from Hologram.Network import NetworkManager
+from Hologram.Network import Network
+from Hologram.Exceptions import NetworkError
 from Hologram.Authentication import *
 
 __version__ = '0.9.0'
@@ -21,7 +22,7 @@ class Cloud:
         return type(self).__name__
 
     def __init__(self, credentials, send_host = '', send_port = 0,
-                 receive_host = '', receive_port = 0, network = ''):
+                 receive_host = '', receive_port = 0):
 
         # Logging setup.
         self.logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class Cloud:
         self.__initialize_host_and_port(send_host, send_port,
                                         receive_host, receive_port)
 
-        self.initializeNetwork(network)
+        self.initializeNetwork()
 
     def __initialize_host_and_port(self, send_host, send_port, receive_host, receive_port):
         self.send_host = send_host
@@ -41,17 +42,22 @@ class Cloud:
         self.receive_host = receive_host
         self.receive_port = receive_port
 
-    def initializeNetwork(self, network):
+    def initializeNetwork(self):
 
         self.event = Event()
         self.__message_buffer = []
 
-        # Network Configuration
-        self._networkManager = NetworkManager.NetworkManager(self.event, network)
+        self._network = Network(self.event)
+
+        try:
+            self._network.autodetect_modem()
+        except NetworkError as e:
+            self.logger.info("No modem found. Loading drivers and retrying")
+            self._network.load_modem_drivers()
+            self._network.autodetect_modem()
 
         # This registers the message buffering feature based on network availability.
-        self.event.subscribe('network.connected', self.__clear_payload_buffer)
-        self.event.subscribe('network.disconnected', self._networkManager.networkDisconnected)
+        self.event.subscribe('cellular.connected', self.__clear_payload_buffer)
 
     # EFFECTS: Adds the given payload to the buffer
     def addPayloadToBuffer(self, payload):
@@ -60,7 +66,6 @@ class Cloud:
     # EFFECTS: Tells the network manager that it is connected and clears all buffered
     #          messages by sending them to the cloud.
     def __clear_payload_buffer(self):
-        self._networkManager.networkConnected()
         for payload in self.__message_buffer:
 
             recv = self.sendMessage(payload)
@@ -139,10 +144,18 @@ class Cloud:
         self._event = event
 
     @property
-    def network_type(self):
-        return repr(self._networkManager)
-
-    # Returns the network instance itself.
-    @property
     def network(self):
-        return self._networkManager.network
+        return self._network
+
+    @network.setter
+    def network(self, network, modem=None):
+        self.network = network
+
+        if modem is not None:
+            self._network.modem = modem
+        try:
+            self._network.autodetect_modem()
+        except NetworkError as e:
+            self.logger.info("No modem found. Loading drivers and retrying")
+            self._network.load_modem_drivers()
+            self._network.autodetect_modem()

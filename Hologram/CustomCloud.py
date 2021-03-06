@@ -9,11 +9,9 @@
 
 from collections import deque
 import socket
-import sys
 import threading
-import time
 from Hologram.Cloud import Cloud
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 
 MAX_RECEIVE_BYTES = 1024
 MAX_QUEUED_CONNECTIONS = 5
@@ -24,15 +22,13 @@ MIN_PERIODIC_INTERVAL = 1
 class CustomCloud(Cloud):
 
     def __init__(self, credentials, send_host='', send_port=0,
-                 receive_host='', receive_port=0, enable_inbound=False,
-                 network=''):
+                 receive_host='', receive_port=0, enable_inbound=False):
 
         super().__init__(credentials,
                          send_host=send_host,
                          send_port=send_port,
                          receive_host=receive_host,
-                         receive_port=receive_port,
-                         network=network)
+                         receive_port=receive_port)
 
         # Enforce that the send and receive configs are set before using the class.
         if enable_inbound and (receive_host == '' or receive_port == 0):
@@ -383,8 +379,7 @@ class CustomCloud(Cloud):
             raise HologramError('Interval cannot be less than %d seconds.' % MIN_PERIODIC_INTERVAL)
 
     def __enforce_network_disconnected(self):
-        if self.network_type == 'Cellular':
-            self.network.disconnect()
+        self.network.disconnect()
 
     def getResultString(self, result_code):
         return str(result_code)

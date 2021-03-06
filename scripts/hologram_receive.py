@@ -66,7 +66,7 @@ def run_hologram_receive(args):
 def run_hologram_receive_data(args):
 
     global hologram
-    hologram = HologramCloud(dict(), network='cellular')
+    hologram = HologramCloud(dict())
 
     hologram.event.subscribe('message.received', popReceivedMessage)
 
@@ -95,7 +95,7 @@ def run_hologram_receive_data(args):
 # EFFECTS: Receives SMS from the Hologram Cloud.
 def run_hologram_receive_sms(args):
     global hologram
-    hologram = HologramCloud(dict(), network='cellular')
+    hologram = HologramCloud(dict())
     print ('Ready to receive sms')
     try:
         handle_polling(args['timeout'], popReceivedSMS, 1)

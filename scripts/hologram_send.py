@@ -12,7 +12,7 @@
 
 from Hologram.CustomCloud import CustomCloud
 from Hologram.HologramCloud import HologramCloud
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 from .hologram_util import VAction
 
 import argparse
@@ -72,13 +72,13 @@ def parse_sms_args(parser):
 # EFFECTS: Parses and sends the Hologram message using TOTP Authentication
 def sendTOTP(args, data, is_sms=False):
 
-    hologram = HologramCloud(dict(), authentication_type='totp', network='cellular')
+    hologram = HologramCloud(dict(), authentication_type='totp')
     send_message_helper(hologram, args, is_sms=is_sms)
 
 
 def sendSIMOTP(args, data, is_sms=False):
 
-    hologram = HologramCloud(dict(), authentication_type='sim-otp', network='cellular')
+    hologram = HologramCloud(dict(), authentication_type='sim-otp')
     send_message_helper(hologram, args, is_sms=is_sms)
 
 # EFFECTS: Parses and sends the specified message using CSRPSK Authentication
@@ -102,7 +102,7 @@ def sendPSK(args, data, is_sms=False):
         print(f'RESPONSE FROM CLOUD: {recv}')
     else:
         # host and port are default so use Hologram
-        hologram = HologramCloud(credentials, authentication_type='csrpsk', network='cellular')
+        hologram = HologramCloud(credentials, authentication_type='csrpsk')
         send_message_helper(hologram, args, is_sms=is_sms)
 
 # EFFECTS: Wraps the send message interface based on the repeat parameter.

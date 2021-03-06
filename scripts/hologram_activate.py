@@ -17,7 +17,7 @@ import time
 
 from Hologram.HologramCloud import HologramCloud
 from Hologram.Api import Api
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 from .hologram_util import VAction
 
 CHECK_LIVE_SIM_STATE_MAX_TIMEOUT = 120 # 2 mins for max timeout
@@ -33,7 +33,7 @@ def parse_hologram_activate_args(parser):
 #          This function will call the appropriate cloud/sms handler.
 def run_hologram_activate(args):
 
-    hologram = HologramCloud(dict(), network='cellular')
+    hologram = HologramCloud(dict())
     sim = hologram.network.iccid
 
     if sim is None:

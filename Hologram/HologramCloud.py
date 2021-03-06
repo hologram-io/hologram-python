@@ -14,7 +14,7 @@ import sys
 from Hologram.CustomCloud import CustomCloud
 from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
 from Hologram.Authentication import CSRPSKAuthentication
-from Exceptions.HologramError import HologramError
+from Hologram.Exceptions import HologramError
 
 DEFAULT_SEND_MESSAGE_TIMEOUT = 5
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
@@ -59,15 +59,14 @@ class HologramCloud(CustomCloud):
         ERR_UNKNOWN: 'Unknown error'
     }
 
-    def __init__(self, credentials, enable_inbound=False, network='',
+    def __init__(self, credentials, enable_inbound=False,
                  authentication_type='totp'):
         super().__init__(credentials,
                          send_host=HOLOGRAM_HOST_SEND,
                          send_port=HOLOGRAM_PORT_SEND,
                          receive_host=HOLOGRAM_HOST_RECEIVE,
                          receive_port=HOLOGRAM_PORT_RECEIVE,
-                         enable_inbound=enable_inbound,
-                         network=network)
+                         enable_inbound=enable_inbound)
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
 
