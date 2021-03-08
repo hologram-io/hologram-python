@@ -53,18 +53,17 @@ class LE910(Modem):
 
     def create_socket(self):
         self._set_up_pdp_context()
+        # <connId>,<srMode>,<recvDataMode>,<keepalive>[,<ListenAutoRsp>[,<sendDataMode>]]
+        ok, _ = self.command('#SCFGEXT', '1,2,0,1,0,1')
+        if ok != ModemResult.OK:
+            self.logger.error('Failed to configure socket')
+            raise NetworkError('Failed to configure socket')
 
     def connect_socket(self, host, port):
         ok, _ = self.command('#SD', '1,0,%d,\"%s\",0,0,1' % (port, host))
         if ok != ModemResult.OK:
             self.logger.error('Failed to open socket')
             raise NetworkError('Failed to open socket')
-
-        # <connId>,<srMode>,<recvDataMode>,<keepalive>[,<ListenAutoRsp>[,<sendDataMode>]]
-        ok, _ = self.command('#SCFGEXT', '1,2,0,1,0,1')
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to configure open socket')
-            raise NetworkError('Failed to configure open socket')
 
         self.socket_identifier = 1
         self.urc_state = Modem.SOCKET_WRITE_STATE
