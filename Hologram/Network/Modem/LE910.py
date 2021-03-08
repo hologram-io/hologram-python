@@ -91,7 +91,7 @@ class LE910(Modem):
             payload_length = self.last_read_payload_length
 
         self.command('#SRECV', '%d,%d' % (socket_identifier, payload_length), read=False)
-        loop_timeout = Timeout(timeout)
+        loop_timeout = Timeout(Modem.DEFAULT_SEND_TIMEOUT)
         while self.urc_state != Modem.SOCKET_SEND_READ:
             self.checkURC()
             if self.urc_state != Modem.SOCKET_SEND_READ:
