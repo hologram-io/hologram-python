@@ -518,7 +518,7 @@ class Modem(IModem):
 
                 p = self._read_from_serial_port(timeout, len(prompt) + 3)
 
-                if prompt in p.encode():
+                if prompt in p.decode():
                     time.sleep(1)
                     self._write_to_serial_port_and_flush(data)
 
