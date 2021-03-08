@@ -49,7 +49,7 @@ class LE910(Modem):
     def send_message(self, data, timeout=Modem.DEFAULT_SEND_TIMEOUT):
         self.write_socket(data)
 
-        return self.read_socket()
+        return self.read_socket(payload_length=5)
 
     def create_socket(self):
         self._set_up_pdp_context()
