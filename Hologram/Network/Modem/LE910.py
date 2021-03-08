@@ -123,10 +123,10 @@ class LE910(Modem):
         if not self.is_registered():
             return False
 
-        ok, r = self.command('+CGACT?')
+        ok, r = self.command('#SGACT?')
         if ok == ModemResult.OK:
             try:
-                pdpstatus = int(r.lstrip('+CGACT: ').split(',')[1])
+                pdpstatus = int(r.lstrip('#SGACT: ').split(',')[1])
                 # 1: PDP active
                 return pdpstatus == 1
             except (IndexError, ValueError) as e:
@@ -154,7 +154,7 @@ class LE910(Modem):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
         self.set('+CGDCONT', '1,\"IP\",\"hologram\"')
-        ok, _ = self.set('+CGACT', '1', timeout=30)
+        ok, _ = self.set('#SGACT', '1,1', timeout=30)
         if ok != ModemResult.OK:
             self.logger.error('PDP Context setup failed')
             raise NetworkError('Failed PDP context setup')
