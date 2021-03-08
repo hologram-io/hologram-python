@@ -9,6 +9,7 @@
 #
 import binascii
 import time
+import random
 
 from serial.serialutil import Timeout
 
@@ -69,7 +70,7 @@ class BG96(Modem):
         self._set_up_pdp_context()
 
     def connect_socket(self, host, port):
-        self.command('+QIOPEN', '1,0,\"TCP\",\"%s\",%d,0,1' % (host, port))
+        self.command('+QIOPEN', '1,%d,\"TCP\",\"%s\",%d,0,1' % (random.randint(0,11), host, port))
         # According to the BG96 Docs
         # Have to wait for URC response “+QIOPEN: <connectID>,<err>”
 
