@@ -105,12 +105,21 @@ class LE910(Modem):
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG') or self.check_registered('+CEREG')
 
+    def checkURC(self, hide=False):
+        while(True):
+            response = self._readline_from_serial_port(0, hide=hide)
+            if len(response) > 0 and (response.startswith('+') or response in ['SRING']):
+                urc = response.rstrip('\r\n')
+                self.handleURC(urc)
+            else:
+                return
+
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
-        if urc.startswith('+SRING:'):
+        if urc.startswith('SRING:'):
             # <srMode> = 2 (Data view):
             # SRING: <connId>,<recData>,<data>
-            response_list = urc.lstrip('+SRING:').split(',')
+            response_list = urc.lstrip('SRING:').split(',')
             self.urc_state = Modem.SOCKET_SEND_READ
             self.socket_identifier = int(response_list[0])
             self.last_read_payload_length = int(response_list[1])
