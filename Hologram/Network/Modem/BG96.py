@@ -125,7 +125,7 @@ class BG96(Modem):
             if err == 0:
                 self.urc_state = Modem.SOCKET_WRITE_STATE
                 self.socket_identifier = socket_identifier
-            elif err = 563:
+            elif err == 563:
                 #Socket is already open
                 self.urc_state = Modem.SOCKET_WRITE_STATE
                 self.socket_identifier = socket_identifier
