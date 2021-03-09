@@ -108,7 +108,7 @@ class LE910(Modem):
     def checkURC(self, hide=False):
         while(True):
             response = self._readline_from_serial_port(0, hide=hide)
-            if len(response) > 0 and (response.startswith('+') or response.startswith'SRING')):
+            if len(response) > 0 and (response.startswith('+') or response.startswith('SRING')):
                 urc = response.rstrip('\r\n')
                 self.handleURC(urc)
             else:
