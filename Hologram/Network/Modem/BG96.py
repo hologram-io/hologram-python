@@ -186,4 +186,4 @@ class BG96(Modem):
 
     @property
     def description(self):
-        return 'Quecetel BG96'
+        return 'Quectel BG96'
