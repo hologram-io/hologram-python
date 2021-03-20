@@ -17,7 +17,7 @@ from Hologram.Event import Event
 from UtilClasses import ModemResult
 from Exceptions.HologramError import SerialError, NetworkError
 
-DEFAULT_BG96_TIMEOUT = 200
+DEFAULT_LE910_TIMEOUT = 60
 
 class LE910(Modem):
     usb_ids = [('1bc7', '0036')]
@@ -30,7 +30,7 @@ class LE910(Modem):
         self._at_sockets_available = True
         self.urc_response = ''
 
-    def connect(self, timeout=DEFAULT_BG96_TIMEOUT):
+    def connect(self, timeout=DEFAULT_LE910_TIMEOUT):
 
         success = super().connect(timeout)
 
@@ -39,7 +39,7 @@ class LE910(Modem):
             # detect another open serial port to use for PPP
             devices = self.detect_usable_serial_port()
             if not devices:
-                raise SerialError('Not enough serial ports detected for Nova')
+                raise SerialError('Not enough serial ports detected for device')
             self.logger.debug('Moving connection to port %s', devices[0])
             self.device_name = devices[0]
             super().initialize_serial_interface()
