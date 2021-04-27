@@ -176,7 +176,7 @@ class BG96(Modem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
-        self.set('+QICSGP', '1,1,\"hologram\",\"\",\"\",1')
+        self.set('+QICSGP', f'1,1,\"{self._apn}\",\"\",\"\",1')
         ok, _ = self.set('+QIACT', '1', timeout=30)
         if ok != ModemResult.OK:
             self.logger.error('PDP Context setup failed')
