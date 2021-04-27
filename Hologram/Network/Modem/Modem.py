@@ -74,6 +74,7 @@ class Modem(IModem):
         self.result = ModemResult.OK
         self.debug_out = ''
         self.in_ext = False
+        self._apn = 'hologram'
 
         self._initialize_device_name(device_name)
 
@@ -711,7 +712,7 @@ class Modem(IModem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
-        self.set('+UPSD', '0,1,\"hologram\"')
+        self.set('+UPSD', f'0,1,\"{self._apn}\"')
         self.set('+UPSD', '0,7,\"0.0.0.0\"')
         ok, _ = self.set('+UPSDA', '0,3', timeout=30)
         if ok != ModemResult.OK:
@@ -913,7 +914,6 @@ class Modem(IModem):
         else:
             return None
 
-
     @property
     def version(self):
         raise NotImplementedError('This modem does not support this property')
@@ -921,3 +921,12 @@ class Modem(IModem):
     @property
     def imei(self):
         return self._basic_command('+GSN')
+
+    @property
+    def apn(self):
+        return self._apn
+
+    @apn.setter
+    def apn(self, apn):
+        self._apn = apn
+        return self.set('+CGDCONT', f'1,"IP","{self._apn}"')
