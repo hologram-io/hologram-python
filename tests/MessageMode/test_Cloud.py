@@ -14,7 +14,7 @@ sys.path.append("../..")
 from Hologram.Authentication import *
 from Hologram.Cloud import Cloud
 
-class TestCloud():
+class TestCloud:
 
     def test_create_send(self):
         cloud = Cloud(None, send_host = '127.0.0.1', send_port = 9999)

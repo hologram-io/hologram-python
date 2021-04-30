@@ -58,32 +58,37 @@ class PPP(IPPP):
 
     def disconnect(self):
         self._ppp.disconnect()
-        self.__shut_down_existing_ppp_session()
+        PPP.shut_down_existing_ppp_session(self.logger)
         return True
 
     # EFFECTS: Makes sure that there are no existing PPP instances on the same
     #          device interface.
     def __enforce_no_existing_ppp_session(self):
 
-        pid_list = self.__check_for_existing_ppp_sessions()
+        pid_list = PPP.check_for_existing_ppp_sessions(self.logger)
 
         if len(pid_list) > 0:
             raise PPPError('Existing PPP session(s) are established by pid(s) %s. Please close/kill these processes first'
                            % pid_list)
 
-    def __shut_down_existing_ppp_session(self):
-        pid_list = self.__check_for_existing_ppp_sessions()
+    @staticmethod
+    def shut_down_existing_ppp_session(logger):
+        pid_list = PPP.check_for_existing_ppp_sessions(logger)
 
         # Process this only if it is a valid PID integer.
         for pid in pid_list:
-            self.logger.info('Killing pid %s that currently have an active PPP session',
+            logger.info('Killing pid %s that currently have an active PPP session',
                              pid)
-            psutil.Process(pid).terminate()
+            process = psutil.Process(pid)
+            process.terminate()
+            # Wait at least 10 seconds for the process to terminate
+            process.wait(10)
 
-    def __check_for_existing_ppp_sessions(self):
+    @staticmethod
+    def check_for_existing_ppp_sessions(logger):
 
         existing_ppp_pids = []
-        self.logger.info('Checking for existing PPP sessions')
+        logger.info('Checking for existing PPP sessions')
 
         for proc in psutil.process_iter():
             try:
@@ -92,7 +97,7 @@ class PPP(IPPP):
                 raise PPPError('Failed to check for existing PPP sessions')
 
             if 'pppd' in pinfo['name']:
-                self.logger.info('Found existing PPP session on pid: %s', pinfo['pid'])
+                logger.info('Found existing PPP session on pid: %s', pinfo['pid'])
                 existing_ppp_pids.append(pinfo['pid'])
 
         return existing_ppp_pids

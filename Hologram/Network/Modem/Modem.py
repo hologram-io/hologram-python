@@ -13,7 +13,8 @@ from Hologram.Network.Modem.ModemMode import PPP
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
-from Exceptions.HologramError import SerialError, HologramError, NetworkError
+from Exceptions.HologramError import SerialError, HologramError, NetworkError, PPPError
+
 
 from collections import deque
 import binascii
@@ -73,6 +74,7 @@ class Modem(IModem):
         self.result = ModemResult.OK
         self.debug_out = ''
         self.in_ext = False
+        self._apn = 'hologram'
 
         self._initialize_device_name(device_name)
 
@@ -100,8 +102,16 @@ class Modem(IModem):
     def disconnect(self):
 
         if self._mode is not None:
-            return self._mode.disconnect()
-        return None
+            res = self._mode.disconnect()
+            self._mode = None
+            return res
+        else:
+            try:
+                PPP.shut_down_existing_ppp_session(self.logger)
+                return True
+            except PPPError as e:
+                self.logger.info('Got PPPError trying to disconnect open sessions')
+                return None
 
     def _initialize_device_name(self, device_name):
         if device_name is None:
@@ -289,7 +299,6 @@ class Modem(IModem):
             self.logger.info('Connect socket is successful')
 
     def listen_socket(self, port):
-
         at_command_val = "%d,%s" % (self.socket_identifier, port)
         self.listen_socket_identifier = self.socket_identifier
         ok, _ = self.set('+USOLI', at_command_val, timeout=5)
@@ -298,16 +307,24 @@ class Modem(IModem):
             raise NetworkError('Failed to listen socket')
 
     def write_socket(self, data):
-
         self.enable_hex_mode()
-        value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                len(data),
-                binascii.hexlify(data))
-        ok, _ = self.set('+USOWR', value, timeout=10)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to write to socket')
-            raise NetworkError('Failed to write socket')
+        hexdata = binascii.hexlify(data)
+        # We have to do it in chunks of 510 since 512 is actually too long (CMEE error)
+        # and we need 2n chars for hexified data
+        for chunk in self._chunks(hexdata, 510):
+            value = b'%d,%d,\"%s\"' % (self.socket_identifier,
+                    len(binascii.unhexlify(chunk)),
+                    chunk)
+            ok, _ = self.set('+USOWR', value, timeout=10)
+            if ok != ModemResult.OK:
+                self.logger.error('Failed to write to socket')
+                raise NetworkError('Failed to write socket')
         self.disable_hex_mode()
+
+    def _chunks(self, data, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(data), n):
+            yield data[i:i + n]
 
     def read_socket(self, socket_identifier=None, payload_length=None):
 
@@ -448,6 +465,9 @@ class Modem(IModem):
             if response == 'OK':
                 return ModemResult.OK
 
+            if response == 'SEND OK':
+                return ModemResult.OK
+
             if response.startswith('+'):
                 if response.lower().startswith(cmd.lower() + ': '):
                     self.response.append(response)
@@ -550,9 +570,10 @@ class Modem(IModem):
 
     # EFFECTS: Parses the rest of the sms pdu (sender).
     def _parse_sender(self, pdu, offset):
-
         sms_deliver = int(pdu[offset],16)
-        if sms_deliver & 0x03 != 0: return None
+        # options are SMS-SUBMIT, SMS-DELIVER or SMS-STATUS-REPORT
+        # we are looking for a deliver, return none for other types
+        if sms_deliver & 0x03 != 0: return None, offset
         offset += 1
         sender_len = int(pdu[offset:offset+2],16)
         offset += 2
@@ -691,7 +712,7 @@ class Modem(IModem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
-        self.set('+UPSD', '0,1,\"hologram\"')
+        self.set('+UPSD', f'0,1,\"{self._apn}\"')
         self.set('+UPSD', '0,7,\"0.0.0.0\"')
         ok, _ = self.set('+UPSDA', '0,3', timeout=30)
         if ok != ModemResult.OK:
@@ -717,11 +738,14 @@ class Modem(IModem):
 
     #returns the raw result of a command, with the 'CMD: ' prefix stripped
     def _basic_command(self, cmd, prefix=True):
+        base_cmd = cmd.rstrip('?%')
         try:
             ok, r = self.command(cmd)
             if ok == ModemResult.OK:
                 if prefix and r.startswith(cmd+': '):
                     return r.lstrip(cmd + ': ')
+                elif prefix and r.startswith(base_cmd+': '):
+                    return r.lstrip(base_cmd + ': ')
                 else:
                     return r
         except AttributeError as e:
@@ -792,7 +816,10 @@ class Modem(IModem):
         return r
 
     def disable_at_sockets_mode(self):
-        raise HologramError('Cannot disable AT command sockets on this Modem type')
+        pass
+
+    def enable_at_sockets_mode(self):
+        pass
 
     def enable_hex_mode(self):
         self.__set_hex_mode(1)
@@ -875,12 +902,17 @@ class Modem(IModem):
 
     @property
     def localIPAddress(self):
-        return self._mode.localIPAddress
+        if self._mode:
+            return self._mode.localIPAddress
+        else:
+            return None
 
     @property
     def remoteIPAddress(self):
-        return self._mode.remoteIPAddress
-
+        if self._mode:
+            return self._mode.remoteIPAddress
+        else:
+            return None
 
     @property
     def version(self):
@@ -890,3 +922,11 @@ class Modem(IModem):
     def imei(self):
         return self._basic_command('+GSN')
 
+    @property
+    def apn(self):
+        return self._apn
+
+    @apn.setter
+    def apn(self, apn):
+        self._apn = apn
+        return self.set('+CGDCONT', f'1,"IP","{self._apn}"')

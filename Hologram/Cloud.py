@@ -15,7 +15,7 @@ from Hologram.Authentication import *
 
 __version__ = '0.9.0'
 
-class Cloud():
+class Cloud:
 
     def __repr__(self):
         return type(self).__name__

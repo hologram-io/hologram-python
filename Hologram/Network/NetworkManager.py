@@ -17,7 +17,7 @@ import os
 
 DEFAULT_NETWORK_TIMEOUT = 200
 
-class NetworkManager():
+class NetworkManager:
 
     _networkHandlers =  {
         'wifi' : Wifi.Wifi,

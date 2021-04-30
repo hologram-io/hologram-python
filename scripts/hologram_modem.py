@@ -17,6 +17,8 @@ import psutil
 import subprocess
 import time
 
+DEFAULT_TIMEOUT = 5
+
 help_connect = '''This subcommand establishes a cellular connection.\n
 '''
 
@@ -39,6 +41,8 @@ help_signal = '''Print the RSSI signal strength values.\n'''
 
 help_location = '''Print the location of the modem based on cell towers if supported\n
 '''
+
+help_at_command = '''Send an AT command to the modem and print the result'''
 
 help_reset = '''Restart the modem\n'''
 
@@ -73,7 +77,9 @@ def run_modem_disconnect(args):
         if 'pppd' in pinfo['name']:
             print('Found existing PPP session on pid: %s' % pinfo['pid'])
             print('Killing pid %s now' % pinfo['pid'])
-            psutil.Process(pinfo['pid']).terminate()
+            process = psutil.Process(pinfo['pid'])
+            process.terminate()
+            process.wait()
 
 def run_modem_signal(args):
     cloud = CustomCloud(None, network='cellular')
@@ -84,6 +90,17 @@ def run_modem_signal(args):
             handle_timeout(args['repeat'])
     else:
         print('Signal strength: ' + str(cloud.network.signal_strength))
+
+def run_at_command(args):
+    cloud = CustomCloud(None, network='cellular')
+    cmd = ''
+    if args['command'] is not None:
+        cmd = args['command'].lstrip("AT")
+    val = None
+    if not cmd.endswith('?') and '=' in cmd:
+        cmd, val = cmd.split('=')
+    result, response = cloud.network.modem.command(cmd, val, timeout=args['timeout'])
+    print('Response: ' + ''.join(map(str, response)) + f'\n{result}')
 
 def run_modem_version(args):
     cloud = CustomCloud(None, network='cellular')
@@ -140,6 +157,7 @@ def run_modem_location(args):
 _run_handlers = {
     'modem_connect': run_modem_connect,
     'modem_disconnect': run_modem_disconnect,
+    'modem_command': run_at_command,
     'modem_sim': run_modem_sim,
     'modem_operator': run_modem_operator,
     'modem_signal': run_modem_signal,
@@ -209,6 +227,14 @@ def parse_hologram_modem_args(parser):
     parser_radio_off = subparsers.add_parser('radio-off', help=help_radio_off)
     parser_radio_off.set_defaults(command_selected='modem_radio_off')
     parser_radio_off.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
+
+    # at-command
+    parser_command = subparsers.add_parser('command', help=help_at_command)
+    parser_command.set_defaults(command_selected='modem_command')
+    parser_command.add_argument('command', nargs='?', help='AT command to send to the modem')
+    parser_command.add_argument('-t', '--timeout', type=int, default=DEFAULT_TIMEOUT, nargs='?',
+                        help='The period in seconds before the command exits if it doesn\'t receive a response')
+    parser_command.add_argument('-v', nargs='?', action=VAction, dest='verbose', required=False)
 
     # version
     parser_version = subparsers.add_parser('version', help=help_version)
