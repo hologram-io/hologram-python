@@ -1,5 +1,20 @@
 # What's New in Hologram Python SDK
 
+## v0.9.1
+2021-04-30 Hologram <support@hologram.io>
+includes the following bug fixes
+    * PPP process is waited on for termination
+    * SMS parser doesn't break for non SMS-RECEIVE messages
+    * Add chunking for messages over 512 bytes long
+    * Install script checks for python versions >= 3.7
+    * Fix bug in disconnect (thanks @akumlehn )
+    * Send AT Commands from the CLI
+    * Fix PPP errors related to routing and reconnection
+    * BG96 and E372 Modules (thanks @HectorMendez)
+    * AT sockets are renabled after PPP sessions
+    * fix bug in return code as ascii ordinal value instead of int
+
+
 ## v0.9.0
 2019-10-28 Hologram <support@hologram.io>
     * Converted SDK to use Python 3. This version is compatible with Python 3 only
