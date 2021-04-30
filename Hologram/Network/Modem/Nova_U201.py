@@ -95,14 +95,6 @@ class Nova_U201(Nova):
 
         return self.last_sim_otp_command_response
 
-    # EFFECTS: Handles URC related AT command responses.
-    def handleURC(self, urc):
-        if urc.startswith('+CSIM: '):
-            self.parse_and_populate_last_sim_otp_response(urc.lstrip('+CSIM: '))
-            return
-
-        super().handleURC(urc)
-
     def populate_location_obj(self, response):
         response_list = response.split(',')
         self.last_location = Location(*response_list)
