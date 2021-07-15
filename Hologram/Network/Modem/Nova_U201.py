@@ -51,14 +51,7 @@ class Nova_U201(Nova):
         super().create_socket()
 
     def close_socket(self, socket_identifier=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
-        ok, r = self.set('+USOCL', "%s" % socket_identifier)
-        if ok != ModemResult.OK:
-            self.logger.info('Failed to close socket')
-
+        super().close_socket(socket_identifier)
         self._tear_down_pdp_context()
 
     def is_registered(self):

@@ -73,7 +73,7 @@ def test_close_socket_no_args(mock_set, no_serial_port):
     mock_set.return_value = (0,0)
     mock_set.reset_mock()
     modem.close_socket()
-    mock_set.assert_called_once_with('+USOCL', '0', timeout=40)
+    mock_set.assert_called_once_with('+USOCL', '0')
 
 @patch.object(NovaM, 'set')
 def test_close_socket_with_socket_identifier(mock_set, no_serial_port):
@@ -81,7 +81,7 @@ def test_close_socket_with_socket_identifier(mock_set, no_serial_port):
     mock_set.return_value = (0,0)
     mock_set.reset_mock()
     modem.close_socket(5)
-    mock_set.assert_called_once_with('+USOCL', '5', timeout=40)
+    mock_set.assert_called_once_with('+USOCL', '5')
 
 @patch.object(NovaM, 'command')
 def test_set_network_registration_status(mock_command, no_serial_port):
