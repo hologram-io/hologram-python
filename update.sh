@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-required_programs=('python3' 'pip3' 'ps' 'kill' 'libpython3.7-dev')
+required_programs=('python3' 'pip3' 'ps' 'kill' 'libpython3.9-dev')
 OS=''
 
 # Check OS.
