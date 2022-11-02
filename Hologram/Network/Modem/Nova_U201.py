@@ -50,6 +50,10 @@ class Nova_U201(Nova):
         self._set_up_pdp_context()
         super().create_socket()
 
+    def close_socket(self, socket_identifier=None):
+        super().close_socket(socket_identifier)
+        self._tear_down_pdp_context()
+
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
 

@@ -78,6 +78,7 @@ class BG96(Modem):
         if ok != ModemResult.OK:
             self.logger.error('Failed to close socket')
         self.urc_state = Modem.SOCKET_CLOSED
+        self._tear_down_pdp_context()
 
     def write_socket(self, data):
         hexdata = binascii.hexlify(data)
@@ -183,6 +184,15 @@ class BG96(Modem):
             raise NetworkError('Failed PDP context setup')
         else:
             self.logger.info('PDP context active')
+
+    def _tear_down_pdp_context(self):
+        if not self._is_pdp_context_active(): return True
+        self.logger.info('Tearing down PDP context')
+        ok, _ = self.set('+QIACT', '0', timeout=30)
+        if ok != ModemResult.OK:
+            self.logger.error('PDP Context tear down failed')
+        else:
+            self.logger.info('PDP context deactivated')
 
     @property
     def description(self):

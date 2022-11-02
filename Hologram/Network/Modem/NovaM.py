@@ -48,15 +48,6 @@ class NovaM(Nova):
     def is_registered(self):
         return self.check_registered('+CEREG')
 
-    def close_socket(self, socket_identifier=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
-        ok, r = self.set('+USOCL', "%s" % socket_identifier, timeout=40)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to close socket')
-
     @property
     def description(self):
         modemtype = '(R410)' if self.is_r410 else '(R404)'
