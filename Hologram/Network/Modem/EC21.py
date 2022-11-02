@@ -115,7 +115,7 @@ class EC21(Modem):
             return resp
 
     def is_registered(self):
-        return self.check_registered('+CREG') or self.check_registered('+CGREG')
+        return self.check_registered('+CREG') or self.check_registered('+CEREG')
 
     # EFFECTS: Handles URC related AT command responses.
     def handleURC(self, urc):
