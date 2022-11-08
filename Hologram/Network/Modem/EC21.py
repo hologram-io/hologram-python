@@ -31,9 +31,7 @@ class EC21(Modem):
         self.urc_response = ''
 
     def connect(self, timeout=DEFAULT_EC21_TIMEOUT):
-
         success = super().connect(timeout)
-
         return success
 
     def send_message(self, data, timeout=Modem.DEFAULT_SEND_TIMEOUT):
@@ -104,6 +102,10 @@ class EC21(Modem):
 
             return resp
 
+    def listen_socket(self, port):
+        # No equivilent exists for quectel modems
+        pass
+
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CEREG')
 
@@ -162,7 +164,7 @@ class EC21(Modem):
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
-        self.command("+CGREG", "2")
+        self.command("+CEREG", "2")
 
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
@@ -187,3 +189,11 @@ class EC21(Modem):
     @property
     def description(self):
         return 'Quectel EC21'
+
+    @property
+    def operator(self):
+        ret = self._basic_command('+COPS?')
+        parts = ret.split(',')
+        if len(parts) >= 3:
+            return parts[2].strip('"')
+        return None
