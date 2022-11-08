@@ -107,7 +107,7 @@ class HologramCloud(CustomCloud):
                                                         modem_id=modem_id,
                                                         version=self.version)
 
-        result = super().sendMessage(output, timeout)
+        result = super().sendMessage(output, timeout).strip('\r\n')
         return self.__parse_result(result)
 
     def __parse_result(self, result):

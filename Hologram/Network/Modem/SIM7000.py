@@ -1,4 +1,4 @@
-# BG96.py - Hologram Python SDK Quectel BG96 modem interface
+# SIM7000.py - Hologram Python SDK SIMCom SIM7000 modem interface
 #
 # Author: Hologram <support@hologram.io>
 #
@@ -9,7 +9,7 @@
 #
 import binascii
 import time
-import random
+from enum import Enum
 
 from serial.serialutil import Timeout
 
@@ -18,10 +18,27 @@ from Hologram.Event import Event
 from UtilClasses import ModemResult
 from Exceptions.HologramError import SerialError, NetworkError
 
-DEFAULT_BG96_TIMEOUT = 200
+DEFAULT_SIM7000_TIMEOUT = 200
 
-class BG96(Modem):
-    usb_ids = [('2c7c', '0296')]
+class NetworkState(Enum):
+    INITIAL = 'IP INITIAL'
+    START = 'IP START'
+    CONFIG = 'IP CONFIG'
+    GPRSACT = 'IP GPRSACT'
+    STATUS = 'IP STATUS'
+    TCPCONN = 'TCP CONNECTING'
+    UDPCONN = 'UDP CONNECTING'
+    LISTENING = 'SERVER LISTENING'
+    CONNECTED = 'CONNECT OK'
+    TCPCLOSING = 'TCP CLOSING'
+    UDPCLOSING = 'UDP CLOSING'
+    TCPCLOSED = 'TCP CLOSED'
+    UDPCLOSED = 'UDP CLOSED'
+    DISCONNECTED = 'PDP DEACT'
+
+
+class SIM7000(Modem):
+    usb_ids = [('1e0e', '9001')]
 
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
@@ -30,20 +47,21 @@ class BG96(Modem):
                                         chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
         self.urc_response = ''
+        self.network_state = NetworkState.DISCONNECTED
 
-    def connect(self, timeout=DEFAULT_BG96_TIMEOUT):
+    def connect(self, timeout=DEFAULT_SIM7000_TIMEOUT):
 
         success = super().connect(timeout)
 
         # put serial mode on other port
-        # if success is True:
-        #     # detect another open serial port to use for PPP
-        #     devices = self.detect_usable_serial_port()
-        #     if not devices:
-        #         raise SerialError('Not enough serial ports detected for Nova')
-        #     self.logger.debug('Moving connection to port %s', devices[0])
-        #     self.device_name = devices[0]
-        #     super().initialize_serial_interface()
+        if success is True:
+            # detect another open serial port to use for PPP
+            devices = self.detect_usable_serial_port()
+            if not devices:
+                raise SerialError('Not enough serial ports detected for Nova')
+            self.logger.debug('Moving connection to port %s', devices[0])
+            self.device_name = devices[0]
+            super().initialize_serial_interface()
 
         return success
 
@@ -70,16 +88,13 @@ class BG96(Modem):
         self._set_up_pdp_context()
 
     def connect_socket(self, host, port):
-        self.command('+QIOPEN', '1,%d,\"TCP\",\"%s\",%d,0,1' % (random.randint(0,11), host, port))
-        # According to the BG96 Docs
-        # Have to wait for URC response “+QIOPEN: <connectID>,<err>”
+        self.command('+CIPSTART', '\"TCP\",\"%s\",%d' % (host, port))
 
     def close_socket(self, socket_identifier=None):
-        ok, _ = self.command('+QICLOSE', self.socket_identifier)
+        ok, _ = self.command('+CIPCLOSE')
         if ok != ModemResult.OK:
             self.logger.error('Failed to close socket')
         self.urc_state = Modem.SOCKET_CLOSED
-        self._tear_down_pdp_context()
 
     def write_socket(self, data):
         hexdata = binascii.hexlify(data)
@@ -87,22 +102,17 @@ class BG96(Modem):
         # and we need 2n chars for hexified data
         for chunk in self._chunks(hexdata, 510):
             value = '%d,\"%s\"' % (self.socket_identifier, chunk.decode())
-            ok, _ = self.set('+QISENDEX', value, timeout=10)
+            ok, _ = self.command('+CIPSEND', len(value), timeout=10, expected="SEND OK", prompt=">", data=value)
             if ok != ModemResult.OK:
                 self.logger.error('Failed to write to socket')
                 raise NetworkError('Failed to write to socket')
 
     def read_socket(self, socket_identifier=None, payload_length=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
         if payload_length is None:
             payload_length = self.last_read_payload_length
 
-        ok, resp = self.set('+QIRD', '%d,%d' % (socket_identifier, payload_length))
+        ok, resp = self.set('+CIPRXGET', '1,%d' % (payload_length))
         if ok == ModemResult.OK:
-            resp = resp.lstrip('+QIRD: ')
             if resp is not None:
                 resp = resp.strip('"')
             try:
@@ -116,54 +126,40 @@ class BG96(Modem):
             return resp
 
     def is_registered(self):
-        return self.check_registered('+CREG') or self.check_registered('+CEREG')
+        return self.check_registered('+CREG') or self.check_registered('+CEREG')  or self.check_registered('+CGREG')
 
-    # EFFECTS: Handles URC related AT command responses.
-    def handleURC(self, urc):
-        if urc.startswith('+QIOPEN: '):
-            response_list = urc.lstrip('+QIOPEN: ').split(',')
-            socket_identifier = int(response_list[0])
-            err = int(response_list[-1])
-            if err == 0:
-                self.urc_state = Modem.SOCKET_WRITE_STATE
-                self.socket_identifier = socket_identifier
-            elif err == 563:
-                self.close_socket(socket_identifier)
-                self.logger.error('Failed to open socket, socket was already open')
-                raise NetworkError('Failed to open socket, socket was already open')
+    def checkURC(self, hide=False):
+        # Not all SIMCOM urcs have a + in front
+        while(True):
+            response = self._readline_from_serial_port(0, hide=hide)
+            if len(response) > 0 and (response.startswith('+') or response.startswith('STATE') or response in ['CONNECT', 'CONNECT OK', 'CONNECT FAIL', 'SEND OK', 'ALREADY CONNECT', 'CLOSED']):
+                urc = response.rstrip('\r\n')
+                self.handleURC(urc)
             else:
-                self.logger.error('Failed to open socket')
-                raise NetworkError('Failed to open socket')
-            return
-        if urc.startswith('+QIURC: '):
-            response_list = urc.lstrip('+QIURC: ').split(',')
-            urctype = response_list[0]
-            if urctype == '\"recv\"':
-                self.urc_state = Modem.SOCKET_SEND_READ
-                self.socket_identifier = int(response_list[1])
-                self.last_read_payload_length = int(response_list[2])
-                self.urc_response = self._readline_from_serial_port(5)
-            if urctype == '\"closed\"':
-                self.urc_state = Modem.SOCKET_CLOSED
-                self.socket_identifier = int(response_list[-1])
-            return
-        super().handleURC(urc)
+                return
+
+    def handleURC(self, urc):
+        if urc.startswith('STATE'):
+            urc = urc.lstrip('STATE: ')
+            self.network_state = NetworkState(urc)
+            return 
+        elif urc == 'CONNECT OK':
+            self.urc_state = Modem.SOCKET_WRITE_STATE
+        elif urc == 'CLOSED':
+            self.urc_state = Modem.SOCKET_CLOSED
+        else:
+            super().handleURC(urc)
 
     def _is_pdp_context_active(self):
         if not self.is_registered():
             return False
 
-        ok, r = self.command('+QIACT?')
-        if ok == ModemResult.OK:
-            try:
-                pdpstatus = int(r.lstrip('+QIACT: ').split(',')[1])
-                # 1: PDP active
-                return pdpstatus == 1
-            except (IndexError, ValueError) as e:
-                self.logger.error(repr(e))
-            except AttributeError as e:
-                self.logger.error(repr(e))
-        return False
+        self.command('+CIPSTATUS')
+        # wait for the buffer to fill up
+        self.checkURC()
+        self.checkURC()
+        self.checkURC()
+        return self.network_state is NetworkState.GPRSACT
 
     def init_serial_commands(self):
         self.command("E0") #echo off
@@ -172,33 +168,35 @@ class BG96(Modem):
         self.set_timezone_configs()
         #self.command("+CPIN", "") #set SIM PIN
         self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.command("+CNMP", "38")
+        self.command("+CMNB", "1")
         self.set_sms_configs()
         self.set_network_registration_status()
+        time.sleep(0.5)
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
+        self.command("+CGREG", "2")
         self.command("+CEREG", "2")
 
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
-        self.logger.info('Setting up PDP context')
-        self.set('+QICSGP', f'1,1,\"{self._apn}\",\"\",\"\",1')
-        ok, _ = self.set('+QIACT', '1', timeout=30)
-        if ok != ModemResult.OK:
+        self.command('+CIPSTATUS')
+        self.checkURC()
+        while self.network_state is not NetworkState.INITIAL:
+            self.command('+CIPSHUT')
+            self.command('+CIPSTATUS')
+            self.checkURC()
+
+        self.set('+CSTT', '\"hologram\"')
+        self.command('+CIICR', timeout=30)
+        time.sleep(1)
+        if not self._is_pdp_context_active():
             self.logger.error('PDP Context setup failed')
             raise NetworkError('Failed PDP context setup')
         else:
             self.logger.info('PDP context active')
 
-    def _tear_down_pdp_context(self):
-        if not self._is_pdp_context_active(): return True
-        self.logger.info('Tearing down PDP context')
-        ok, _ = self.set('+QIACT', '0', timeout=30)
-        if ok != ModemResult.OK:
-            self.logger.error('PDP Context tear down failed')
-        else:
-            self.logger.info('PDP context deactivated')
-
     @property
     def description(self):
-        return 'Quectel BG96'
+        return 'SIMCom SIM7000'
