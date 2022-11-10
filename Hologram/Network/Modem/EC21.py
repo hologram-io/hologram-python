@@ -189,12 +189,3 @@ class EC21(Modem):
     @property
     def description(self):
         return 'Quectel EC21'
-
-    @property
-    def operator(self):
-        ret = self._basic_command('+COPS?')
-        if ret is not None:
-            parts = ret.split(',')
-            if len(parts) >= 3:
-                return parts[2].strip('"')
-        return None

@@ -865,14 +865,16 @@ class Modem(IModem):
 
     @property
     def iccid(self):
-        return self._basic_command('+CCID')
+        return self._basic_command('+CCID').rstrip('F')
 
     @property
     def operator(self):
-        op = self._basic_set('+UDOPN','12')
-        if op is not None:
-            return op.strip('"')
-        return op
+        ret = self._basic_command('+COPS?')
+        if ret is not None:
+            parts = ret.split(',')
+            if len(parts) >= 3:
+                return parts[2].strip('"')
+        return None
 
     @property
     def location(self):

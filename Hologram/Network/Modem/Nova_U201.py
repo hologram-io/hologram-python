@@ -134,3 +134,10 @@ class Nova_U201(Nova):
     @property
     def description(self):
         return 'Hologram Nova Global 3G/2G Cellular USB Modem (U201)'
+
+    @property
+    def operator(self):
+        op = self._basic_set('+UDOPN','12')
+        if op is not None:
+            return op.strip('"')
+        return op
