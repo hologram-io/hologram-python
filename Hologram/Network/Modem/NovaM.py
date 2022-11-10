@@ -57,16 +57,6 @@ class NovaM(Nova):
     def location(self):
         raise NotImplementedError('The R404 and R410 do not support Cell Locate at this time')
 
-    @property
-    def operator(self):
-        # R4 series doesn't have UDOPN so need to override
-        ret = self._basic_command('+COPS?')
-        parts = ret.split(',')
-        if len(parts) >= 3:
-            return parts[2].strip('"')
-        return None
-
-
     # same as Modem::connect_socket except with longer timeout
     def connect_socket(self, host, port):
         at_command_val = "%d,\"%s\",%s" % (self.socket_identifier, host, port)
