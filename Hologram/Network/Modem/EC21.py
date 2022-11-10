@@ -142,6 +142,7 @@ class EC21(Modem):
 
         ok, r = self.command('+QIACT?')
         if ok == ModemResult.OK:
+            self.logger.debug(f"response is {r}")
             try:
                 pdpstatus = int(r.lstrip('+QIACT: ').split(',')[1])
                 # 1: PDP active
@@ -180,7 +181,7 @@ class EC21(Modem):
     def _tear_down_pdp_context(self):
         if not self._is_pdp_context_active(): return True
         self.logger.info('Tearing down PDP context')
-        ok, _ = self.set('+QIACT', '0', timeout=30)
+        ok, _ = self.set('+QIDEACT', '1', timeout=30)
         if ok != ModemResult.OK:
             self.logger.error('PDP Context tear down failed')
         else:
@@ -193,7 +194,8 @@ class EC21(Modem):
     @property
     def operator(self):
         ret = self._basic_command('+COPS?')
-        parts = ret.split(',')
-        if len(parts) >= 3:
-            return parts[2].strip('"')
+        if ret is not None:
+            parts = ret.split(',')
+            if len(parts) >= 3:
+                return parts[2].strip('"')
         return None
