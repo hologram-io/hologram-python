@@ -51,6 +51,7 @@ class EC21(Modem):
             elif self.urc_state == Modem.SOCKET_CLOSED:
                 return '[1,0]' #this is connection closed for hologram cloud response
 
+        self.logger.debug(f"Socket Response is {self.urc_response}")
         return self.urc_response
 
     def create_socket(self):
@@ -129,6 +130,7 @@ class EC21(Modem):
                 self.urc_state = Modem.SOCKET_SEND_READ
                 self.socket_identifier = int(response_list[1])
                 self.last_read_payload_length = int(response_list[2])
+                self.logger.debug(f"Got bytes on socket id {self.socket_identifier} of length {self.last_read_payload_length}")
                 self.urc_response = self._readline_from_serial_port(5)
             if urctype == '\"closed\"':
                 self.urc_state = Modem.SOCKET_CLOSED
