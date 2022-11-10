@@ -51,9 +51,7 @@ class EC21(Modem):
             elif self.urc_state == Modem.SOCKET_CLOSED:
                 return '[1,0]' #this is connection closed for hologram cloud response
 
-        response = self.urc_response.rstrip('\r\n')
-        self.logger.debug(f"Socket Response is {response}")
-        return response
+        return self.urc_response.rstrip('\r\n')
 
     def create_socket(self):
         self._set_up_pdp_context()
@@ -131,7 +129,6 @@ class EC21(Modem):
                 self.urc_state = Modem.SOCKET_SEND_READ
                 self.socket_identifier = int(response_list[1])
                 self.last_read_payload_length = int(response_list[2])
-                self.logger.debug(f"Got bytes on socket id {self.socket_identifier} of length {self.last_read_payload_length}")
                 self.urc_response = self._readline_from_serial_port(5)
             if urctype == '\"closed\"':
                 self.urc_state = Modem.SOCKET_CLOSED
@@ -145,7 +142,6 @@ class EC21(Modem):
 
         ok, r = self.command('+QIACT?')
         if ok == ModemResult.OK:
-            self.logger.debug(f"response is {r}")
             try:
                 pdpstatus = int(r.lstrip('+QIACT: ').split(',')[1])
                 # 1: PDP active
