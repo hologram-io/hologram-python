@@ -803,7 +803,7 @@ class Modem(IModem):
         # Revert back to original default timeout
         if timeout is not None:
             self.serial_port.timeout = self.timeout
-        return r
+        return r.rstrip('\r\n')
 
     # REQUIRES: a message string.
     # EFFECTS: Writes it to the actual serial port instance and flushes the buffer.
