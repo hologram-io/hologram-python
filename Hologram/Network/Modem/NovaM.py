@@ -33,15 +33,6 @@ class NovaM(Nova):
         else:
             self.is_r410 = True
 
-
-    def init_serial_commands(self):
-        self.command("E0") #echo off
-        self.command("+CMEE", "2") #set verbose error codes
-        self.command("+CPIN?")
-        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
-        self.set_sms_configs()
-        self.set_network_registration_status()
-
     def set_network_registration_status(self):
         self.command("+CEREG", "2")
 

@@ -27,6 +27,14 @@ class Nova(Modem):
     def enable_at_sockets_mode(self):
         self._at_sockets_available = True
 
+    def init_serial_commands(self):
+        self.command("E0") #echo off
+        self.command("+CMEE", "2") #set verbose error codes
+        self.command("+CPIN?")
+        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.set_sms_configs()
+        self.set_network_registration_status()
+
     @property
     def version(self):
         return self._basic_command('I9')
