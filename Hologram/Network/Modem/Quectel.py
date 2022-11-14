@@ -17,8 +17,6 @@ from Hologram.Event import Event
 from UtilClasses import ModemResult
 from Exceptions.HologramError import SerialError, NetworkError
 
-DEFAULT_NOVA_TIMEOUT = 200
-
 class Quectel(Modem):
 
     def __init__(self, device_name=None, baud_rate='9600',

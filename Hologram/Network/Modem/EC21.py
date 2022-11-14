@@ -8,8 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Hologram.Network.Modem import Quectel
-from Hologram.Event import Event
+from Hologram.Network.Modem.Quectel import Quectel
 from UtilClasses import ModemResult
 
 DEFAULT_EC21_TIMEOUT = 200
