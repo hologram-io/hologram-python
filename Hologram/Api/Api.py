@@ -44,7 +44,7 @@ class Api:
         response = requests.post(endpoint, **args)
         #pylint: disable=no-member
         if response.status_code != requests.codes.ok:
-            return (response.status_code, response.text)
+            return (False, response.text)
 
         response = response.json()
         if not response['success']:

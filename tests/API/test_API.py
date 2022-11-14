@@ -25,6 +25,7 @@ class TestHologramAPI:
     def test_activate(self, r_post):
         api = Api(apikey='123apikey')
         
+        r_post.return_value = Mock(status_code=200)
         r_post.return_value.json = Mock(return_value={"success": True, 'order_data': {}})
         
         success, response = api.activateSIM('iccid')
@@ -36,6 +37,7 @@ class TestHologramAPI:
     def test_activate_failed(self, r_post):
         api = Api(apikey='123apikey')
         
+        r_post.return_value = Mock(status_code=200)
         r_post.return_value.json = Mock(return_value={"success": False, 'data': {'iccid': 'Activation failed'}})
         
         success, response = api.activateSIM('iccid')
