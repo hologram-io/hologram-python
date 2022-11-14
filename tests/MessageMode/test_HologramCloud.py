@@ -13,18 +13,23 @@ sys.path.append("..")
 sys.path.append("../..")
 from Hologram.Authentication import *
 from Hologram.HologramCloud import HologramCloud
+from Exceptions.HologramError import AuthenticationError
 
 credentials = {'devicekey':'12345678'}
 
 class TestHologramCloud:
 
     def test_create(self):
-        hologram = HologramCloud(credentials, enable_inbound = False)
+        hologram = HologramCloud(credentials, authentication_type='csrpsk', enable_inbound = False)
 
         assert hologram.send_host == 'cloudsocket.hologram.io'
         assert hologram.send_port == 9999
         assert hologram.receive_host == '0.0.0.0'
         assert hologram.receive_port == 4010
+
+    def test_create_bad_totp_keys(self):
+        with pytest.raises(AuthenticationError, match = 'Unable to fetch device id or private key for TOTP authenication'):
+            HologramCloud(credentials, enable_inbound = False)
 
     def test_invalid_sms_length(self):
 
@@ -36,7 +41,7 @@ class TestHologramCloud:
 
     def test_get_result_string(self):
 
-        hologram = HologramCloud(credentials, enable_inbound = False)
+        hologram = HologramCloud(credentials, authentication_type='csrpsk', enable_inbound = False)
 
         assert hologram.getResultString(-1) == 'Unknown error'
         assert hologram.getResultString(0) == 'Message sent successfully'
