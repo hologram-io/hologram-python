@@ -14,7 +14,7 @@ import sys
 from Hologram.CustomCloud import CustomCloud
 from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
 from Hologram.Authentication import CSRPSKAuthentication
-from Exceptions.HologramError import HologramError
+from Exceptions.HologramError import HologramError, AuthenticationError
 
 DEFAULT_SEND_MESSAGE_TIMEOUT = 5
 HOLOGRAM_HOST_SEND = 'cloudsocket.hologram.io'
@@ -125,6 +125,7 @@ class HologramCloud(CustomCloud):
             self.authentication.credentials['private_key'] = self.network.imsi
         except Exception as e:
             self.logger.error('Unable to fetch device id or private key')
+            raise AuthenticationError('Unable to fetch device id or private key for TOTP authenication')
 
     def __populate_sim_otp_credentials(self):
         nonce = self.request_hex_nonce()
