@@ -7,9 +7,6 @@ sys.path.append("../..")
 from Hologram.Api import Api
 from Exceptions.HologramError import ApiError
 
-
-credentials = {'devicekey':'12345678'}
-
 class TestHologramAPI:
 
     def test_create_no_creds(self):
@@ -36,6 +33,17 @@ class TestHologramAPI:
         assert response == {}
 
     @patch('requests.post')
+    def test_activate_failed(self, r_post):
+        api = Api(apikey='123apikey')
+        
+        r_post.return_value.json = Mock(return_value={"success": False, 'data': {'iccid': 'Activation failed'}})
+        
+        success, response = api.activateSIM('iccid')
+
+        assert success == False
+        assert response == 'Activation failed'
+
+    @patch('requests.post')
     def test_activate_bad_status_code(self, r_post):
         api = Api(apikey='123apikey')
         
@@ -47,17 +55,6 @@ class TestHologramAPI:
 
         assert success == False
         assert response == 'Too many requests'
-
-    @patch('requests.post')
-    def test_activate_failed(self, r_post):
-        api = Api(apikey='123apikey')
-        
-        r_post.return_value.json = Mock(return_value={"success": False, 'data': {'iccid': 'Activation failed'}})
-        
-        success, response = api.activateSIM('iccid')
-
-        assert success == False
-        assert response == 'Activation failed'
 
     @patch('requests.get')
     def test_get_plans(self, r_post):
@@ -79,5 +76,5 @@ class TestHologramAPI:
         success, response = api.getSIMState('iccid')
 
         assert success == True
-        assert response == {'id': 1, 'orgid': 1}
+        assert response == 'LIVE'
 
