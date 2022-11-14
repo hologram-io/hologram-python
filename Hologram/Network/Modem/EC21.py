@@ -17,12 +17,6 @@ DEFAULT_EC21_TIMEOUT = 200
 class EC21(Quectel):
     usb_ids = [('2c7c', '0121')]
 
-    def __init__(self, device_name=None, baud_rate='9600',
-                 chatscript_file=None, event=Event()):
-
-        super().__init__(device_name=device_name, baud_rate=baud_rate,
-                                        chatscript_file=chatscript_file, event=event)
-
     def connect(self, timeout=DEFAULT_EC21_TIMEOUT):
         success = super().connect(timeout)
         return success

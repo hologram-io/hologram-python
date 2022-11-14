@@ -25,7 +25,7 @@ class Quectel(Modem):
                  chatscript_file=None, event=Event()):
 
         super().__init__(device_name=device_name, baud_rate=baud_rate,
-                                   chatscript_file=chatscript_file, event=event)
+                            chatscript_file=chatscript_file, event=event)
         self._at_sockets_available = True
         self.urc_response = ''
 
