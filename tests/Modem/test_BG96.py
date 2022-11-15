@@ -58,8 +58,9 @@ def test_close_socket(mock_set, mock_command, mock_pdp, no_serial_port):
     modem = BG96()
     modem.socket_identifier = 1
     mock_set.return_value = (ModemResult.OK, None)
+    mock_command.return_value = (ModemResult.OK, None)
     mock_pdp.return_value = True
-    modem.close_socket() == False
+    modem.close_socket()
     mock_set.assert_called_with('+QIACT', '0', timeout=30)
     mock_command.assert_called_with('+QICLOSE', 1)
 
