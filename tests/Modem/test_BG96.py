@@ -54,7 +54,7 @@ def test_init_BG96_no_args(no_serial_port):
 @patch.object(BG96, 'set')
 @patch.object(BG96, 'command')
 @patch.object(BG96, '_is_pdp_context_active')
-def test_close_socket(mock_set, mock_command, mock_pdp, no_serial_port):
+def test_close_socket(mock_pdp, mock_command, mock_set, no_serial_port):
     modem = BG96()
     modem.socket_identifier = 1
     mock_set.return_value = (ModemResult.OK, None)

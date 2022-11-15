@@ -54,7 +54,7 @@ def test_init_EC21_no_args(no_serial_port):
 @patch.object(EC21, 'set')
 @patch.object(EC21, 'command')
 @patch.object(EC21, '_is_pdp_context_active')
-def test_close_socket(mock_set, mock_command, mock_pdp, no_serial_port):
+def test_close_socket(mock_pdp, mock_command, mock_set, no_serial_port):
     modem = EC21()
     modem.socket_identifier = 1
     mock_set.return_value = (ModemResult.OK, None)

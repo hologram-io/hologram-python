@@ -67,7 +67,7 @@ def test_write_socket_small(mock_command, no_serial_port):
     data = b'Message smaller than 510 bytes'
     mock_command.return_value = (ModemResult.OK, None)
     modem.write_socket(data)
-    mock_command.assert_called_with('+QISENDEX', '1,"4d65737361676520736d616c6c6572207468616e20353130206279746573"')
+    mock_command.assert_called_with('+QISENDEX', '1,"4d65737361676520736d616c6c6572207468616e20353130206279746573"', timeout=10)
 
 @patch.object(Quectel, 'set')
 def test_write_socket_large(mock_command, no_serial_port):
@@ -76,5 +76,5 @@ def test_write_socket_large(mock_command, no_serial_port):
     data = b'a'*300
     mock_command.return_value = (ModemResult.OK, None)
     modem.write_socket(data)
-    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*255))
-    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*45))
+    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*255), timeout=10)
+    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*45), timeout=10)
