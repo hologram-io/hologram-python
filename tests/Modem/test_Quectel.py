@@ -142,3 +142,4 @@ def test_handle_socket_closed_urc(no_serial_port):
     modem.handleURC('+QIURC: \"closed\",1')
     assert modem.urc_state == Modem.SOCKET_CLOSED
     assert modem.socket_identifier == 1
+
