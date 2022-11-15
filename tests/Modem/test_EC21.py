@@ -53,10 +53,12 @@ def test_init_EC21_no_args(no_serial_port):
 
 @patch.object(EC21, 'set')
 @patch.object(EC21, 'command')
-def test_close_socket(mock_set, mock_command, no_serial_port):
+@patch.object(EC21, '_is_pdp_context_active')
+def test_close_socket(mock_set, mock_command, mock_pdp, no_serial_port):
     modem = EC21()
     modem.socket_identifier = 1
     mock_set.return_value = (ModemResult.OK, None)
-    assert(modem.close_socket() == False)
+    mock_pdp.return_value = True
+    modem.close_socket() == False
     mock_set.assert_called_with('+QIDEACT', '1', timeout=30)
     mock_command.assert_called_with('+QICLOSE', 1)

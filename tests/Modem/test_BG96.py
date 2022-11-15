@@ -53,11 +53,13 @@ def test_init_BG96_no_args(no_serial_port):
 
 @patch.object(BG96, 'set')
 @patch.object(BG96, 'command')
-def test_close_socket(mock_set, mock_command, no_serial_port):
+@patch.object(BG96, '_is_pdp_context_active')
+def test_close_socket(mock_set, mock_command, mock_pdp, no_serial_port):
     modem = BG96()
     modem.socket_identifier = 1
     mock_set.return_value = (ModemResult.OK, None)
-    assert(modem.close_socket() == False)
+    mock_pdp.return_value = True
+    modem.close_socket() == False
     mock_set.assert_called_with('+QIACT', '0', timeout=30)
     mock_command.assert_called_with('+QICLOSE', 1)
 
