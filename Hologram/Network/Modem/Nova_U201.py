@@ -71,10 +71,6 @@ class Nova_U201(Nova):
             self.device_name = devices[0]
             super().initialize_serial_interface()
 
-    def init_serial_commands(self):
-        super().init_serial_commands()
-        self.set_timezone_configs()
-
     def set_network_registration_status(self):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")

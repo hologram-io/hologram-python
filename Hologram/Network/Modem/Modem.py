@@ -226,7 +226,13 @@ class Modem(IModem):
         self.init_serial_commands()
 
     def init_serial_commands(self):
-        pass
+        self.command("E0") #echo off
+        self.command("+CMEE", "2") #set verbose error codes
+        self.command("+CPIN?")
+        self.set_timezone_configs()
+        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.set_sms_configs()
+        self.set_network_registration_status()
 
     def set_sms_configs(self):
         self.command("+CMGF", "0") #SMS PDU format
