@@ -74,5 +74,5 @@ def test_write_socket_large(mock_command, no_serial_port):
     modem.socket_identifier = 1
     data = b'a'*300
     modem.connect_socket(data)
-    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*255)
-    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*45)
+    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*255))
+    mock_command.assert_called_with('+QISENDEX', '1,\"%s\"' % ('61'*45))
