@@ -6,7 +6,7 @@
 #
 # test_EC21.py - This file implements unit tests for the EC21 modem interface.
 
-from unittest import patch
+from unittest.mock import patch
 import pytest
 import sys
 

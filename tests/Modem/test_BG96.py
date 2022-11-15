@@ -6,7 +6,7 @@
 #
 # test_BG96.py - This file implements unit tests for the BG96 modem interface.
 
-from unittest import patch
+from unittest.mock import patch
 import pytest
 import sys
 

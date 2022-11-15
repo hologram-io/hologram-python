@@ -6,7 +6,7 @@
 #
 # test_Quectel.py - This file implements unit tests for the Quectel modem interface.
 
-from unittest import patch
+from unittest.mock import patch
 import pytest
 import sys
 
