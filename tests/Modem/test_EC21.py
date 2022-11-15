@@ -56,7 +56,7 @@ def test_init_EC21_no_args(no_serial_port):
 def test_close_socket(mock_set, mock_command, no_serial_port):
     modem = EC21()
     modem.socket_identifier = 1
-    mock_set.set.return_value = (ModemResult.OK, None)
+    mock_set.return_value = (ModemResult.OK, None)
     assert(modem.close_socket() == False)
     mock_set.assert_called_with('+QIDEACT', '1', timeout=30)
     mock_command.assert_called_with('+QICLOSE', 1)
