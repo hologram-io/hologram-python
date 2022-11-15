@@ -6,11 +6,12 @@
 #
 # test_BG96.py - This file implements unit tests for the BG96 modem interface.
 
-from mock import call, patch
+from unittest import patch
 import pytest
 import sys
 
 from Hologram.Network.Modem.BG96 import BG96
+from UtilClasses import ModemResult
 
 sys.path.append(".")
 sys.path.append("..")
@@ -50,20 +51,13 @@ def test_init_BG96_no_args(no_serial_port):
     assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
     assert(modem._at_sockets_available)
 
-@patch.object(BG96, 'check_registered')
-def test_is_registered(mock_check_registered, no_serial_port):
-    modem = BG96()
-    mock_check_registered.return_value = False
-    mock_check_registered.reset_mock()
-    assert(modem.is_registered() == False)
-    calls = [call('+CREG'), call('+CEREG')]
-    mock_check_registered.assert_has_calls(calls, any_order=True)
-
+@patch.object(BG96, 'set')
 @patch.object(BG96, 'command')
-def test_set_network_registration_status(mock_command, no_serial_port):
+def test_close_socket(mock_set, mock_command, no_serial_port):
     modem = BG96()
-    mock_command.return_value = []
-    mock_command.reset_mock()
-    modem.set_network_registration_status()
-    calls = [call('+CREG', '2'), call('+CEREG', '2')]
-    mock_command.assert_has_calls(calls)
+    modem.socket_identifier = 1
+    mock_set.set.return_value = (ModemResult.OK, None)
+    assert(modem.close_socket() == False)
+    mock_set.assert_called_with('+QIACT', '0', timeout=30)
+    mock_command.assert_called_with('+QICLOSE', 1)
+

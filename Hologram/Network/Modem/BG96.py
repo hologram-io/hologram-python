@@ -17,8 +17,7 @@ class BG96(Quectel):
     usb_ids = [('2c7c', '0296')]
         
     def connect(self, timeout=DEFAULT_BG96_TIMEOUT):
-        success = super().connect(timeout)
-        return success
+        return super().connect(timeout)
 
     def _tear_down_pdp_context(self):
         if not self._is_pdp_context_active(): return True
