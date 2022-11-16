@@ -28,7 +28,7 @@ def mock_read(modem):
 
 
 def mock_readline(modem, timeout=None, hide=False):
-    return "From Serial"
+    return ""
 
 
 def mock_open_serial_port(modem, device_name=None):
