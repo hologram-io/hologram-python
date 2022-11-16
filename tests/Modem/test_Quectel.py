@@ -72,8 +72,13 @@ def test_create_socket(mock_command, mock_set, mock_check, no_serial_port):
     mock_set.return_value = (ModemResult.OK, None)
     modem.create_socket()
     mock_command.assert_called_with("+QIACT?")
-    mock_set.assert_called_with("+QICSGP", '1,1,\"test\",\"\",\"\",1')
-    mock_set.assert_called_with("+QIACT", '1', timeout=30)
+    mock_set.assert_has_calls(
+        [
+            call("+QICSGP", '1,1,\"test\",\"\",\"\",1'),
+            call("+QIACT", '1', timeout=30)
+        ],
+        any_order=True
+    )
 
 @patch.object(Quectel, "command")
 def test_connect_socket(mock_command, no_serial_port):
@@ -118,7 +123,7 @@ def test_write_socket_large(mock_command, no_serial_port):
 def test_read_socket(mock_command, no_serial_port):
     modem = Quectel()
     modem.socket_identifier = 1
-    mock_command.return_value = (ModemResult.OK, b'+QIRD: "Some val"')
+    mock_command.return_value = (ModemResult.OK, '+QIRD: "Some val"')
     # Double quotes should be stripped from the reutrn value
     assert (modem.read_socket(payload_length=10) == 'Some val')
     mock_command.assert_called_with("+QIRD", '1,10')
