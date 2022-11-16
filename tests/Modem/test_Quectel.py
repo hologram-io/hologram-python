@@ -123,23 +123,23 @@ def test_read_socket(mock_command, no_serial_port):
     assert (modem.read_socket(payload_length=10) == 'Some val')
     mock_command.assert_called_with("+QIRD", '1,10')
 
-def test_handle_open_urc(no_serial_port):
-    modem = Quectel()
-    modem.handleURC('+QIOPEN: 1,0')
-    assert modem.urc_state == Modem.SOCKET_WRITE_STATE
-    assert modem.socket_identifier == 1
+# def test_handle_open_urc(no_serial_port):
+#     modem = Quectel()
+#     modem.handleURC('+QIOPEN: 1,0')
+#     assert modem.urc_state == Modem.SOCKET_WRITE_STATE
+#     assert modem.socket_identifier == 1
 
-def test_handle_received_data_urc(no_serial_port):
-    modem = Quectel()
-    modem.handleURC('+QIURC: \"recv\",1,25')
-    assert modem.urc_state == Modem.SOCKET_SEND_READ
-    assert modem.socket_identifier == 1
-    assert modem.last_read_payload_length == 25
-    assert modem.urc_response == "From Serial"
+# def test_handle_received_data_urc(no_serial_port):
+#     modem = Quectel()
+#     modem.handleURC('+QIURC: \"recv\",1,25')
+#     assert modem.urc_state == Modem.SOCKET_SEND_READ
+#     assert modem.socket_identifier == 1
+#     assert modem.last_read_payload_length == 25
+#     assert modem.urc_response == "From Serial"
 
-def test_handle_socket_closed_urc(no_serial_port):
-    modem = Quectel()
-    modem.handleURC('+QIURC: \"closed\",1')
-    assert modem.urc_state == Modem.SOCKET_CLOSED
-    assert modem.socket_identifier == 1
+# def test_handle_socket_closed_urc(no_serial_port):
+#     modem = Quectel()
+#     modem.handleURC('+QIURC: \"closed\",1')
+#     assert modem.urc_state == Modem.SOCKET_CLOSED
+#     assert modem.socket_identifier == 1
 
