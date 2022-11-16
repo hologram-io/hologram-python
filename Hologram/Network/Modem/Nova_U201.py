@@ -71,16 +71,6 @@ class Nova_U201(Nova):
             self.device_name = devices[0]
             super().initialize_serial_interface()
 
-    def init_serial_commands(self):
-        self.command("E0") #echo off
-        self.command("+CMEE", "2") #set verbose error codes
-        self.command("+CPIN?")
-        self.set_timezone_configs()
-        #self.command("+CPIN", "") #set SIM PIN
-        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
-        self.set_sms_configs()
-        self.set_network_registration_status()
-
     def set_network_registration_status(self):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")

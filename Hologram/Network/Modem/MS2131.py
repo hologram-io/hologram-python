@@ -26,15 +26,7 @@ class MS2131(Modem):
     def connect(self, timeout = DEFAULT_MS2131_TIMEOUT):
         return super().connect(timeout)
 
-    def init_serial_commands(self):
-        self.command("E0") #echo off
-        self.command("+CMEE", "2") #set verbose error codes
-        self.command("+CPIN?")
-        self.command("+CTZU", "1") #time/zone sync
-        self.command("+CTZR", "1") #time/zone URC
-        #self.command("+CPIN", "") #set SIM PIN
-        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
-        self.set_sms_configs()
+    def set_network_registration_status(self):
         self.command("+CREG", "2")
         self.command("+CGREG", "2")
 
