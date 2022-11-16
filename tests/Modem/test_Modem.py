@@ -23,6 +23,9 @@ def mock_write(modem, message):
 def mock_read(modem):
     return True
 
+def mock_init_commands(modem):
+    return True
+
 def mock_readline(modem, timeout=None, hide=False):
     return ''
 
@@ -49,6 +52,7 @@ def no_serial_port(monkeypatch):
     monkeypatch.setattr(Modem, '_read_from_serial_port', mock_read)
     monkeypatch.setattr(Modem, '_readline_from_serial_port', mock_readline)
     monkeypatch.setattr(Modem, '_write_to_serial_port_and_flush', mock_write)
+    monkeypatch.setattr(Modem, 'init_serial_commands', mock_init_commands)
     monkeypatch.setattr(Modem, 'openSerialPort', mock_open_serial_port)
     monkeypatch.setattr(Modem, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Modem, 'detect_usable_serial_port', mock_detect_usable_serial_port)
