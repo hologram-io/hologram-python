@@ -54,3 +54,15 @@ def test_init_Ublox_chatscriptfileoverride(no_serial_port):
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
     assert(modem.chatscript_file == 'test-chatscript')
+
+# WRITE SOCKET
+
+def test_socket_write_under_512(no_serial_port, override_command_result):
+    modem = Ublox()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=64)
+    modem.write_socket(data.encode())
+
+def test_socket_write_over_512(no_serial_port, override_command_result):
+    modem = Ublox()
+    data = '{message:{fill}{align}{width}}'.format(message='Test-', fill='@', align='<', width=600)
+    modem.write_socket(data.encode())
