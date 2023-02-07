@@ -8,7 +8,7 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Hologram.Network.Modem.Nova import Nova
+from Hologram.Network.Modem.UBlox import Ublox
 from Exceptions.HologramError import SerialError
 from Hologram.Event import Event
 from UtilClasses import Location
@@ -16,7 +16,7 @@ from UtilClasses import ModemResult
 
 DEFAULT_NOVA_U201_TIMEOUT = 200
 
-class Nova_U201(Nova):
+class Nova_U201(Ublox):
     usb_ids = [('1546','1102'),('1546','1104')]
 
     def __init__(self, device_name=None, baud_rate='9600',
@@ -26,7 +26,7 @@ class Nova_U201(Nova):
                                         chatscript_file=chatscript_file, event=event)
         # We need to enforce multi serial port support. We then reinstantiate
         # the serial interface with the correct device name.
-        self.enforce_nova_modem_mode()
+        self.enforce_nova_modem_usb_mode()
         self._at_sockets_available = True
         self.last_sim_otp_command_response = None
         self.last_location = None
@@ -59,14 +59,14 @@ class Nova_U201(Nova):
 
     # EFFECTS: Enforces that the Nova modem be in the correct mode to support multiple
     #          serial ports
-    def enforce_nova_modem_mode(self):
+    def enforce_nova_modem_usb_mode(self):
 
-        modem_mode = self.modem_mode
-        self.logger.debug('USB modem mode: ' + str(modem_mode))
+        modem_usb_mode = self.modem_usb_mode
+        self.logger.debug('USB modem mode: ' + str(modem_usb_mode))
 
         # Set the modem mode to 0 if necessary.
-        if modem_mode == 2:
-            self.modem_mode = 0
+        if modem_usb_mode == 2:
+            self.modem_usb_mode = 0
             devices = self.detect_usable_serial_port()
             self.device_name = devices[0]
             super().initialize_serial_interface()

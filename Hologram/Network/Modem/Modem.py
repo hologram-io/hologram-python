@@ -17,9 +17,7 @@ from Exceptions.HologramError import SerialError, HologramError, NetworkError, P
 
 
 from collections import deque
-import binascii
 import datetime
-import logging
 import os
 import serial
 from serial.tools import list_ports
@@ -289,43 +287,18 @@ class Modem(IModem):
         self.close_socket(socket_identifier=socket_identifier)
 
     def create_socket(self):
-        op = self._basic_set('+USOCR', '6', strip_val=False)
-        if op is not None:
-            self.socket_identifier = int(op)
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     # REQUIRES: The host and port.
     # EFFECTS: Issues an AT command to connect to the specified socket identifier.
     def connect_socket(self, host, port):
-        at_command_val = "%d,\"%s\",%s" % (self.socket_identifier, host, port)
-        ok, _ = self.set('+USOCO', at_command_val, timeout=20)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to connect socket')
-            raise NetworkError('Failed to connect socket')
-        else:
-            self.logger.info('Connect socket is successful')
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     def listen_socket(self, port):
-        at_command_val = "%d,%s" % (self.socket_identifier, port)
-        self.listen_socket_identifier = self.socket_identifier
-        ok, _ = self.set('+USOLI', at_command_val, timeout=5)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to listen socket')
-            raise NetworkError('Failed to listen socket')
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     def write_socket(self, data):
-        self.enable_hex_mode()
-        hexdata = binascii.hexlify(data)
-        # We have to do it in chunks of 510 since 512 is actually too long (CMEE error)
-        # and we need 2n chars for hexified data
-        for chunk in self._chunks(hexdata, 510):
-            value = b'%d,%d,\"%s\"' % (self.socket_identifier,
-                    len(binascii.unhexlify(chunk)),
-                    chunk)
-            ok, _ = self.set('+USOWR', value, timeout=10)
-            if ok != ModemResult.OK:
-                self.logger.error('Failed to write to socket')
-                raise NetworkError('Failed to write socket')
-        self.disable_hex_mode()
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     def _chunks(self, data, n):
         """Yield successive n-sized chunks from lst."""
@@ -333,38 +306,10 @@ class Modem(IModem):
             yield data[i:i + n]
 
     def read_socket(self, socket_identifier=None, payload_length=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
-        if payload_length is None:
-            payload_length = self.last_read_payload_length
-
-        self.enable_hex_mode()
-
-        resp = self._basic_set('+USORD', '%d,%d' % (socket_identifier, payload_length))
-        if resp is not None:
-            resp = resp.strip('"')
-        bytedata = binascii.unhexlify(resp)
-        try:
-            resp = bytedata.decode()
-        except:
-            # This is some sort of binary data that can't be decoded so just
-            # return the bytes. We might want to make this happen via parameter
-            # in the future so it is more deterministic
-            resp = bytedata
-
-        self.disable_hex_mode()
-        return resp
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     def close_socket(self, socket_identifier=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
-        ok, r = self.set('+USOCL', "%s" % socket_identifier)
-        if ok != ModemResult.OK:
-            self.logger.info('Failed to close socket')
+        raise NotImplementedError("Modem does not have an AT Socket Mode")
 
     def debugwrite(self, x, hide=False):
         if not hide:
@@ -672,40 +617,13 @@ class Modem(IModem):
         pass
 
     def _is_pdp_context_active(self):
-        if not self.is_registered():
-            return False
-
-        ok, r = self.set('+UPSND', '0,8')
-        if ok == ModemResult.OK:
-            try:
-                pdpstatus = int(r.lstrip('UPSND: ').split(',')[2])
-                # 1: PDP active
-                return pdpstatus == 1
-            except (IndexError, ValueError) as e:
-                self.logger.error(repr(e))
         return False
 
     def _set_up_pdp_context(self):
-        if self._is_pdp_context_active(): return True
-        self.logger.info('Setting up PDP context')
-        self.set('+UPSD', f'0,1,\"{self._apn}\"')
-        self.set('+UPSD', '0,7,\"0.0.0.0\"')
-        ok, _ = self.set('+UPSDA', '0,3', timeout=30)
-        if ok != ModemResult.OK:
-            self.logger.error('PDP Context setup failed')
-            raise NetworkError('Failed PDP context setup')
-        else:
-            self.logger.info('PDP context active')
+        raise NotImplementedError('Modem PDP context setup not implemented')
 
     def _tear_down_pdp_context(self):
-        if not self._is_pdp_context_active(): return True
-        self.logger.info('Tearing down PDP context')
-        ok, _ = self.set('+UPSDA', '0,4', timeout=30)
-        if ok != ModemResult.OK:
-            self.logger.error('PDP Context tear down failed')
-        else:
-            self.logger.info('PDP context deactivated')
-
+        raise NotImplementedError('Modem PDP context setup not implemented')
 
     def __enforce_serial_port_open(self):
         if not (self.serial_port and self.serial_port.isOpen()):
@@ -807,13 +725,10 @@ class Modem(IModem):
         pass
 
     def enable_hex_mode(self):
-        self.__set_hex_mode(1)
+        pass
 
     def disable_hex_mode(self):
-        self.__set_hex_mode(0)
-
-    def __set_hex_mode(self, enable_hex_mode):
-        self.command('+UDCONF', '1,%d' % enable_hex_mode)
+        pass
 
     @property
     def serial_port(self):
@@ -865,27 +780,12 @@ class Modem(IModem):
         return self._at_sockets_available
 
     @property
-    def modem_mode(self):
-        mode_number = None
-        # trim:
-        # +UUSBCONF: 0,"",,"0x1102" -> 0
-        # +UUSBCONF: 2,"ECM",,"0x1104" -> 2
-        try:
-            ok, res = self.read('+UUSBCONF')
-            if ok == ModemResult.OK:
-                mode_number = int(res.lstrip('+UUSBCONF: ').split(',')[0])
-        except (IndexError, ValueError) as e:
-            self.logger.error(repr(e))
-        return mode_number
+    def modem_usb_mode(self):
+        raise NotImplementedError('This modem does not support this property')
 
-    @modem_mode.setter
-    def modem_mode(self, mode):
-        self.set('+UUSBCONF', str(mode))
-        self.logger.info('Restarting modem')
-        self.reset()
-        self.logger.info('Modem restarted')
-        self.closeSerialPort()
-        time.sleep(Modem.DEFAULT_MODEM_RESTART_TIME)
+    @modem_usb_mode.setter
+    def modem_usb_mode(self, mode):
+        raise NotImplementedError('This modem does not support this property')
 
     @property
     def localIPAddress(self):
@@ -903,7 +803,7 @@ class Modem(IModem):
 
     @property
     def version(self):
-        raise NotImplementedError('This modem does not support this property')
+        return self._basic_command('I9')
 
     @property
     def imei(self):
@@ -917,3 +817,5 @@ class Modem(IModem):
     def apn(self, apn):
         self._apn = apn
         return self.set('+CGDCONT', f'1,"IP","{self._apn}"')
+
+    
