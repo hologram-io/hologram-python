@@ -10,6 +10,7 @@ import pytest
 import sys
 
 from Hologram.Network.Modem.UBlox import Ublox
+from UtilClasses import ModemResult
 
 sys.path.append(".")
 sys.path.append("..")
@@ -33,6 +34,9 @@ def mock_close_serial_port(Ublox):
 def mock_detect_usable_serial_port(Ublox, stop_on_first=True):
     return '/dev/ttyUSB0'
 
+def mock_result(modem):
+    return (ModemResult.OK, None)
+
 @pytest.fixture
 def no_serial_port(monkeypatch):
     monkeypatch.setattr(Ublox, '_read_from_serial_port', mock_read)
@@ -41,6 +45,10 @@ def no_serial_port(monkeypatch):
     monkeypatch.setattr(Ublox, 'openSerialPort', mock_open_serial_port)
     monkeypatch.setattr(Ublox, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Ublox, 'detect_usable_serial_port', mock_detect_usable_serial_port)
+
+@pytest.fixture
+def override_command_result(monkeypatch):
+    monkeypatch.setattr(Ublox, '_command_result', mock_result)
 
 def test_init_Ublox_no_args(no_serial_port):
     modem = Ublox()
