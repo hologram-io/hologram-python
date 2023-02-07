@@ -4,53 +4,53 @@
 #
 # LICENSE: Distributed under the terms of the MIT License
 #
-# test_Nova.py - This file implements unit tests for the Nova modem interface.
+# test_Ublox.py - This file implements unit tests for the Ublox modem interface.
 
 import pytest
 import sys
 
-from Hologram.Network.Modem.Nova import Nova
+from Hologram.Network.Modem.UBlox import Ublox
 
 sys.path.append(".")
 sys.path.append("..")
 sys.path.append("../..")
 
-def mock_write(nova, message):
+def mock_write(Ublox, message):
     return True
 
-def mock_read(nova):
+def mock_read(Ublox):
     return True
 
-def mock_readline(nova, timeout=None, hide=False):
+def mock_readline(Ublox, timeout=None, hide=False):
     return ''
 
-def mock_open_serial_port(nova, device_name=None):
+def mock_open_serial_port(Ublox, device_name=None):
     return True
 
-def mock_close_serial_port(nova):
+def mock_close_serial_port(Ublox):
     return True
 
-def mock_detect_usable_serial_port(nova, stop_on_first=True):
+def mock_detect_usable_serial_port(Ublox, stop_on_first=True):
     return '/dev/ttyUSB0'
 
 @pytest.fixture
 def no_serial_port(monkeypatch):
-    monkeypatch.setattr(Nova, '_read_from_serial_port', mock_read)
-    monkeypatch.setattr(Nova, '_readline_from_serial_port', mock_readline)
-    monkeypatch.setattr(Nova, '_write_to_serial_port_and_flush', mock_write)
-    monkeypatch.setattr(Nova, 'openSerialPort', mock_open_serial_port)
-    monkeypatch.setattr(Nova, 'closeSerialPort', mock_close_serial_port)
-    monkeypatch.setattr(Nova, 'detect_usable_serial_port', mock_detect_usable_serial_port)
+    monkeypatch.setattr(Ublox, '_read_from_serial_port', mock_read)
+    monkeypatch.setattr(Ublox, '_readline_from_serial_port', mock_readline)
+    monkeypatch.setattr(Ublox, '_write_to_serial_port_and_flush', mock_write)
+    monkeypatch.setattr(Ublox, 'openSerialPort', mock_open_serial_port)
+    monkeypatch.setattr(Ublox, 'closeSerialPort', mock_close_serial_port)
+    monkeypatch.setattr(Ublox, 'detect_usable_serial_port', mock_detect_usable_serial_port)
 
-def test_init_nova_no_args(no_serial_port):
-    modem = Nova()
+def test_init_Ublox_no_args(no_serial_port):
+    modem = Ublox()
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
     assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
     assert(modem._at_sockets_available == False)
 
-def test_init_nova_chatscriptfileoverride(no_serial_port):
-    modem = Nova(chatscript_file='test-chatscript')
+def test_init_Ublox_chatscriptfileoverride(no_serial_port):
+    modem = Ublox(chatscript_file='test-chatscript')
     assert(modem.timeout == 1)
     assert(modem.socket_identifier == 0)
     assert(modem.chatscript_file == 'test-chatscript')
