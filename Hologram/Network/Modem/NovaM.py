@@ -8,14 +8,14 @@
 # LICENSE: Distributed under the terms of the MIT License
 #
 
-from Hologram.Network.Modem.Nova import Nova
+from Hologram.Network.Modem.UBlox import Ublox
 from Hologram.Event import Event
 from Exceptions.HologramError import NetworkError
 from UtilClasses import ModemResult
 
 DEFAULT_NOVAM_TIMEOUT = 200
 
-class NovaM(Nova):
+class NovaM(Ublox):
 
     usb_ids = [('05c6', '90b2')]
     module = 'option'

@@ -39,6 +39,7 @@ class Quectel(Modem):
             self.checkURC()
             if self.urc_state != Modem.SOCKET_SEND_READ:
                 if loop_timeout.expired():
+                    self.close_socket() # Try closing the socket if we get a timeout
                     raise SerialError('Timeout occurred waiting for message status')
                 time.sleep(self._RETRY_DELAY)
             elif self.urc_state == Modem.SOCKET_CLOSED:
@@ -140,9 +141,9 @@ class Quectel(Modem):
                 # 1: PDP active
                 return pdpstatus == 1
             except (IndexError, ValueError) as e:
-                self.logger.error(repr(e))
+                self.logger.error(repr(e), exc_info=True)
             except AttributeError as e:
-                self.logger.error(repr(e))
+                self.logger.error(repr(e), exc_info=True)
         return False
 
     def set_network_registration_status(self):
@@ -159,3 +160,6 @@ class Quectel(Modem):
             raise NetworkError('Failed PDP context setup')
         else:
             self.logger.info('PDP context active')
+
+    def reset(self):
+        self.set('+CFUN', '1,1') # restart the modem
