@@ -32,7 +32,7 @@ class Modem(IModem):
     DEFAULT_SERIAL_READ_SIZE = 256
     DEFAULT_SERIAL_TIMEOUT = 1
     DEFAULT_SERIAL_RETRIES = 0
-    DEFAULT_SEND_TIMEOUT = 10
+    DEFAULT_SEND_TIMEOUT = 20
 
     _RETRY_DELAY = 0.05  # 50 millisecond delay to avoid spinning loops
 
@@ -242,9 +242,6 @@ class Modem(IModem):
 
     def set_network_registration_status(self):
         pass
-
-    def reset(self):
-        self.set('+CFUN', '16') # restart the modem
 
     def radio_power(self, power_mode):
         cfun_val = '1' if power_mode else '0'

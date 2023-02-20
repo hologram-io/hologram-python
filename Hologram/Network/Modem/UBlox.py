@@ -181,6 +181,9 @@ class Ublox(Modem):
     def disable_hex_mode(self):
         self.command('+UDCONF', '1,0')
 
+    def reset(self):
+        self.set('+CFUN', '16') # restart the modem
+
     @property
     def modem_usb_mode(self):
         mode_number = None
