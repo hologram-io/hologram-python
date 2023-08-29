@@ -48,10 +48,12 @@ class Cellular(Network):
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
-        dev_devices = self._scan_for_modems()
-        if dev_devices is None:
+        dev_devices = Cellular.scan_for_modems()
+        if len(dev_devices) == 0:
             raise NetworkError('Modem not detected')
-        self.modem = dev_devices[0]
+        first_modem = dev_devices[0]
+        modem_name = first_modem[0]
+        self.modem = modem_name
 
     def load_modem_drivers(self):
         self._load_modem_drivers()
@@ -208,26 +210,27 @@ class Cellular(Network):
                             dl.force_driver_for_device(syspath, vid_pid[0], vid_pid[1])
 
 
-
-    def _scan_for_modems(self):
-        res = None
-        for (modemName, modemHandler) in self._modemHandlers.items():
-            if self._scan_for_modem(modemHandler):
-                res = (modemName, modemHandler)
-                break
+    @staticmethod
+    def scan_for_modems() -> list[Modem]:
+        res = []
+        for (modemName, modemHandler) in Cellular._modemHandlers.items():
+            modems = Cellular._scan_for_modem(modemHandler)
+            if len(modems) > 0:
+                modem = (modemName, modemHandler, modems)
+                res.append(modem)
         return res
 
 
-    def _scan_for_modem(self, modemHandler):
+    @staticmethod
+    def _scan_for_modem(modemHandler):
         usb_ids = modemHandler.usb_ids
+        devices = []
         for vid_pid in usb_ids:
             if not vid_pid:
                 continue
-            self.logger.debug('checking for vid_pid: %s', str(vid_pid))
             for dev in list_ports.grep("{0}:{1}".format(vid_pid[0], vid_pid[1])):
-                self.logger.info('Detected modem %s', modemHandler.__name__)
-                return True
-        return False
+                devices.append(dev)
+        return devices
 
 
 

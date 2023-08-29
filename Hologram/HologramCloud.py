@@ -60,14 +60,16 @@ class HologramCloud(CustomCloud):
     }
 
     def __init__(self, credentials, enable_inbound=False, network='',
-                 authentication_type='totp'):
+                 authentication_type='totp', modem=None):
         super().__init__(credentials,
                          send_host=HOLOGRAM_HOST_SEND,
                          send_port=HOLOGRAM_PORT_SEND,
                          receive_host=HOLOGRAM_HOST_RECEIVE,
                          receive_port=HOLOGRAM_PORT_RECEIVE,
                          enable_inbound=enable_inbound,
-                         network=network)
+                         network=network,
+                         modem=modem
+                         )
 
         self.setAuthenticationType(credentials, authentication_type=authentication_type)
 

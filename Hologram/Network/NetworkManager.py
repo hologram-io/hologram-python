@@ -26,7 +26,7 @@ class NetworkManager:
         'ethernet' : Ethernet.Ethernet,
     }
 
-    def __init__(self, event, network):
+    def __init__(self, event, network_name, modem=None):
 
         # Logging setup.
         self.logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class NetworkManager:
 
         self.event = event
         self.networkActive = False
-        self.network = network
+        self.init_network(network_name, modem)
 
     # EFFECTS: Event handler function that sets the network disconnect flag.
     def networkDisconnected(self):
@@ -50,8 +50,7 @@ class NetworkManager:
     def network(self):
         return self._network
 
-    @network.setter
-    def network(self, network, modem=None):
+    def init_network(self, network, modem=None):
         if not network: # non-network mode
             self.networkConnected()
             self._network = None
