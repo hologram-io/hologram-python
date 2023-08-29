@@ -10,6 +10,8 @@
 import logging
 from logging import NullHandler
 from Hologram.Event import Event
+from typing import Union
+from Hologram.Network.Modem.Modem import Modem
 from Hologram.Network import NetworkManager
 from Hologram.Authentication import *
 
@@ -21,7 +23,7 @@ class Cloud:
         return type(self).__name__
 
     def __init__(self, credentials, send_host = '', send_port = 0,
-                 receive_host = '', receive_port = 0, network = '', modem = None):
+                 receive_host = '', receive_port = 0, network = '', modem: Union[None, Modem] = None):
 
         # Logging setup.
         self.logger = logging.getLogger(__name__)

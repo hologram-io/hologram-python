@@ -11,6 +11,8 @@
 import binascii
 import json
 import sys
+from typing import Union
+from Hologram.Network.Modem.Modem import Modem
 from Hologram.CustomCloud import CustomCloud
 from HologramAuth import TOTPAuthentication, SIMOTPAuthentication
 from Hologram.Authentication import CSRPSKAuthentication
@@ -60,7 +62,7 @@ class HologramCloud(CustomCloud):
     }
 
     def __init__(self, credentials, enable_inbound=False, network='',
-                 authentication_type='totp', modem=None):
+                 authentication_type='totp', modem: Union[None, Modem] = None):
         super().__init__(credentials,
                          send_host=HOLOGRAM_HOST_SEND,
                          send_port=HOLOGRAM_PORT_SEND,
