@@ -14,6 +14,7 @@ from Hologram.Network.Route import Route
 from Hologram.Network.Modem import Modem, E303, MS2131, E372, BG96, EC21, Nova_U201, NovaM, DriverLoader
 from Hologram.Network import Network, NetworkScope
 import time
+from typing import Union
 from serial.tools import list_ports
 
 # Cellular return codes.
@@ -53,7 +54,7 @@ class Cellular(Network):
             raise NetworkError('Modem not detected')
         first_modem = dev_devices[0]
         modem_name = first_modem[0]
-        self.modem = modem_name
+        self.modem = self._modemHandlers[modem_name](event=self.event)
 
     def load_modem_drivers(self):
         self._load_modem_drivers()
@@ -214,9 +215,9 @@ class Cellular(Network):
     def scan_for_modems() -> list[Modem]:
         res = []
         for (modemName, modemHandler) in Cellular._modemHandlers.items():
-            modems = Cellular._scan_for_modem(modemHandler)
-            if len(modems) > 0:
-                modem = (modemName, modemHandler, modems)
+            modem_exists = Cellular._scan_for_modem(modemHandler)
+            if modem_exists:
+                modem = (modemName, modemHandler)
                 res.append(modem)
         return res
 
@@ -224,14 +225,27 @@ class Cellular(Network):
     @staticmethod
     def _scan_for_modem(modemHandler):
         usb_ids = modemHandler.usb_ids
-        devices = []
         for vid_pid in usb_ids:
             if not vid_pid:
                 continue
-            for dev in list_ports.grep("{0}:{1}".format(vid_pid[0], vid_pid[1])):
-                devices.append(dev)
-        return devices
+            for _ in list_ports.grep("{0}:{1}".format(vid_pid[0], vid_pid[1])):
+                return True
+        return False
 
+    @staticmethod
+    def scan_for_all_usable_modems() -> list[Modem]:
+        modems = []
+        for (modemName, modemHandler) in Cellular._modemHandlers.items():
+            modem_exists = Cellular._scan_for_modem(modemHandler)
+            if modem_exists:
+                test_handler = modemHandler()
+                # test_handler.closeSerialPort()
+                usable_ports = test_handler.detect_usable_serial_port(stop_on_first=False)
+                for port in usable_ports:
+                    modem = modemHandler(device_name=port)
+                    # modem.closeSerialPort()
+                    modems.append(modem)
+        return modems
 
 
 
@@ -240,11 +254,8 @@ class Cellular(Network):
         return self._modem
 
     @modem.setter
-    def modem(self, modem):
-        if modem not in self._modemHandlers:
-            raise NetworkError('Invalid modem type: %s' % modem)
-        else:
-            self._modem = self._modemHandlers[modem](event=self.event)
+    def modem(self, modem: Union[None, Modem] = None):
+        self._modem = modem
 
     @property
     def localIPAddress(self):

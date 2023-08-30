@@ -57,6 +57,7 @@ class Modem(IModem):
         0x2F: u'\\',
     }
 
+    # We use device_name instead of serial port, if device name is set we skip searching for a serial port
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
@@ -199,20 +200,23 @@ class Modem(IModem):
             # since our usable serial devices usually start at 0.
             udevices = [x for x in list_ports.grep("{0}:{1}".format(vid, pid))]
             for udevice in reversed(udevices):
-                if include_all_ports == False:
-                    self.logger.debug('checking port %s', udevice.name)
-                    port_opened = self.openSerialPort(udevice.device)
-                    if not port_opened:
-                        continue
+                try:
+                    if include_all_ports == False:
+                        self.logger.debug('checking port %s', udevice.name)
+                        port_opened = self.openSerialPort(udevice.device)
+                        if not port_opened:
+                            continue
 
-                    res = self.command('', timeout=1)
-                    if res[0] != ModemResult.OK:
-                        continue
-                    self.logger.info('found working port at %s', udevice.name)
+                        res = self.command('', timeout=1)
+                        if res[0] != ModemResult.OK:
+                            continue
+                        self.logger.info('found working port at %s', udevice.name)
 
-                device_names.append(udevice.device)
-                if stop_on_first:
-                    break
+                    device_names.append(udevice.device)
+                    if stop_on_first:
+                        break
+                except Exception as e:
+                    self.logger.warning(f"Error attempting to connect to serial port: {e}")
             if stop_on_first and device_names:
                 break
         return device_names
@@ -844,6 +848,10 @@ class Modem(IModem):
 
     def __set_hex_mode(self, enable_hex_mode):
         self.command('+UDCONF', '1,%d' % enable_hex_mode)
+    
+    @property
+    def details(self):
+        return f"{self.__class__.__name__}, port: {self.device_name}"
 
     @property
     def serial_port(self):
