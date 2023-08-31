@@ -49,12 +49,10 @@ class Cellular(Network):
 
     def autodetect_modem(self):
         # scan for a modem and set it if found
-        dev_devices = Cellular.scan_for_modems()
-        if len(dev_devices) == 0:
+        first_modem_handler = Cellular._scan_and_select_first_supported_modem()
+        if first_modem_handler is None:
             raise NetworkError('Modem not detected')
-        first_modem = dev_devices[0]
-        modem_name = first_modem[0]
-        self.modem = self._modemHandlers[modem_name](event=self.event)
+        self.modem = first_modem_handler(event=self.event)
 
     def load_modem_drivers(self):
         self._load_modem_drivers()
@@ -212,18 +210,16 @@ class Cellular(Network):
 
 
     @staticmethod
-    def scan_for_modems() -> list[Modem]:
-        res = []
-        for (modemName, modemHandler) in Cellular._modemHandlers.items():
-            modem_exists = Cellular._scan_for_modem(modemHandler)
+    def _scan_and_select_first_supported_modem() -> Union[Modem, None]:
+        for (_, modemHandler) in Cellular._modemHandlers.items():
+            modem_exists = Cellular._does_modem_exist_for_handler(modemHandler)
             if modem_exists:
-                modem = (modemName, modemHandler)
-                res.append(modem)
-        return res
+                return modemHandler
+        return None
 
 
     @staticmethod
-    def _scan_for_modem(modemHandler):
+    def _does_modem_exist_for_handler(modemHandler):
         usb_ids = modemHandler.usb_ids
         for vid_pid in usb_ids:
             if not vid_pid:
@@ -235,15 +231,13 @@ class Cellular(Network):
     @staticmethod
     def scan_for_all_usable_modems() -> list[Modem]:
         modems = []
-        for (modemName, modemHandler) in Cellular._modemHandlers.items():
-            modem_exists = Cellular._scan_for_modem(modemHandler)
+        for (_, modemHandler) in Cellular._modemHandlers.items():
+            modem_exists = Cellular._does_modem_exist_for_handler(modemHandler)
             if modem_exists:
                 test_handler = modemHandler()
-                # test_handler.closeSerialPort()
                 usable_ports = test_handler.detect_usable_serial_port(stop_on_first=False)
                 for port in usable_ports:
                     modem = modemHandler(device_name=port)
-                    # modem.closeSerialPort()
                     modems.append(modem)
         return modems
 
