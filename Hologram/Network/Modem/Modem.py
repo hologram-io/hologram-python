@@ -285,7 +285,7 @@ class Modem(IModem):
             prompt=b">",
             data=f"{message}\r",
             commit_cmd=ctrl_z,
-            timeout=10
+            timeout=timeout
         )
 
         self.command("+CMGF", "0")
