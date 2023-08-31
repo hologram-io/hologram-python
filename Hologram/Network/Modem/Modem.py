@@ -275,6 +275,23 @@ class Modem(IModem):
 
         return self.read_socket()
 
+    def send_sms_message(self, phonenumber, message, timeout=DEFAULT_SEND_TIMEOUT):
+        self.command("+CMGF", "1")
+
+        ctrl_z = chr(26).encode('utf-8')
+        ok, r = self.command(
+            "+CMGS",
+            f"\"{phonenumber}\"",
+            prompt=b">",
+            data=f"{message}\r",
+            commit_cmd=ctrl_z,
+            timeout=10
+        )
+
+        self.command("+CMGF", "0")
+        return ok == ModemResult.OK
+        
+
     def pop_received_message(self):
         self.checkURC()
         data = None
@@ -501,7 +518,7 @@ class Modem(IModem):
 
     def __command_helper(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         self.result = ModemResult.Timeout
 
         if cmd.endswith('?'):
@@ -532,6 +549,8 @@ class Modem(IModem):
                 if prompt in p:
                     time.sleep(1)
                     self._write_to_serial_port_and_flush(data)
+                    if commit_cmd:
+                        self.debugwrite(commit_cmd, hide=True)
 
             self.result = self.process_response(cmd, timeout, hide=hide)
             if self.result == ModemResult.OK:
@@ -789,10 +808,10 @@ class Modem(IModem):
 
     def command(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         try:
             return self.__command_helper(cmd, value, expected, timeout,
-                    retries, seteq, read, prompt, data, hide)
+                    retries, seteq, read, prompt, data, hide, commit_cmd)
         except serial.serialutil.SerialTimeoutException as e:
             self.logger.debug('unable to write to port')
             self.result = ModemResult.Error
@@ -851,7 +870,7 @@ class Modem(IModem):
     
     @property
     def details(self):
-        return f"{self.__class__.__name__}, port: {self.device_name}"
+        return f"{self.description} at port: {self.device_name}"
 
     @property
     def serial_port(self):
