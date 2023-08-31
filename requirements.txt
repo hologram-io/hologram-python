@@ -4,5 +4,5 @@ python-pppd==1.0.4
 python-sdk-auth~=0.3.0
 pyudev~=0.22.0
 pyusb~=1.2.1
-psutil~=5.8.0
+psutil~=5.9.4
 requests~=2.25.1
