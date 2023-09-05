@@ -5,8 +5,8 @@
 * targets python version 3.9
 * Allow setting a specific modem when initializing a network. This can be done by passing the modem into the `HologramCloud` intializing method for example: `HologramCloud({}, authentication_type='totp', network='cellular', modem=modem)`. Initialize a modem using one of the following methods:
   1. Initialize a modem object with a known good port using a supported modem class in `Hologram.Network.Modem` for example: `EC21(device_name="/dev/ttyUSB4")` This initializes a Quectel EC21 on port `/dev/ttyUSB4`
-  2. Scan for all available modems through the new `Cellular.scan_for_all_usable_modems()` method at `Hologram.Network.Cellular`. This returns a list of accessible modem objects
-* Allow modems to send SMS messages through the modem interface
+  2. Scan for all available modems through the new `Cellular.scan_for_all_usable_modems()` method at `Hologram.Network.Cellular`. This returns a list of accessible intialized modem objects. Just pass one of these in as a modem.
+* Allow modems to send SMS messages through the modem interface. For example: `hologram.network.modem.send_sms_message("+80112", "Hi dashboard!")`
 
 ## v0.9.1
 2021-04-30 Hologram <support@hologram.io>
