@@ -14,7 +14,7 @@ includes the following bug fixes
     * PPP process is waited on for termination
     * SMS parser doesn't break for non SMS-RECEIVE messages
     * Add chunking for messages over 512 bytes long
-    * Install script checks for python versions >= 3.9
+    * Install script checks for python versions >= 3.7
     * Fix bug in disconnect (thanks @akumlehn )
     * Send AT Commands from the CLI
     * Fix PPP errors related to routing and reconnection
