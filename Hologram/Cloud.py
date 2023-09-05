@@ -10,6 +10,8 @@
 import logging
 from logging import NullHandler
 from Hologram.Event import Event
+from typing import Union
+from Hologram.Network.Modem.Modem import Modem
 from Hologram.Network import NetworkManager
 from Hologram.Authentication import *
 
@@ -21,7 +23,7 @@ class Cloud:
         return type(self).__name__
 
     def __init__(self, credentials, send_host = '', send_port = 0,
-                 receive_host = '', receive_port = 0, network = ''):
+                 receive_host = '', receive_port = 0, network = '', modem: Union[None, Modem] = None):
 
         # Logging setup.
         self.logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ class Cloud:
         self.__initialize_host_and_port(send_host, send_port,
                                         receive_host, receive_port)
 
-        self.initializeNetwork(network)
+        self.initializeNetwork(network, modem)
 
     def __initialize_host_and_port(self, send_host, send_port, receive_host, receive_port):
         self.send_host = send_host
@@ -41,13 +43,13 @@ class Cloud:
         self.receive_host = receive_host
         self.receive_port = receive_port
 
-    def initializeNetwork(self, network):
+    def initializeNetwork(self, network, modem):
 
         self.event = Event()
         self.__message_buffer = []
 
         # Network Configuration
-        self._networkManager = NetworkManager.NetworkManager(self.event, network)
+        self._networkManager = NetworkManager.NetworkManager(self.event, network, modem=modem)
 
         # This registers the message buffering feature based on network availability.
         self.event.subscribe('network.connected', self.__clear_payload_buffer)

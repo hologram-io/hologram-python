@@ -57,6 +57,7 @@ class Modem(IModem):
         0x2F: u'\\',
     }
 
+    # The device_name is the same as the serial port, only provide a device_name if you dont want it to be autodectected
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
@@ -199,20 +200,23 @@ class Modem(IModem):
             # since our usable serial devices usually start at 0.
             udevices = [x for x in list_ports.grep("{0}:{1}".format(vid, pid))]
             for udevice in reversed(udevices):
-                if include_all_ports == False:
-                    self.logger.debug('checking port %s', udevice.name)
-                    port_opened = self.openSerialPort(udevice.device)
-                    if not port_opened:
-                        continue
+                try:
+                    if include_all_ports == False:
+                        self.logger.debug('checking port %s', udevice.name)
+                        port_opened = self.openSerialPort(udevice.device)
+                        if not port_opened:
+                            continue
 
-                    res = self.command('', timeout=1)
-                    if res[0] != ModemResult.OK:
-                        continue
-                    self.logger.info('found working port at %s', udevice.name)
+                        res = self.command('', timeout=1)
+                        if res[0] != ModemResult.OK:
+                            continue
+                        self.logger.info('found working port at %s', udevice.name)
 
-                device_names.append(udevice.device)
-                if stop_on_first:
-                    break
+                    device_names.append(udevice.device)
+                    if stop_on_first:
+                        break
+                except Exception as e:
+                    self.logger.warning(f"Error attempting to connect to serial port: {e}")
             if stop_on_first and device_names:
                 break
         return device_names
@@ -270,6 +274,23 @@ class Modem(IModem):
                 return '[1,0]' #this is connection closed for hologram cloud response
 
         return self.read_socket()
+
+    def send_sms_message(self, phonenumber, message, timeout=DEFAULT_SEND_TIMEOUT):
+        self.command("+CMGF", "1")
+
+        ctrl_z = chr(26).encode('utf-8')
+        ok, r = self.command(
+            "+CMGS",
+            f"\"{phonenumber}\"",
+            prompt=b">",
+            data=f"{message}\r",
+            commit_cmd=ctrl_z,
+            timeout=timeout
+        )
+
+        self.command("+CMGF", "0")
+        return ok == ModemResult.OK
+        
 
     def pop_received_message(self):
         self.checkURC()
@@ -497,7 +518,7 @@ class Modem(IModem):
 
     def __command_helper(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         self.result = ModemResult.Timeout
 
         if cmd.endswith('?'):
@@ -528,6 +549,8 @@ class Modem(IModem):
                 if prompt in p:
                     time.sleep(1)
                     self._write_to_serial_port_and_flush(data)
+                    if commit_cmd:
+                        self.debugwrite(commit_cmd, hide=True)
 
             self.result = self.process_response(cmd, timeout, hide=hide)
             if self.result == ModemResult.OK:
@@ -785,10 +808,10 @@ class Modem(IModem):
 
     def command(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         try:
             return self.__command_helper(cmd, value, expected, timeout,
-                    retries, seteq, read, prompt, data, hide)
+                    retries, seteq, read, prompt, data, hide, commit_cmd)
         except serial.serialutil.SerialTimeoutException as e:
             self.logger.debug('unable to write to port')
             self.result = ModemResult.Error
@@ -844,6 +867,10 @@ class Modem(IModem):
 
     def __set_hex_mode(self, enable_hex_mode):
         self.command('+UDCONF', '1,%d' % enable_hex_mode)
+    
+    @property
+    def details(self):
+        return f"{self.description} at port: {self.device_name}"
 
     @property
     def serial_port(self):
