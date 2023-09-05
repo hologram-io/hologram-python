@@ -61,8 +61,8 @@ function install_software() {
 }
 
 function check_python_version() {
-    if ! python3 -V | grep '3.[7-9].[0-9]' > /dev/null 2>&1; then
-        echo "An unsupported version of python 3 is installed. Must have python 3.7+ installed to use the Hologram SDK"
+    if ! python3 -V | grep '3.[9-11].[0-9]' > /dev/null 2>&1; then
+        echo "An unsupported version of python 3 is installed. Must have python 3.9+ installed to use the Hologram SDK"
         exit 1
     fi
 }
