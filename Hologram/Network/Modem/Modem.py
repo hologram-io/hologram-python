@@ -57,7 +57,7 @@ class Modem(IModem):
         0x2F: u'\\',
     }
 
-    # We use device_name instead of serial port, if device name is set we skip searching for a serial port
+    # The device_name is the same as the serial port, only provide a device_name if you dont want it to be autodectected
     def __init__(self, device_name=None, baud_rate='9600',
                  chatscript_file=None, event=Event()):
 
