@@ -231,14 +231,22 @@ class Cellular(Network):
     @staticmethod
     def scan_for_all_usable_modems() -> list[Modem]:
         modems = []
+        unique_imeis = set()
         for (_, modemHandler) in Cellular._modemHandlers.items():
             modem_exists = Cellular._does_modem_exist_for_handler(modemHandler)
             if modem_exists:
-                test_handler = modemHandler()
-                usable_ports = test_handler.detect_usable_serial_port(stop_on_first=False)
-                for port in usable_ports:
-                    modem = modemHandler(device_name=port)
-                    modems.append(modem)
+                try:
+                    test_handler = modemHandler()
+                    usable_ports = test_handler.detect_usable_serial_port(stop_on_first=False)
+                    for port in usable_ports:
+                        modem = modemHandler(device_name=port)
+                        imei = modem.imei
+                        if imei not in unique_imeis:
+                            unique_imeis.add(imei)
+                            modems.append(modem)
+                except Exception:
+                    # Any exception already logged up the chain
+                    pass
         return modems
 
 
