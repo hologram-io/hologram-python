@@ -217,6 +217,8 @@ class Modem(IModem):
                         break
                 except Exception as e:
                     self.logger.warning(f"Error attempting to connect to serial port: {e}")
+
+                self.closeSerialPort()
             if stop_on_first and device_names:
                 break
         return device_names
@@ -228,6 +230,7 @@ class Modem(IModem):
     def initialize_serial_interface(self):
         self.openSerialPort()
         self.init_serial_commands()
+        self.closeSerialPort()
 
     def init_serial_commands(self):
         self.command("E0") #echo off
