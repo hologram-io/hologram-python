@@ -13,13 +13,12 @@ from Hologram.Network.Modem.ModemMode import PPP
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
-from Exceptions.HologramError import SerialError, HologramError, NetworkError, PPPError
+from Exceptions.HologramError import SerialError, NetworkError, PPPError
 
 
 from collections import deque
 import binascii
 import datetime
-import logging
 import os
 import serial
 from serial.tools import list_ports
@@ -35,6 +34,7 @@ class Modem(IModem):
     DEFAULT_SERIAL_TIMEOUT = 1
     DEFAULT_SERIAL_RETRIES = 0
     DEFAULT_SEND_TIMEOUT = 10
+    DEFAULT_PDP_CONTEXT = 1
 
     _RETRY_DELAY = 0.05  # 50 millisecond delay to avoid spinning loops
 
@@ -58,8 +58,8 @@ class Modem(IModem):
     }
 
     # The device_name is the same as the serial port, only provide a device_name if you dont want it to be autodectected
-    def __init__(self, device_name=None, baud_rate='9600',
-                 chatscript_file=None, event=Event()):
+    def __init__(self, device_name=None, baud_rate='9600', chatscript_file=None, 
+                 event=Event(), apn='hologram', pdp_context=1):
 
         super().__init__(device_name=device_name, baud_rate=baud_rate,
                                     event=event)
@@ -75,7 +75,8 @@ class Modem(IModem):
         self.result = ModemResult.OK
         self.debug_out = ''
         self.in_ext = False
-        self._apn = 'hologram'
+        self._apn = apn
+        self._pdp_context = pdp_context
 
         self._initialize_device_name(device_name)
 
@@ -741,6 +742,10 @@ class Modem(IModem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
+
+        if self._pdp_context != Modem.DEFAULT_PDP_CONTEXT:
+            self.set('+UPSD', f'0,100,{self._pdp_context}')
+            
         self.set('+UPSD', f'0,1,\"{self._apn}\"')
         self.set('+UPSD', '0,7,\"0.0.0.0\"')
         ok, _ = self.set('+UPSDA', '0,3', timeout=30)
@@ -973,4 +978,12 @@ class Modem(IModem):
     @apn.setter
     def apn(self, apn):
         self._apn = apn
-        return self.set('+CGDCONT', f'1,"IP","{self._apn}"')
+        return self.set('+CGDCONT', f'{self._pdp_context},"IP","{self._apn}"')
+    
+    @property
+    def pdp_context(self):
+        return self._pdp_context
+    
+    @pdp_context.setter
+    def pdp_context(self, pdp_context):
+        self._pdp_context = pdp_context
