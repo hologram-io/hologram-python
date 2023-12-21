@@ -33,6 +33,7 @@ setup(
     url = 'https://github.com/hologram-io/hologram-python/',
     packages = find_packages(),
     include_package_data = True,
+    tests_require = open('requirements-test.txt').read().split(),
     install_requires = open('requirements.txt').read().split(),
     scripts = ['scripts/hologram'],
     license = 'MIT',
@@ -45,7 +46,7 @@ setup(
         'Topic :: Internet',
         'Topic :: Security :: Cryptography',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.9',
     ],
     **kw
 )

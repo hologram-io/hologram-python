@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-required_programs=('python3' 'pip3' 'ps' 'kill' 'libpython3.7-dev')
+required_programs=('python3' 'pip3' 'ps' 'kill' 'libpython3.9-dev')
 OS=''
 
 # Check OS.
@@ -58,8 +58,8 @@ function install_software() {
 }
 
 function check_python_version() {
-    if ! python3 -V | grep '3.[7-9].[0-9]' > /dev/null 2>&1; then
-        echo "An unsupported version of python 3 is installed. Must have python 3.7+ installed to use the Hologram SDK"
+    if ! python3 -V | grep -E '3.(9|1[012]).[0-9]' > /dev/null 2>&1; then
+        echo "An unsupported version of python 3 is installed. Must have python 3.9+ installed to use the Hologram SDK"
         exit 1
     fi
 }
@@ -132,7 +132,7 @@ do
             pause "Installing $program. Press [Enter] key to continue...";
             install_software 'python3-pip'
         fi
-        if ! pip3 -V | grep '3.[7-9]' >/dev/null 2>&1; then
+        if ! pip3 -V | grep -E '3.(9|1[012])' >/dev/null 2>&1; then
             echo "pip3 is installed for an unsupported version of python."
             exit 1
         fi

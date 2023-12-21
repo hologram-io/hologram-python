@@ -13,13 +13,12 @@ from Hologram.Network.Modem.ModemMode import PPP
 from UtilClasses import ModemResult
 from UtilClasses import SMS
 from Hologram.Event import Event
-from Exceptions.HologramError import SerialError, HologramError, NetworkError, PPPError
+from Exceptions.HologramError import SerialError, NetworkError, PPPError
 
 
 from collections import deque
 import binascii
 import datetime
-import logging
 import os
 import serial
 from serial.tools import list_ports
@@ -35,6 +34,7 @@ class Modem(IModem):
     DEFAULT_SERIAL_TIMEOUT = 1
     DEFAULT_SERIAL_RETRIES = 0
     DEFAULT_SEND_TIMEOUT = 10
+    DEFAULT_PDP_CONTEXT = 1
 
     _RETRY_DELAY = 0.05  # 50 millisecond delay to avoid spinning loops
 
@@ -57,8 +57,9 @@ class Modem(IModem):
         0x2F: u'\\',
     }
 
-    def __init__(self, device_name=None, baud_rate='9600',
-                 chatscript_file=None, event=Event()):
+    # The device_name is the same as the serial port, only provide a device_name if you dont want it to be autodectected
+    def __init__(self, device_name=None, baud_rate='9600', chatscript_file=None, 
+                 event=Event(), apn='hologram', pdp_context=1):
 
         super().__init__(device_name=device_name, baud_rate=baud_rate,
                                     event=event)
@@ -74,7 +75,8 @@ class Modem(IModem):
         self.result = ModemResult.OK
         self.debug_out = ''
         self.in_ext = False
-        self._apn = 'hologram'
+        self._apn = apn
+        self._pdp_context = pdp_context
 
         self._initialize_device_name(device_name)
 
@@ -199,20 +201,23 @@ class Modem(IModem):
             # since our usable serial devices usually start at 0.
             udevices = [x for x in list_ports.grep("{0}:{1}".format(vid, pid))]
             for udevice in reversed(udevices):
-                if include_all_ports == False:
-                    self.logger.debug('checking port %s', udevice.name)
-                    port_opened = self.openSerialPort(udevice.device)
-                    if not port_opened:
-                        continue
+                try:
+                    if include_all_ports == False:
+                        self.logger.debug('checking port %s', udevice.name)
+                        port_opened = self.openSerialPort(udevice.device)
+                        if not port_opened:
+                            continue
 
-                    res = self.command('', timeout=1)
-                    if res[0] != ModemResult.OK:
-                        continue
-                    self.logger.info('found working port at %s', udevice.name)
+                        res = self.command('', timeout=1)
+                        if res[0] != ModemResult.OK:
+                            continue
+                        self.logger.info('found working port at %s', udevice.name)
 
-                device_names.append(udevice.device)
-                if stop_on_first:
-                    break
+                    device_names.append(udevice.device)
+                    if stop_on_first:
+                        break
+                except Exception as e:
+                    self.logger.warning(f"Error attempting to connect to serial port: {e}")
             if stop_on_first and device_names:
                 break
         return device_names
@@ -226,7 +231,13 @@ class Modem(IModem):
         self.init_serial_commands()
 
     def init_serial_commands(self):
-        pass
+        self.command("E0") #echo off
+        self.command("+CMEE", "2") #set verbose error codes
+        self.command("+CPIN?")
+        self.set_timezone_configs()
+        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
+        self.set_sms_configs()
+        self.set_network_registration_status()
 
     def set_sms_configs(self):
         self.command("+CMGF", "0") #SMS PDU format
@@ -264,6 +275,23 @@ class Modem(IModem):
                 return '[1,0]' #this is connection closed for hologram cloud response
 
         return self.read_socket()
+
+    def send_sms_message(self, phonenumber, message, timeout=DEFAULT_SEND_TIMEOUT):
+        self.command("+CMGF", "1")
+
+        ctrl_z = chr(26).encode('utf-8')
+        ok, r = self.command(
+            "+CMGS",
+            f"\"{phonenumber}\"",
+            prompt=b">",
+            data=f"{message}\r",
+            commit_cmd=ctrl_z,
+            timeout=timeout
+        )
+
+        self.command("+CMGF", "0")
+        return ok == ModemResult.OK
+        
 
     def pop_received_message(self):
         self.checkURC()
@@ -491,7 +519,7 @@ class Modem(IModem):
 
     def __command_helper(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         self.result = ModemResult.Timeout
 
         if cmd.endswith('?'):
@@ -522,6 +550,8 @@ class Modem(IModem):
                 if prompt in p:
                     time.sleep(1)
                     self._write_to_serial_port_and_flush(data)
+                    if commit_cmd:
+                        self.debugwrite(commit_cmd, hide=True)
 
             self.result = self.process_response(cmd, timeout, hide=hide)
             if self.result == ModemResult.OK:
@@ -712,6 +742,10 @@ class Modem(IModem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
+
+        if self._pdp_context != Modem.DEFAULT_PDP_CONTEXT:
+            self.set('+UPSD', f'0,100,{self._pdp_context}')
+            
         self.set('+UPSD', f'0,1,\"{self._apn}\"')
         self.set('+UPSD', '0,7,\"0.0.0.0\"')
         ok, _ = self.set('+UPSDA', '0,3', timeout=30)
@@ -720,6 +754,15 @@ class Modem(IModem):
             raise NetworkError('Failed PDP context setup')
         else:
             self.logger.info('PDP context active')
+
+    def _tear_down_pdp_context(self):
+        if not self._is_pdp_context_active(): return True
+        self.logger.info('Tearing down PDP context')
+        ok, _ = self.set('+UPSDA', '0,4', timeout=30)
+        if ok != ModemResult.OK:
+            self.logger.error('PDP Context tear down failed')
+        else:
+            self.logger.info('PDP context deactivated')
 
 
     def __enforce_serial_port_open(self):
@@ -770,10 +813,10 @@ class Modem(IModem):
 
     def command(self, cmd='', value=None, expected=None, timeout=None,
                 retries=DEFAULT_SERIAL_RETRIES, seteq=False, read=False,
-                prompt=None, data=None, hide=False):
+                prompt=None, data=None, hide=False, commit_cmd=None):
         try:
             return self.__command_helper(cmd, value, expected, timeout,
-                    retries, seteq, read, prompt, data, hide)
+                    retries, seteq, read, prompt, data, hide, commit_cmd)
         except serial.serialutil.SerialTimeoutException as e:
             self.logger.debug('unable to write to port')
             self.result = ModemResult.Error
@@ -829,6 +872,10 @@ class Modem(IModem):
 
     def __set_hex_mode(self, enable_hex_mode):
         self.command('+UDCONF', '1,%d' % enable_hex_mode)
+    
+    @property
+    def details(self):
+        return f"{self.description} at port: {self.device_name}"
 
     @property
     def serial_port(self):
@@ -856,14 +903,16 @@ class Modem(IModem):
 
     @property
     def iccid(self):
-        return self._basic_command('+CCID')
+        return self._basic_command('+CCID').rstrip('F')
 
     @property
     def operator(self):
-        op = self._basic_set('+UDOPN','12')
-        if op is not None:
-            return op.strip('"')
-        return op
+        ret = self._basic_command('+COPS?')
+        if ret is not None:
+            parts = ret.split(',')
+            if len(parts) >= 3:
+                return parts[2].strip('"')
+        return None
 
     @property
     def location(self):
@@ -929,4 +978,12 @@ class Modem(IModem):
     @apn.setter
     def apn(self, apn):
         self._apn = apn
-        return self.set('+CGDCONT', f'1,"IP","{self._apn}"')
+        return self.set('+CGDCONT', f'{self._pdp_context},"IP","{self._apn}"')
+    
+    @property
+    def pdp_context(self):
+        return self._pdp_context
+    
+    @pdp_context.setter
+    def pdp_context(self, pdp_context):
+        self._pdp_context = pdp_context

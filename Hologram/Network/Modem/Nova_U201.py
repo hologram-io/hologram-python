@@ -50,6 +50,10 @@ class Nova_U201(Nova):
         self._set_up_pdp_context()
         super().create_socket()
 
+    def close_socket(self, socket_identifier=None):
+        super().close_socket(socket_identifier)
+        self._tear_down_pdp_context()
+
     def is_registered(self):
         return self.check_registered('+CREG') or self.check_registered('+CGREG')
 
@@ -66,16 +70,6 @@ class Nova_U201(Nova):
             devices = self.detect_usable_serial_port()
             self.device_name = devices[0]
             super().initialize_serial_interface()
-
-    def init_serial_commands(self):
-        self.command("E0") #echo off
-        self.command("+CMEE", "2") #set verbose error codes
-        self.command("+CPIN?")
-        self.set_timezone_configs()
-        #self.command("+CPIN", "") #set SIM PIN
-        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
-        self.set_sms_configs()
-        self.set_network_registration_status()
 
     def set_network_registration_status(self):
         self.command("+CREG", "2")
@@ -130,3 +124,10 @@ class Nova_U201(Nova):
     @property
     def description(self):
         return 'Hologram Nova Global 3G/2G Cellular USB Modem (U201)'
+
+    @property
+    def operator(self):
+        op = self._basic_set('+UDOPN','12')
+        if op is not None:
+            return op.strip('"')
+        return op

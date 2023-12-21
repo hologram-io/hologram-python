@@ -10,6 +10,8 @@
 #
 
 from Hologram.Network import Wifi, Ethernet, BLE, Cellular
+from typing import Union
+from Hologram.Network.Modem.Modem import Modem
 from Exceptions.HologramError import NetworkError
 import logging
 from logging import NullHandler
@@ -26,7 +28,7 @@ class NetworkManager:
         'ethernet' : Ethernet.Ethernet,
     }
 
-    def __init__(self, event, network):
+    def __init__(self, event, network_name, modem: Union[None, Modem] = None):
 
         # Logging setup.
         self.logger = logging.getLogger(__name__)
@@ -34,7 +36,7 @@ class NetworkManager:
 
         self.event = event
         self.networkActive = False
-        self.network = network
+        self.init_network(network_name, modem)
 
     # EFFECTS: Event handler function that sets the network disconnect flag.
     def networkDisconnected(self):
@@ -50,8 +52,7 @@ class NetworkManager:
     def network(self):
         return self._network
 
-    @network.setter
-    def network(self, network, modem=None):
+    def init_network(self, network, modem: Union[None, Modem] = None):
         if not network: # non-network mode
             self.networkConnected()
             self._network = None

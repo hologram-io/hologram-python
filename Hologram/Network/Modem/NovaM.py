@@ -33,29 +33,11 @@ class NovaM(Nova):
         else:
             self.is_r410 = True
 
-
-    def init_serial_commands(self):
-        self.command("E0") #echo off
-        self.command("+CMEE", "2") #set verbose error codes
-        self.command("+CPIN?")
-        self.command("+CPMS", "\"ME\",\"ME\",\"ME\"")
-        self.set_sms_configs()
-        self.set_network_registration_status()
-
     def set_network_registration_status(self):
         self.command("+CEREG", "2")
 
     def is_registered(self):
         return self.check_registered('+CEREG')
-
-    def close_socket(self, socket_identifier=None):
-
-        if socket_identifier is None:
-            socket_identifier = self.socket_identifier
-
-        ok, r = self.set('+USOCL', "%s" % socket_identifier, timeout=40)
-        if ok != ModemResult.OK:
-            self.logger.error('Failed to close socket')
 
     @property
     def description(self):
@@ -65,16 +47,6 @@ class NovaM(Nova):
     @property
     def location(self):
         raise NotImplementedError('The R404 and R410 do not support Cell Locate at this time')
-
-    @property
-    def operator(self):
-        # R4 series doesn't have UDOPN so need to override
-        ret = self._basic_command('+COPS?')
-        parts = ret.split(',')
-        if len(parts) >= 3:
-            return parts[2].strip('"')
-        return None
-
 
     # same as Modem::connect_socket except with longer timeout
     def connect_socket(self, host, port):

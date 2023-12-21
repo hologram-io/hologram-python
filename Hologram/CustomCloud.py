@@ -12,6 +12,8 @@ import socket
 import sys
 import threading
 import time
+from typing import Union
+from Hologram.Network.Modem.Modem import Modem
 from Hologram.Cloud import Cloud
 from Exceptions.HologramError import HologramError
 
@@ -25,14 +27,15 @@ class CustomCloud(Cloud):
 
     def __init__(self, credentials, send_host='', send_port=0,
                  receive_host='', receive_port=0, enable_inbound=False,
-                 network=''):
+                 network='', modem: Union[None, Modem] = None):
 
         super().__init__(credentials,
                          send_host=send_host,
                          send_port=send_port,
                          receive_host=receive_host,
                          receive_port=receive_port,
-                         network=network)
+                         network=network,
+                         modem=modem)
 
         # Enforce that the send and receive configs are set before using the class.
         if enable_inbound and (receive_host == '' or receive_port == 0):

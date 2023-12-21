@@ -6,6 +6,7 @@
 #
 # test_Modem.py - This file implements unit tests for the Modem class.
 
+from unittest.mock import patch, call
 import pytest
 import sys
 from datetime import datetime
@@ -21,6 +22,9 @@ def mock_write(modem, message):
     return True
 
 def mock_read(modem):
+    return True
+
+def mock_init_commands(modem):
     return True
 
 def mock_readline(modem, timeout=None, hide=False):
@@ -44,14 +48,19 @@ def mock_command_sms(modem, at_command):
 def mock_set_sms(modem, at_command, val):
     return None
 
+def mock_inactive_pdp_context(modem):
+    return False
+
 @pytest.fixture
 def no_serial_port(monkeypatch):
     monkeypatch.setattr(Modem, '_read_from_serial_port', mock_read)
     monkeypatch.setattr(Modem, '_readline_from_serial_port', mock_readline)
     monkeypatch.setattr(Modem, '_write_to_serial_port_and_flush', mock_write)
+    monkeypatch.setattr(Modem, 'init_serial_commands', mock_init_commands)
     monkeypatch.setattr(Modem, 'openSerialPort', mock_open_serial_port)
     monkeypatch.setattr(Modem, 'closeSerialPort', mock_close_serial_port)
     monkeypatch.setattr(Modem, 'detect_usable_serial_port', mock_detect_usable_serial_port)
+    monkeypatch.setattr(Modem, '_is_pdp_context_active', mock_inactive_pdp_context)
 
 @pytest.fixture
 def get_sms(monkeypatch):
@@ -71,6 +80,8 @@ def test_init_modem_no_args(no_serial_port):
     assert(modem.chatscript_file.endswith('/chatscripts/default-script'))
     assert(modem._at_sockets_available == False)
     assert(modem.description == 'Modem')
+    assert(modem.apn == 'hologram')
+    assert(modem.pdp_context == 1)
 
 def test_init_modem_chatscriptfileoverride(no_serial_port):
     modem = Modem(chatscript_file='test-chatscript')
@@ -78,6 +89,14 @@ def test_init_modem_chatscriptfileoverride(no_serial_port):
     assert(modem.socket_identifier == 0)
     assert(modem.chatscript_file == 'test-chatscript')
 
+def test_init_modem_apn(no_serial_port):
+    modem = Modem(apn='hologram2')
+    assert(modem.apn == 'hologram2')
+    
+def test_init_modem_pdp_context(no_serial_port):
+    modem = Modem(pdp_context=3)
+    assert(modem.pdp_context == 3)
+    
 def test_get_result_string(no_serial_port):
     modem = Modem()
     assert(modem.getResultString(0) == 'Modem returned OK')
@@ -93,6 +112,31 @@ def test_get_location(no_serial_port):
     with pytest.raises(NotImplementedError) as e:
         assert(modem.location == 'test location')
         assert('This modem does not support this property' in str(e))
+
+@patch.object(Modem, "set")
+def test_set_up_pdp_context_default(mock_set, no_serial_port):
+    modem = Modem()
+    mock_set.return_value = (ModemResult.OK, None)
+
+    modem._set_up_pdp_context()
+
+    expected_calls = [call('+UPSD', '0,1,\"hologram\"'), 
+                      call('+UPSD', '0,7,\"0.0.0.0\"'), 
+                      call('+UPSDA', '0,3', timeout=30)]
+    mock_set.assert_has_calls(expected_calls, any_order=True)
+
+@patch.object(Modem, "set")
+def test_set_up_pdp_context_custom_apn_and_pdp_context(mock_set, no_serial_port):
+    modem = Modem(apn='hologram2', pdp_context=3)
+    mock_set.return_value = (ModemResult.OK, None)
+
+    modem._set_up_pdp_context()
+
+    expected_calls = [call('+UPSD', '0,100,3'),
+                      call('+UPSD', '0,1,\"hologram2\"'), 
+                      call('+UPSD', '0,7,\"0.0.0.0\"'), 
+                      call('+UPSDA', '0,3', timeout=30)]
+    mock_set.assert_has_calls(expected_calls, any_order=True)
 
 # SMS
 
