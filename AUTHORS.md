@@ -4,3 +4,4 @@
 * Reuben Balik <reuben@hologram.io>
 * Erik Larson <erik@hologram.io>
 * Jeremy Tidemann <jeremy@hologram.io>
+* Parker LeBlanc <parker.leblanc@hologram.io>

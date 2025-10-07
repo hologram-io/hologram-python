@@ -1,5 +1,9 @@
 # What's New in Hologram Python SDK
 
+## v0.10.2
+2025-10-07 Hologram <support@hologram.io>
+* Add support for Quectel EC-25 and EG25
+
 ## v0.10.0
 2023-09-05 Hologram <support@hologram.io>
 * targets python version 3.9
