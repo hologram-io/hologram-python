@@ -11,13 +11,13 @@
 from Hologram.Network.Modem.Quectel import Quectel
 from UtilClasses import ModemResult
 
-DEFAULT_EC21_TIMEOUT = 200
+DEFAULT_EC25_TIMEOUT = 200
 
 
 class EC25(Quectel):
     usb_ids = [("2c7c", "0125")]
 
-    def connect(self, timeout=DEFAULT_EC21_TIMEOUT):
+    def connect(self, timeout=DEFAULT_EC25_TIMEOUT):
         success = super().connect(timeout)
         return success
 
