@@ -19,11 +19,11 @@ from Exceptions.HologramError import SerialError, NetworkError
 
 class Quectel(Modem):
 
-    def __init__(self, device_name=None, baud_rate='9600',
-                 chatscript_file=None, event=Event()):
+    def __init__(self, device_name=None, baud_rate='9600', chatscript_file=None, 
+                 event=Event(), apn='hologram', pdp_context=1):
 
-        super().__init__(device_name=device_name, baud_rate=baud_rate,
-                            chatscript_file=chatscript_file, event=event)
+        super().__init__(device_name=device_name, baud_rate=baud_rate, chatscript_file=chatscript_file, 
+                         event=event, apn=apn, pdp_context=pdp_context)
         self._at_sockets_available = True
         self.urc_response = ''
 
@@ -152,8 +152,8 @@ class Quectel(Modem):
     def _set_up_pdp_context(self):
         if self._is_pdp_context_active(): return True
         self.logger.info('Setting up PDP context')
-        self.set('+QICSGP', f'1,1,\"{self._apn}\",\"\",\"\",1')
-        ok, _ = self.set('+QIACT', '1', timeout=30)
+        self.set('+QICSGP', f'{self._pdp_context},1,\"{self._apn}\",\"\",\"\",1')
+        ok, _ = self.set('+QIACT', f'{self._pdp_context}', timeout=30)
         if ok != ModemResult.OK:
             self.logger.error('PDP Context setup failed')
             raise NetworkError('Failed PDP context setup')
