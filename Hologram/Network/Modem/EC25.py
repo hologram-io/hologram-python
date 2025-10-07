@@ -17,6 +17,9 @@ DEFAULT_EC25_TIMEOUT = 200
 class EC25(Quectel):
     usb_ids = [("2c7c", "0125")]
 
+    def __init__(self, baud_rate="115200", **kwargs):
+        super().__init__(baud_rate=baud_rate, **kwargs)
+
     def connect(self, timeout=DEFAULT_EC25_TIMEOUT):
         success = super().connect(timeout)
         return success
